@@ -26,6 +26,10 @@ import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import Paper from '@material-ui/core/Paper';
 import echart_options from '../../config/echart_configs';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import List from '@material-ui/core/List';
+import ListItemText from '@material-ui/core/ListItemText';
 import { connect } from 'react-redux'
 
 import { loadSignal }  from '../../actions/actions.signal'
@@ -152,10 +156,28 @@ const styles = theme => ({
       },
       myCard:{
         backgroundColor:'#27293D',
-        height:'275px'
+        height:'275px',
+        overflowY:'auto',
+        '&::-webkit-scrollbar': {
+          width: '0.4em'
+        },
+        '&::-webkit-scrollbar-track': {
+          '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.00)'
+        },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: 'rgba(0,0,0,.1)',
+          outline: '1px solid slategrey'
+        }
       },
       myCardTitle:{
         textAlign:'center'
+      },
+      textSignal:{
+        color:'#9a9a9a',
+        marginTop:'4px',
+        letterSpacing:'1.1px',
+        fontSize:'15px',
+        marginLeft:'10px'
       }
 
   
@@ -599,7 +621,27 @@ class Home extends Component{
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
                 <Paper className = {classes.myCard}>
-                  <Typography variant = "h6" color= '#fff'>Señales</Typography>
+                  <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Señales</Typography>
+                  <List>
+                    <ListItem button>
+                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
+                    </ListItem>
+                    <ListItem button>
+                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
+                    </ListItem>
+                    <ListItem button>
+                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
+                    </ListItem>
+                    <ListItem button>
+                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
+                    </ListItem>
+                    <ListItem button>
+                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
+                    </ListItem>
+                    <ListItem button>
+                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
+                    </ListItem>
+                  </List>
                 </Paper>
               </Grid>
             </Grid>
