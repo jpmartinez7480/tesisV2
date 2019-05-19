@@ -11,6 +11,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
 import Timeline from '@material-ui/icons/Timeline';
+import Clear from '@material-ui/icons/Clear';
 import Note from '@material-ui/icons/Note';
 import Header from '../../components/Header/Header';
 import Axios from 'axios';
@@ -21,15 +22,16 @@ import Typography from '@material-ui/core/Typography';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import blue from '@material-ui/core/colors/blue';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
 import Paper from '@material-ui/core/Paper';
 import echart_options from '../../config/echart_configs';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
+import MenuList from '@material-ui/core/MenuList';
+import MenuItem from '@material-ui/core/MenuItem';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
+import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import { connect } from 'react-redux'
 
 import { loadSignal }  from '../../actions/actions.signal'
@@ -49,6 +51,7 @@ const styles = theme => ({
       },
     },
     checked:{},
+    check:{},
     paper: {
       padding: theme.spacing.unit * 2,
       textAlign:'center',
@@ -156,17 +159,18 @@ const styles = theme => ({
       },
       myCard:{
         backgroundColor:'#27293D',
-        height:'275px',
+        height:'250px',
         overflowY:'auto',
         '&::-webkit-scrollbar': {
           width: '0.4em'
         },
         '&::-webkit-scrollbar-track': {
-          '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.00)'
+          '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.2)'
         },
         '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(0,0,0,.1)',
-          outline: '1px solid slategrey'
+          backgroundColor: 'rgba(30,30,47,.8)',
+          outline: '1px solid slategrey',
+          borderRadius:'30px'
         }
       },
       myCardTitle:{
@@ -174,12 +178,31 @@ const styles = theme => ({
       },
       textSignal:{
         color:'#9a9a9a',
-        marginTop:'4px',
+        marginTop:'2px',
         letterSpacing:'1.1px',
         fontSize:'15px',
         marginLeft:'10px'
-      }
-
+      },
+      textSelected:{
+        color:'#fff',
+        marginTop:'2px',
+        letterSpacing:'1.1px',
+        fontSize:'15px',
+        marginLeft:'10px'
+      },
+      selected:{
+        backgroundColor: '#ED7602 !important',
+        color:'#fff'
+      },
+      menuItem:{
+        '&:focus':{
+          backgroundColor: '#ED7602',
+          '& $primary':{
+            color: '#fff'
+          }
+        }
+      },
+      primary:{}
   
   })
 
@@ -206,6 +229,7 @@ class Home extends Component{
             times_checked:true,
             x_points_vfs:[],
             times:[],
+            checked:[1],
             open: false,
             isReadySignal: false,
             loadingGraph: false,
@@ -238,6 +262,22 @@ class Home extends Component{
         this.onChange = this.onChange.bind(this)
         this.handleUploadSignal = this.handleUploadSignal.bind(this)
     }
+
+    handleToggle = value => () => {
+      const { checked } = this.state;
+      const currentIndex = checked.indexOf(value);
+      const newChecked = [...checked];
+  
+      if (currentIndex === -1) {
+        newChecked.push(value);
+      } else {
+        newChecked.splice(currentIndex, 1);
+      }
+      this.setState({
+        checked: newChecked,
+      });
+    }
+  
 
     componentDidUpdate(){
         if(this.state.isReadySignal){
@@ -584,7 +624,7 @@ class Home extends Component{
                           }}
                       />
                       }
-                      label="Mostrar tiempos"
+                      label={<Typography style={{ color: '#9a9a9a' }}>Mostrar tiempos</Typography>}
                     />
                   </Grid>
                 </Grid>
@@ -622,26 +662,39 @@ class Home extends Component{
               <Grid item lg = {2} xl = {2} md = {2}>
                 <Paper className = {classes.myCard}>
                   <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Señales</Typography>
-                  <List>
-                    <ListItem button>
-                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
-                    </ListItem>
-                    <ListItem button>
-                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
-                    </ListItem>
-                    <ListItem button>
-                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
-                    </ListItem>
-                    <ListItem button>
-                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
-                    </ListItem>
-                    <ListItem button>
-                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
-                    </ListItem>
-                    <ListItem button>
-                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/><ListItemText  disableTypography className = {classes.textSignal}>Inicial</ListItemText></ListItemIcon>
-                    </ListItem>
-                  </List>
+                  <MenuList>
+                    <MenuItem button className = {classes.menuItem}>
+                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/>
+                        <ListItemText  disableTypography className = {classes.textSignal} primary = "Inicial"></ListItemText>
+                      </ListItemIcon>
+                    </MenuItem>
+                    <MenuItem button selected classes = {{selected:classes.selected}}>
+                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/>
+                        <ListItemText  disableTypography className = {classes.textSignal} primary = "Mediana"></ListItemText>
+                      </ListItemIcon>
+                    </MenuItem>
+                  </MenuList>
+                </Paper>
+                <Paper className = {classes.myCard} style = {{marginTop:'30px'}}>
+                    <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Historial</Typography>
+                    <List>
+                      <ListItem button style = {{paddingRight:'5px',paddingLeft:'5px'}}>
+                        <ListItemAvatar>
+                          <Checkbox
+                            classes={{
+                              root: classes.rootChecked,
+                              checked: classes.checked,
+                            }}
+                            onChange={this.handleToggle(1)}
+                            checked={this.state.checked.indexOf(1) !== -1}
+                          />
+                        </ListItemAvatar>
+                          <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>F: Mediana</Typography>} secondary = {<Typography style={{ color: 'rgba(154,154,154,0.54)' }}>Orden: 5</Typography>} />
+                        <ListItemSecondaryAction>
+                          <Clear style = {{color: '#D50000',fontSize:'16px'}}/>
+                        </ListItemSecondaryAction>
+                      </ListItem>
+                    </List>
                 </Paper>
               </Grid>
             </Grid>

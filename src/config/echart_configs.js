@@ -25,7 +25,7 @@ const echart_options =
             left: 60,
             right: 60,
             bottom:60,
-            borderColor:'#9a9a9a'
+            borderColor:'rgba(154,154,154,0.54)'
             
         },
         dataZoom: {
@@ -34,7 +34,7 @@ const echart_options =
             end: 1,
             type: 'slider',
             backgroundColor:'rgba(12,134,202,0.4)',
-            borderColor: '#9a9a9a',
+            borderColor: 'rgba(154,154,154,0.54)',
             dataBackground:{
               lineStyle:{
                 color:'#fff'
@@ -45,11 +45,11 @@ const echart_options =
             type: 'category',
             boundaryGap: true,
             axisLabel:{
-              color:'#9a9a9a'
+              color:'rgba(154,154,154,0.54)'
             },
             axisLine:{
               lineStyle:{
-                color:'#9a9a9a',
+                color:'rgba(154,154,154,0.54)',
               }
             }  
         },
@@ -57,18 +57,18 @@ const echart_options =
             type: 'value',
             scale: true,
             nameTextStyle:{
-                color:'#9a9a9a'
+                color:'rgba(154,154,154,0.54)'
             },
             splitLine: {
                 show: false
             },
             boundaryGap: [0.2, 0.2],
             axisLabel:{
-                color:'#9a9a9a'
+                color:'rgba(154,154,154,0.54)'
             },
             axisLine:{
                 lineStyle:{
-                    color:'#9a9a9a',
+                    color:'rgba(154,154,154,0.54)',
                 }
             }
         },
