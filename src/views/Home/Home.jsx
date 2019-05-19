@@ -11,7 +11,6 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
 import Timeline from '@material-ui/icons/Timeline';
-import Clear from '@material-ui/icons/Clear';
 import Note from '@material-ui/icons/Note';
 import Header from '../../components/Header/Header';
 import Axios from 'axios';
@@ -20,20 +19,18 @@ import echarts from 'echarts';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Typography from '@material-ui/core/Typography';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
 import blue from '@material-ui/core/colors/blue';
 import Paper from '@material-ui/core/Paper';
 import echart_options from '../../config/echart_configs';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon'
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
-import MenuList from '@material-ui/core/MenuList';
-import MenuItem from '@material-ui/core/MenuItem';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+
 import { connect } from 'react-redux'
 
+import Signal from '../../components/Card/Signal'
+import History from '../../components/Card/History'
+import Checkbox from '@material-ui/core/Checkbox';
 import { loadSignal }  from '../../actions/actions.signal'
 import { setSignalVSFD } from '../../actions/actions.vsfd'
 import { setSignalVSFI } from '../../actions/actions.vsfi'
@@ -226,9 +223,12 @@ class Home extends Component{
             vsfd_signal:[{"V2":"1"}],
             psa_signal: [{"V4":"1"}],
             co2_signal: [{"V6":"1"}],
+            signals:['Inicial'],
+            history:[{name:'',data:[]}],
             times_checked:true,
             x_points_vfs:[],
             times:[],
+            index_key: 1,
             checked:[1],
             open: false,
             isReadySignal: false,
@@ -263,22 +263,6 @@ class Home extends Component{
         this.handleUploadSignal = this.handleUploadSignal.bind(this)
     }
 
-    handleToggle = value => () => {
-      const { checked } = this.state;
-      const currentIndex = checked.indexOf(value);
-      const newChecked = [...checked];
-  
-      if (currentIndex === -1) {
-        newChecked.push(value);
-      } else {
-        newChecked.splice(currentIndex, 1);
-      }
-      this.setState({
-        checked: newChecked,
-      });
-    }
-  
-
     componentDidUpdate(){
         if(this.state.isReadySignal){
             let echart1 = this.refs.echarts_react_1.getEchartsInstance();
@@ -303,8 +287,7 @@ class Home extends Component{
     };
 
     onChange(e){
-        this.setState({filename:e.target.files[0]})
-
+      this.setState({filename:e.target.files[0]})
     }
 
     fetchVFS(json){
@@ -356,6 +339,13 @@ class Home extends Component{
       else if(event.target.value === 'median')
         this.setState({ filter: event.target.value, title_filter: title_median, text_filter: text_median}, () => this.handleOpenMedian());
     };
+
+    add = () =>{
+      const aux = this.state.signals
+      aux.push('Mediana')
+      this.setState({signals:aux})
+      console.log(this.state.signals)
+    }
 
 
     getOption_VFSD = () => ({
@@ -660,42 +650,8 @@ class Home extends Component{
                   </Paper>
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
-                <Paper className = {classes.myCard}>
-                  <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Señales</Typography>
-                  <MenuList>
-                    <MenuItem button className = {classes.menuItem}>
-                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/>
-                        <ListItemText  disableTypography className = {classes.textSignal} primary = "Inicial"></ListItemText>
-                      </ListItemIcon>
-                    </MenuItem>
-                    <MenuItem button selected classes = {{selected:classes.selected}}>
-                      <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/>
-                        <ListItemText  disableTypography className = {classes.textSignal} primary = "Mediana"></ListItemText>
-                      </ListItemIcon>
-                    </MenuItem>
-                  </MenuList>
-                </Paper>
-                <Paper className = {classes.myCard} style = {{marginTop:'30px'}}>
-                    <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Historial</Typography>
-                    <List>
-                      <ListItem button style = {{paddingRight:'5px',paddingLeft:'5px'}}>
-                        <ListItemAvatar>
-                          <Checkbox
-                            classes={{
-                              root: classes.rootChecked,
-                              checked: classes.checked,
-                            }}
-                            onChange={this.handleToggle(1)}
-                            checked={this.state.checked.indexOf(1) !== -1}
-                          />
-                        </ListItemAvatar>
-                          <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>F: Mediana</Typography>} secondary = {<Typography style={{ color: 'rgba(154,154,154,0.54)' }}>Orden: 5</Typography>} />
-                        <ListItemSecondaryAction>
-                          <Clear style = {{color: '#D50000',fontSize:'16px'}}/>
-                        </ListItemSecondaryAction>
-                      </ListItem>
-                    </List>
-                </Paper>
+                <Signal key = {this.state.index_key} signals = {this.state.signals}/>
+                <History key = {this.state.index_key} history = {this.state.history} />
               </Grid>
             </Grid>
           </div>
