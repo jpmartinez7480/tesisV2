@@ -176,7 +176,7 @@ class MiniDrawer extends React.Component {
   handleDrawerClose = () => {
     this.setState({ open: false });
   };
-
+  
   render() {
     const { classes, theme } = this.props;
     const { auth, anchorEl } = this.state;
@@ -193,7 +193,7 @@ class MiniDrawer extends React.Component {
             <img src={logo} alt = "logo" className={classes.logo}></img>
         </Toolbar>
         </AppBar>
-        <Drawer
+        {/*<Drawer
           variant="permanent"
           className={classNames(classes.drawer, {
             [classes.drawerOpen]: this.state.open,
@@ -208,20 +208,20 @@ class MiniDrawer extends React.Component {
           open={this.state.open}
         > 
           <List className={classes.iconsAction}>
-                <ListItem button className={classes.itemAction}>
-                    <ListItemIcon className = {classes.myIcon}><NoteAdd className = {classes.iconStyle}/></ListItemIcon>
-                </ListItem>
-                <ListItem button className={classes.itemAction}>
-                    <ListItemIcon className = {classes.myIcon}><Crop /></ListItemIcon>
-                </ListItem>
-                <ListItem button className={classes.itemAction}>
-                    <ListItemIcon className = {classes.myIcon}><FavoriteOutlined /></ListItemIcon>
-                </ListItem>
-                <ListItem button className={classes.itemAction}>
-                    <ListItemIcon className = {classes.myIcon}><Save /></ListItemIcon>
-                </ListItem>
-            </List>
-        </Drawer>
+            <ListItem button className={classes.itemAction}>
+              <ListItemIcon className = {classes.myIcon}><NoteAdd className = {classes.iconStyle}/></ListItemIcon>
+            </ListItem>
+            <ListItem button className={classes.itemAction}>
+              <ListItemIcon className = {classes.myIcon}><Crop /></ListItemIcon>
+            </ListItem>
+            <ListItem button className={classes.itemAction}>
+              <ListItemIcon className = {classes.myIcon}><FavoriteOutlined /></ListItemIcon>
+            </ListItem>
+            <ListItem button className={classes.itemAction}>
+              <ListItemIcon className = {classes.myIcon}><Save /></ListItemIcon>
+            </ListItem>
+          </List>
+        </Drawer>*/}
       </div>
     );
   }

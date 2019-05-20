@@ -72,7 +72,7 @@ class Signal extends Component{
                 <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Señales</Typography>
                     <MenuList>
                         {this.state.signals.map((s,index) => (
-                           <MenuItem button className = {classes.menuItem} key = {index}>
+                            <MenuItem button className = {classes.menuItem} key = {index} classes = {{selected:classes.selected}} >
                                 <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/>
                                     <ListItemText  disableTypography className = {classes.textSignal} primary = {s}></ListItemText>
                                 </ListItemIcon>

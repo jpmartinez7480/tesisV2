@@ -12,44 +12,49 @@ import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import Checkbox from '@material-ui/core/Checkbox';
 import Clear from '@material-ui/icons/Clear';
 
+import blue from '@material-ui/core/colors/blue';
+
 const styles = theme => ({
-    myCard:{
-        backgroundColor:'#27293D',
-        height:'250px',
-        overflowY:'auto',
-        '&::-webkit-scrollbar': {
-          width: '0.4em'
-        },
-        '&::-webkit-scrollbar-track': {
-          '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.2)'
-        },
-        '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(30,30,47,.8)',
-          outline: '1px solid slategrey',
-          borderRadius:'30px'
-        }
+  rootChecked:{
+    color:blue[700],
+    '&$checked': {
+      color: blue[600],
+    },
+  },
+  checked:{},
+  myCard:{
+      backgroundColor:'#27293D',
+      height:'250px',
+      overflowY:'auto',
+      '&::-webkit-scrollbar': {
+        width: '0.4em'
       },
-      myCardTitle:{
-        textAlign:'center'
+      '&::-webkit-scrollbar-track': {
+        '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.2)'
       },
-      textSignal:{
-        color:'#9a9a9a',
-        marginTop:'2px',
-        letterSpacing:'1.1px',
-        fontSize:'15px',
-        marginLeft:'10px'
-      },
-      textSelected:{
-        color:'#fff',
-        marginTop:'2px',
-        letterSpacing:'1.1px',
-        fontSize:'15px',
-        marginLeft:'10px'
-      },
-      selected:{
-        backgroundColor: '#ED7602 !important',
-        color:'#fff'
-      },
+      '&::-webkit-scrollbar-thumb': {
+        backgroundColor: 'rgba(30,30,47,.8)',
+        outline: '1px solid slategrey',
+        borderRadius:'30px'
+      }
+    },
+    myCardTitle:{
+      textAlign:'center'
+    },
+    textSignal:{
+      color:'#9a9a9a',
+      marginTop:'2px',
+      letterSpacing:'1.1px',
+      fontSize:'15px',
+      marginLeft:'10px'
+    },
+    textSelected:{
+      color:'#fff',
+      marginTop:'2px',
+      letterSpacing:'1.1px',
+      fontSize:'15px',
+      marginLeft:'10px'
+    },
 })
 
 
@@ -59,7 +64,8 @@ class Signal extends Component{
         this.state = {
             history: this.props.history,
             key: this.props.key,
-            active: 1
+            active: 1,
+            checked:[1],
         }
     }
 
@@ -88,7 +94,8 @@ class Signal extends Component{
             <Paper className = {classes.myCard} style = {{marginTop:'30px'}}>
               <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Historial</Typography>
               <List>
-                {this.state.history.map((h,index) => (
+                {this.props.history.length !== 0 ? 
+                  this.state.history.map((h,index) => (
                   <ListItem button style = {{paddingRight:'5px',paddingLeft:'5px'}} key = {index}>
                     <ListItemAvatar>
                       <Checkbox
@@ -105,8 +112,10 @@ class Signal extends Component{
                       <Clear style = {{color: '#D50000',fontSize:'16px'}}/>
                     </ListItemSecondaryAction>
                 </ListItem>
-                ))}
-                
+                ))
+                :
+                <Typography  variant = "body2" align = "center" style = {{color:'#9a9a9a',letterSpacing:'1.1px',paddingTop:'5px',fontStyle:'italic',fontSize:'0.667em'}}>No ha usado ningún filtro</Typography>
+              }
               </List>
             </Paper>
         )

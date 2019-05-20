@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-
+import classNames from 'classnames';
 import Grid from '@material-ui/core/Grid';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -22,10 +22,22 @@ import FormControlLabel from '@material-ui/core/FormControlLabel';
 import blue from '@material-ui/core/colors/blue';
 import Paper from '@material-ui/core/Paper';
 import echart_options from '../../config/echart_configs';
+import echart_colors from '../../config/echart_colors';
 import ListItem from '@material-ui/core/ListItem';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
-
+import Drawer from '@material-ui/core/Drawer';
+import ListItemIcon from '@material-ui/core/ListItemIcon'
+import Crop from '@material-ui/icons/Crop';
+import NoteAdd from '@material-ui/icons/NoteAdd';
+import Save from '@material-ui/icons/Save';
+import Functions from '@material-ui/icons/Functions';
+import FavoriteOutlined from '@material-ui/icons/FavoriteOutlined'
+import Input from '@material-ui/core/Input';
+import InputLabel from '@material-ui/core/InputLabel';
+import Select from '@material-ui/core/Select';
+import MenuItem from '@material-ui/core/MenuItem';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import { connect } from 'react-redux'
 
 import Signal from '../../components/Card/Signal'
@@ -99,7 +111,7 @@ const styles = theme => ({
       margin: `${theme.spacing.unit}px 0`,
       flexDirection:'row'
     },
-    myIcon:{
+    myIcon2:{
         fill: '#9a9a9a',
         fontSize: '80px'
     },
@@ -151,7 +163,7 @@ const styles = theme => ({
       },
       describeSignal:{
         color:'#9a9a9a',
-        letterSpacing:'15%',
+        letterSpacing:'1.1px',
         fontSize:'15px'
       },
       myCard:{
@@ -199,7 +211,37 @@ const styles = theme => ({
           }
         }
       },
-      primary:{}
+      primary:{},
+      menuButton: {
+        marginLeft: 12,
+        marginRight: 36,
+      },
+      drawer: {
+       
+        [theme.breakpoints.up('sm')]: {
+          width: theme.spacing.unit * 7 + 1,
+          backgroundColor: '#27293D',
+          boxShadow:'0 1px 20px 0 rgba(0,0,0,.1)',
+          overflowX: 'hidden',
+          height:'auto',
+          top:'200px',
+          borderRadius:'10px',
+        },
+      },
+      myIcon:{
+        color: 'white',
+        flexDirection: 'column',
+      },
+      iconsAction:{
+        marginTop:'20px',
+      },
+      itemAction: {
+        marginBottom:'15px',
+      },
+      avatar: {
+        color:'#fff',
+        backgroundColor:blue[500]
+      },
   
   })
 
@@ -224,7 +266,7 @@ class Home extends Component{
             psa_signal: [{"V4":"1"}],
             co2_signal: [{"V6":"1"}],
             signals:['Inicial'],
-            history:[{name:'',data:[]}],
+            history:[],
             times_checked:true,
             x_points_vfs:[],
             times:[],
@@ -233,7 +275,27 @@ class Home extends Component{
             open: false,
             isReadySignal: false,
             loadingGraph: false,
-            filter: '-',
+            filter: '',
+            v1: '',
+            v2: '',
+            indexSignal:0,
+            colorSignal: '',
+            serie_vfsd: [],
+            serie_vfsi: [],
+            serie_psa: [],
+            serie_co2: [],
+            data_filter_VFS: [{name:'VFSD',textStyle:echart_options.textStyle}],
+            data_filter_VFSI: [{name:'VFSI',textStyle:echart_options.textStyle}],
+            data_filter_PSA: [{name:'PSA',textStyle:echart_options.textStyle}],
+            data_filter_CO2: [{name:'CO2',textStyle:echart_options.textStyle}],
+            open_hermite: false,
+            open_median: false,
+            open_hampel: false,
+            open_butterworth: false,
+            open_auto: false,
+            openWait: false,
+            title_filter: '',
+            text_filter:'',
             helper_text:'Pase el mouse sobre un ícono para ver detalle',
             filters: [
               {
@@ -261,6 +323,7 @@ class Home extends Component{
         }
         this.onChange = this.onChange.bind(this)
         this.handleUploadSignal = this.handleUploadSignal.bind(this)
+        this.handleSendFilter = this.handleSendFilter.bind(this)
     }
 
     componentDidUpdate(){
@@ -278,8 +341,57 @@ class Home extends Component{
         
     }
 
+    handleOpenHermite = () => {
+      this.setState({open_hermite:true})
+    }
+
+    handleOpenMedian = () => {
+      this.setState({open_median:true})
+    }
+
+    handleOpenHampel = () => {
+      this.setState({open_hampel:true})
+    }
+
+    handleOpenButterworth = () => {
+      this.setState({open_butterworth:true})
+    }
+
+    handleOpenWait = () => {
+      this.setState({openWait: true})
+    }
+
+    handleCloseHermite = () => {
+      this.setState({open_hermite: false})
+    }
+
+    handleCloseMedian = () => {
+      this.setState({open_median: false})
+    }
+
+    handleCloseHampel = () => {
+      this.setState({open_hampel: false})
+    }
+
+    handleCloseButterworth = () => {
+      this.setState({open_butterworth: false})
+    }
+
+    handleCloseWait = () => {
+      this.setState({openWait: false})
+    }
+
+    handleChange = (event, value) => {
+        this.setState({ value });
+    };
+    
+    
+    handleChangeInput = name => event => {
+      this.setState({ [name]: event.target.value });
+    };
+
     handleClickOpen = () => {
-        this.setState({ open: true });
+        this.setState({ loadingGraph:false,open: true });
     };
     
     handleClose = () => {
@@ -288,6 +400,121 @@ class Home extends Component{
 
     onChange(e){
       this.setState({filename:e.target.files[0]})
+    }
+
+    sendFilterHermite2(){
+      let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
+      let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
+      let psa = this.state.serie_psa[this.state.indexSignal].data
+      let co2 = this.state.serie_co2[this.state.indexSignal].data
+      let signal_to_filter = [vfsd,vfsi,psa,co2]
+
+      var obj = {
+        signal:JSON.stringify(signal_to_filter)
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost/ocpu/user/juanpablo/library/hermiteSplineFilter/R/getHermiteSplineInterpolation/json',
+        data: obj
+      })
+      //.then(res => {this.setState({vsfd_filter: res.data}, () => this.updateDataFilter())})
+      //.then(res => {this.setState({vsfd_filter: res.data[0],vsfi_filter:res.data[1],psa_filter:res.data[2]}, () => this.updateDataFilter())})
+      .then(res => {
+        this.updateDataFilter('Hermite')
+        this.state.serie_vfsd.push({name:'Hermite',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hermite}})
+        this.state.serie_vfsi.push({name:'Hermite',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hermite}})
+        this.state.serie_psa.push({name:'Hermite',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hermite}})
+        this.updateOptions()
+        //agregar co2
+      })
+    }
+
+    getFilterHampel(){
+      let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
+      let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
+      let psa = this.state.serie_psa[this.state.indexSignal].data
+      let co2 = this.state.serie_co2[this.state.indexSignal].data
+      let signal_to_filter = [vfsd,vfsi,psa,co2]
+      var obj = {
+        signal:JSON.stringify(signal_to_filter),
+        window: parseInt(this.state.v1),
+        threshold: parseFloat(this.state.v2)
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost/ocpu/user/juanpablo/library/HampelFilter/R/hampelFilter/json',
+        data: obj
+      })
+      //.then(res => {this.setState({vsfd_filter_hampel: res.data[0],vsfi_filter_hampel:res.data[1],psa_filter_hampel:res.data[2]}, () => this.updateDataFilterHampel())})
+      .then(res => {
+        this.updateDataFilter('Hampel')
+        this.state.serie_vfsd.push({name:'Hampel',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hampel}})
+        this.state.serie_vfsi.push({name:'Hampel',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hampel}})
+        this.state.serie_psa.push({name:'Hampel',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hampel}})
+        this.updateOptions()
+        //agregar co2
+      })
+    }
+
+    getFilterButterworth(){
+      let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
+      let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
+      let psa = this.state.serie_psa[this.state.indexSignal].data
+      let co2 = this.state.serie_co2[this.state.indexSignal].data
+      let signal_to_filter = [vfsd,vfsi,psa,co2]
+      var obj = {
+        signal:JSON.stringify(signal_to_filter),
+        order: parseInt(this.state.v1),
+        frecuency: parseFloat(this.state.v2)
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost/ocpu/user/juanpablo/library/butterworthFilter/R/butterworthFilter/json',
+        data: obj
+      })
+      //.then(res => {this.setState({vsfd_filter_butterworth: res.data[0],vsfi_filter_butterworth:res.data[1],psa_filter_butterworth:res.data[2]}, () => this.updateDataFilterButterworth())})
+      .then(res => {
+        this.updateDataFilter('Butterworth')
+        this.state.serie_vfsd.push({name:'Butterworth',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.butterworth}})
+        this.state.serie_vfsi.push({name:'Butterworth',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.butterworth}})
+        this.state.serie_psa.push({name:'Butterworth',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.butterworth}})
+        this.updateOptions()
+        //agregar co2
+      })
+    }
+
+    getFilterMedian(){
+      let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
+      let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
+      let psa = this.state.serie_psa[this.state.indexSignal].data
+      let co2 = this.state.serie_co2[this.state.indexSignal].data
+      let signal_to_filter = [vfsd,vfsi,psa,co2]
+      var obj = {
+        signal:JSON.stringify(signal_to_filter),
+        order: parseInt(this.state.v1),
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost/ocpu/user/juanpablo/library/medianFilter/R/MedianFilter/json',
+        data: obj
+      })
+      //.then(res => {this.setState({vsfd_filter_median: res.data[0],vsfi_filter_median:res.data[1],psa_filter_median:res.data[2]}, () => this.updateDataFilterMedian())})
+      .then(res => {
+        this.updateDataFilter('Mediana')
+        this.state.serie_vfsd.push({name:'Mediana',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
+        this.state.serie_vfsi.push({name:'Mediana',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
+        this.state.serie_psa.push({name:'Mediana',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
+        this.updateOptions()
+        //agregar co2
+      })
+    }
+
+    updateDataFilter(filter){
+      this.state.data_filter_VFS.push({name:filter,textStyle:echart_options.textStyle})
+      this.state.data_filter_VFSI.push({name:filter,textStyle:echart_options.textStyle})
+      this.state.data_filter_PSA.push({name:filter,textStyle:echart_options.textStyle})
+      this.state.data_filter_CO2.push({name:filter,textStyle:echart_options.textStyle})
+      this.handleCloseWait()
     }
 
     fetchVFS(json){
@@ -303,12 +530,16 @@ class Home extends Component{
             co2.push(Number(json[i].V6))
             x_points.push(i)
         }
-        this.setState({vsfi_signal:vsfi}, () => this.props.setSignalVSFI(this.state.vsfi_signal))
+        /*this.setState({vsfi_signal:vsfi}, () => this.props.setSignalVSFI(this.state.vsfi_signal))
         this.setState({vsfd_signal:vsfd}, () => this.props.setSignalVSFD(this.state.vsfd_signal))
         this.setState({psa_signal: psa}, () => this.props.setSignalPSA(this.state.psa_signal))
-        this.setState({co2_signal: co2}, () => this.props.setSignalCO2(this.state.co2_signal))
+        this.setState({co2_signal: co2}, () => this.props.setSignalCO2(this.state.co2_signal))*/
         this.setState({x_points_vfs:x_points})
-        this.setState({isReadySignal:true})
+        this.state.serie_vfsd.push({name:'VFSD',type:'line',data:vsfd,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
+        this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
+        this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
+        this.state.serie_co2.push({name:'CO2',type:'line',data:co2,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#288c6c'}})
+        this.setState({isReadySignal:true}, () => {this.handleClose()})
         
       }
 
@@ -340,13 +571,27 @@ class Home extends Component{
         this.setState({ filter: event.target.value, title_filter: title_median, text_filter: text_median}, () => this.handleOpenMedian());
     };
 
-    add = () =>{
-      const aux = this.state.signals
-      aux.push('Mediana')
-      this.setState({signals:aux})
-      console.log(this.state.signals)
-    }
+    handleSendFilter(event){
+      event.preventDefault()
+      this.state.history.push({name:this.state.filter,color:'#000'})
+      if(this.state.filter === 'hermite'){
+        this.state.signals.push('Hermite')
+        this.setState({openWait: true, open_hermite: false}, () => this.sendFilterHermite2())
+      }
+      else if(this.state.filter === 'hampel'){
+        this.state.signals.push('Hampel')
+        this.setState({openWait: true, open_hampel: false}, () => this.getFilterHampel())
+      }
+      else if(this.state.filter === 'butterworth'){
+        this.state.signals.push('Butterworth')
+        this.setState({openWait: true, open_butterworth: false}, () => this.getFilterButterworth())
+      }
+      else if(this.state.filter === 'median'){
+        this.state.signals.push('Mediana')
+        this.setState({openWait: true, open_median: false}, () => this.getFilterMedian())
+      }
 
+    }
 
     getOption_VFSD = () => ({
         title: {
@@ -383,18 +628,7 @@ class Home extends Component{
               axisLine:echart_options.yAxis.axisLine,
             }
           ],
-          series: [
-            {
-              name:'VFSD',
-              type:'line',
-              data:this.state.vsfd_signal,
-              symbol:echart_options.series.symbol,
-              symbolSize: echart_options.series.symbolSize,
-              itemStyle:{
-                color:'#d22824'
-              },
-            }
-          ],
+          series: this.state.serie_vfsd
           
     });
     getOption_VFSI = () => ({
@@ -432,19 +666,8 @@ class Home extends Component{
           axisLine:echart_options.yAxis.axisLine
         }
       ],
-        series: [
-          {
-            name:'VFSI',
-            type:'line',
-            data:this.state.vsfi_signal,
-            symbol: echart_options.series.symbol,
-            symbolSize: echart_options.series.symbolSize,
-            itemStyle:{
-              color:'#d22824' // color at 0% position
-            }
-          } 
-        ],
-  });
+        series: this.state.serie_vfsi
+    });
     getOption_PSA = () => ({
       title: {
         text:'PSA',
@@ -480,18 +703,7 @@ class Home extends Component{
           axisLine:echart_options.yAxis.axisLine
         }
       ],
-      series: [
-        {
-          name:'PSA',
-          type:'line',
-          symbol: echart_options.series.symbol,
-          symbolSize: echart_options.series.symbolSize,
-          data:this.state.psa_signal,
-          itemStyle:{
-            color:'#029eb1'
-          },
-        },
-      ],      
+      series: this.state.serie_psa
     });
     getOption_CO2 = () => ({
       title: {
@@ -528,26 +740,43 @@ class Home extends Component{
           axisLine:echart_options.yAxis.axisLine
         }
       ],        
-      series: [
-        {
-          name:'CO2',
-          type:'line',
-          symbol: echart_options.series.symbol,
-          symbolSize: echart_options.series.symbolSize,
-          data:this.state.co2_signal,
-          itemStyle:{
-            color:'#288c6c'
-          },
-        },
-      ],        
+      series: this.state.serie_co2
+
     })
+
+    updateOptions(){
+      this.refs.echarts_react_1.getEchartsInstance().setOption({
+        title: {
+          text:'VFSD',
+          textStyle:echart_options.textStyle
+        },
+        tooltip: echart_options.tooltip.trigger,
+        legend: {
+          data:this.state.data_filter_VFS
+        },
+        series:this.state.serie_vfsd
+      })
+      this.refs.echarts_react_2.getEchartsInstance().setOption({
+        legend: {
+          data:this.state.data_filter_VFSI
+        },
+        series:this.state.serie_vfsi
+      })
+      this.refs.echarts_react_3.getEchartsInstance().setOption({
+        legend: {
+          data:this.state.data_filter_PSA
+        },
+        series:this.state.serie_psa
+      })
+    }
+
 
     renderMissingSignal(){
         const { classes } = this.props
         return(
             <div >
                 <div className = {classes.selectSignal}>
-                <Timeline className = {classes.myIcon} />
+                <Timeline className = {classes.myIcon2} />
                 <h1 className = {classes.selectTitle}>Para comenzar cargue una señal</h1>
                 <div className = {classes.nextStep}>
                     <Button 
@@ -594,28 +823,35 @@ class Home extends Component{
 
                 
                 <Grid container style = {{marginBottom:'20px',textAlign:'center',flexGrow:1}}>
-                  <Grid item lg = {4} xl = {4} md = {4}>
+                  <Grid item lg = {4} xl = {4} md = {4} style = {{marginTop:'18px'}}>
                     <p className={classes.describeSignal}>Nombre archivo:<span style = {{fontStyle:'italic'}}>{this.state.filename.name}</span></p>
                   </Grid> 
-                  <Grid item lg = {4} xl = {4} md = {4}>
+                  <Grid item lg = {4} xl = {4} md = {4} style = {{marginTop:'18px'}}>
                     <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>22 min</span></p>
                   </Grid> 
-                  <Grid item lg = {4} xl = {4} md = {4}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          
-                          checked={this.state.times_checked}
-                          onChange={this.handleChange('times_checked')}
-                          value="times_checked"
-                          classes={{
-                            root: classes.rootChecked,
-                            checked: classes.checked,
+                  <Grid item lg = {4} xl = {4} md = {4} >
+                  <form style = {{display:'flex',flexWrap:'wrap'}} autoComplete="off">
+                    <FormControl className={classes.formControl} style = {{marginBottom:0}}>
+                    <InputLabel htmlFor="age-simple" style = {{color:'rgba(154,154,154,0.54)'}}>Filtros</InputLabel>
+                      <Select
+                          name = "filters"
+                          className={classes.textField}
+                          value={this.state.filter}
+                          onChange={this.handleChangeFilter('filter')}
+                          inputProps={{
+                            name: 'filter',
+                            id: 'age-simple',
                           }}
-                      />
-                      }
-                      label={<Typography style={{ color: '#9a9a9a' }}>Mostrar tiempos</Typography>}
-                    />
+                          autoWidth
+                      >
+                        {this.state.filters.map(option => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    </form>
                   </Grid>
                 </Grid>
                 
@@ -651,7 +887,7 @@ class Home extends Component{
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
                 <Signal key = {this.state.index_key} signals = {this.state.signals}/>
-                <History key = {this.state.index_key} history = {this.state.history} />
+                <History key = {this.state.index_key+1} history = {this.state.history} />
               </Grid>
             </Grid>
           </div>
@@ -662,14 +898,183 @@ class Home extends Component{
         const { classes } = this.props
         return(
             <div className = {classes.root}>
-                <Grid container style = {{marginTop:'10px',height:'40px'}}>
-                  <Grid item xl = {12} lg={12} md={12} style = {{backgroundColor:'#27293D',boxShadow:'0 1px 20px 0 rgba(0,0,0,.1)'}}>
-                    <Typography style = {{marginTop:'8px',color:'#9a9a9a',fontStyle:'italic',marginLeft:'10px'}}>{this.state.helper_text}</Typography>
-                  </Grid>
+              <Drawer
+                variant="permanent"
+                classes={{paper: classNames(classes.drawer)}}> 
+                <List className={classes.iconsAction}>
+                  <ListItem button className={classes.itemAction}>
+                    <ListItemIcon className = {classes.myIcon} onClick = {this.handleClickOpen}><NoteAdd className = {classes.iconStyle}/></ListItemIcon>
+                  </ListItem>
+                  <ListItem button className={classes.itemAction}>
+                    <ListItemIcon className = {classes.myIcon}><Crop /></ListItemIcon>
+                  </ListItem>
+                  <ListItem button className={classes.itemAction}>
+                    <ListItemIcon className = {classes.myIcon}><FavoriteOutlined /></ListItemIcon>
+                  </ListItem>
+                  <ListItem button className={classes.itemAction}>
+                    <ListItemIcon className = {classes.myIcon}><Save /></ListItemIcon>
+                  </ListItem>
+                </List>
+              </Drawer>
+              <Grid container style = {{marginTop:'10px',height:'40px'}}>
+                <Grid item xl = {12} lg={12} md={12} style = {{backgroundColor:'#27293D',boxShadow:'0 1px 20px 0 rgba(0,0,0,.1)'}}>
+                  <Typography style = {{marginTop:'8px',color:'#9a9a9a',fontStyle:'italic',marginLeft:'10px'}}>{this.state.helper_text}</Typography>
                 </Grid>
-                <Grid container spacing={40} className ={classes.myGrid}>
-                    {!this.state.isReadySignal ? this.renderMissingSignal() : this.renderSignal()}
-                </Grid>
+              </Grid>
+              <Grid container spacing={40} className ={classes.myGrid}>
+                  {!this.state.isReadySignal ? this.renderMissingSignal() : this.renderSignal()}
+              </Grid>
+              <Dialog 
+                maxWidth="sm"
+                fullWidth={true}
+                open={this.state.open}
+                onClose={this.handleClose}
+                aria-labelledby="max-width-dialog-title"
+              >
+                <DialogTitle id="max-width-dialog-title">Seleccione señal a preprocesar</DialogTitle>
+                <FormControl className={classes.formControl}>
+                    <form onSubmit={this.handleUploadSignal} className = {classes.form}>                                
+                        {!this.state.loadingGraph ? <Note className = {classes.iconFile}/> 
+                            : <LinearProgress classes={{
+                                colorPrimary: classes.linearColorPrimary,
+                                barColorPrimary: classes.linearBarColorPrimary}}
+                        />}
+                        <input type = "file" onChange={this.onChange} />
+                        <Button type = "submit" variant="contained" className = {classes.myPrimaryColor}>Cargar</Button>
+                    </form>
+                </FormControl>
+              </Dialog>
+              <Dialog
+              open={this.state.openWait}
+              onClose={this.handleCloseWait}
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+              maxWidth="sm"
+              fullWidth={true}
+            >
+              <DialogTitle id="alert-dialog-title">Filtrando</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  Por favor espere ... 
+                </DialogContentText>
+                <br />
+                <LinearProgress classes={{
+                                        colorPrimary: classes.linearColorPrimary,
+                                        barColorPrimary: classes.linearBarColorPrimary}} />
+              </DialogContent>
+            </Dialog>
+              {/* Dialog para Hermite */}
+              <Dialog
+                open={this.state.open_hermite}
+                onClose={this.handleCloseHermite}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+              <DialogTitle id="alert-dialog-title">{title_hermite}</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  {text_hermite}
+                </DialogContentText>
+                <Input 
+                  placeholder="Ingrese porcentaje" 
+                  className = {classes.input} 
+                  type="number" 
+                  onChange={this.handleChangeInput('v1')}
+                  endAdornment={<InputAdornment position="end">%</InputAdornment>} 
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.handleCloseHermite} style = {{color: '#2196f3'}}>
+                  No
+                </Button>
+                <Button onClick={this.handleSendFilter} style = {{color: '#2196f3'}} autoFocus>
+                  Si
+                </Button>
+              </DialogActions>
+              </Dialog>     
+              {/* Fin Dialog para Hermite*/}
+              {/* Dialog para Mediana */}
+              <Dialog
+                open={this.state.open_median}
+                onClose={this.handleCloseMedian}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+              <DialogTitle id="alert-dialog-title">{title_median}</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  {text_median}
+                </DialogContentText>
+                <Input 
+                  placeholder="Ingrese orden (ej: 5)" 
+                  className = {classes.input} 
+                  type="number" 
+                  onChange={this.handleChangeInput('v1')}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.handleCloseMedian} style = {{color: '#2196f3'}}>
+                  No
+                </Button>
+                <Button onClick={this.handleSendFilter} style = {{color: '#2196f3'}} autoFocus>
+                  Si
+                </Button>
+              </DialogActions>
+              </Dialog>     
+              {/* Fin Dialog para Mediana*/}
+
+              {/* Dialog para Hampel*/}
+              <Dialog
+                open={this.state.open_hampel}
+                onClose={this.handleCloseHampel}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+              <DialogTitle id="alert-dialog-title">{title_hampel}</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  {text_hampel}
+                </DialogContentText>
+                <Input placeholder="Ventana (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
+                <Input placeholder="Thresold (ej: 1.6)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.handleCloseHampel} style = {{color: '#2196f3'}}>
+                  No
+                </Button>
+                <Button onClick={this.handleSendFilter} style = {{color: '#2196f3'}} autoFocus>
+                  Si
+                </Button>
+              </DialogActions>
+              </Dialog>
+              {/* Fin Dialog para Hampel*/}
+
+              {/* Dialog para Butterworth*/}
+              <Dialog
+                open={this.state.open_butterworth}
+                onClose={this.handleCloseButterworth}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+              <DialogTitle id="alert-dialog-title">{title_butterworth}</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  {text_butterworth}
+                </DialogContentText>
+                <Input placeholder="Orden (ej: 4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
+                <Input placeholder="Corte (ej: 0.4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.handleCloseButterworth} style = {{color: '#2196f3'}}>
+                  No
+                </Button>
+                <Button onClick={this.handleSendFilter} style = {{color: '#2196f3'}} autoFocus>
+                  Si
+                </Button>
+              </DialogActions>
+              </Dialog>
+              {/* Fin Dialog para Butterworth*/}
+
             </div>
             
         )
