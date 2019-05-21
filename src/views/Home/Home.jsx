@@ -406,7 +406,7 @@ class Home extends Component{
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
-      let co2 = this.state.serie_co2[this.state.indexSignal].data
+      let co2 = this.state.serie_co2[0].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
 
       var obj = {
@@ -427,13 +427,14 @@ class Home extends Component{
         this.updateOptions()
         //agregar co2
       })
+      .finally(this.state.history.push({name:this.state.filter,data:'res:'+this.state.signals[this.state.indexSignal]}))
     }
 
     getFilterHampel(){
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
-      let co2 = this.state.serie_co2[this.state.indexSignal].data
+      let co2 = this.state.serie_co2[0].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
       var obj = {
         signal:JSON.stringify(signal_to_filter),
@@ -454,13 +455,14 @@ class Home extends Component{
         this.updateOptions()
         //agregar co2
       })
+      .finally(this.state.history.push({name:this.state.filter,data:'res:'+this.state.signals[this.state.indexSignal]}))
     }
 
     getFilterButterworth(){
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
-      let co2 = this.state.serie_co2[this.state.indexSignal].data
+      let co2 = this.state.serie_co2[0].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
       var obj = {
         signal:JSON.stringify(signal_to_filter),
@@ -481,13 +483,14 @@ class Home extends Component{
         this.updateOptions()
         //agregar co2
       })
+      .finally(this.state.history.push({name:this.state.filter,data:'res:'+this.state.signals[this.state.indexSignal]}))
     }
 
     getFilterMedian(){
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
-      let co2 = this.state.serie_co2[this.state.indexSignal].data
+      let co2 = this.state.serie_co2[0].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
       var obj = {
         signal:JSON.stringify(signal_to_filter),
@@ -500,13 +503,22 @@ class Home extends Component{
       })
       //.then(res => {this.setState({vsfd_filter_median: res.data[0],vsfi_filter_median:res.data[1],psa_filter_median:res.data[2]}, () => this.updateDataFilterMedian())})
       .then(res => {
-        this.updateDataFilter('Mediana')
-        this.state.serie_vfsd.push({name:'Mediana',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
-        this.state.serie_vfsi.push({name:'Mediana',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
-        this.state.serie_psa.push({name:'Mediana',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
+        let filter = 'Mediana'
+        let aux = this.searchSignal(filter,this.state.signals) 
+        if(aux > 1)
+          filter = filter + (aux-1).toString(10)
+        
+        this.updateDataFilter(filter)
+        this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
+        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
+        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
         this.updateOptions()
         //agregar co2
       })
+      .finally(
+        this.state.signals.push("Mediana"+this.searchSignal("Mediana",this.state.signals).toString(10)),
+        this.state.history.push({name:this.state.filter,data:'res: '+this.state.signals[this.state.indexSignal]})
+      )
     }
 
     updateDataFilter(filter){
@@ -573,7 +585,6 @@ class Home extends Component{
 
     handleSendFilter(event){
       event.preventDefault()
-      this.state.history.push({name:this.state.filter,color:'#000'})
       if(this.state.filter === 'hermite'){
         this.state.signals.push('Hermite')
         this.setState({openWait: true, open_hermite: false}, () => this.sendFilterHermite2())
@@ -587,7 +598,7 @@ class Home extends Component{
         this.setState({openWait: true, open_butterworth: false}, () => this.getFilterButterworth())
       }
       else if(this.state.filter === 'median'){
-        this.state.signals.push('Mediana')
+        
         this.setState({openWait: true, open_median: false}, () => this.getFilterMedian())
       }
 
@@ -770,6 +781,29 @@ class Home extends Component{
       })
     }
 
+    onChartClick = (param, echarts) => {
+      console.log(param.seriesIndex)
+      this.setState({indexSignal:param.seriesIndex})
+    };
+
+    searchSignal(signal,signals){
+      var regex = RegExp(signal+'*');
+      return signals.filter(function(s){return regex.test(s)}).length
+    }
+
+    changeIntensityColor(color,num){
+      if(num == 0)  return color
+      else{
+        num = num + 30
+        let [r,g,b] = color.substr(4).split(")")[0].split(",");
+        if((b + num) < 256 && g < 256)
+          return 'rgb('+r.toString(10)+','+g.toString(10)+','+(b+num).toString(10)+')'
+        else if((b+num) > 255 && (g+num)>255)
+          return 'rgb('+(r-1).toString(10)+',111,0)'
+        else return 'rgb('+r.toString(10)+','+g.toString(10)+','+(b+num).toString(10)+')'
+
+      }
+    }
 
     renderMissingSignal(){
         const { classes } = this.props
@@ -814,14 +848,15 @@ class Home extends Component{
 
     renderSignal(){
         const { classes } = this.props
+        let onEvents = {
+          'click': this.onChartClick,
+        };
         return(
           <div style = {{flexGrow:1}}>
             <Grid container spacing={16}>
             
               <Grid item lg = {10} xl = {10} md = {9}>
                 <Paper className = {classes.paper}>
-
-                
                 <Grid container style = {{marginBottom:'20px',textAlign:'center',flexGrow:1}}>
                   <Grid item lg = {4} xl = {4} md = {4} style = {{marginTop:'18px'}}>
                     <p className={classes.describeSignal}>Nombre archivo:<span style = {{fontStyle:'italic'}}>{this.state.filename.name}</span></p>
@@ -861,6 +896,7 @@ class Home extends Component{
                   lazyUpdate={true}
                   //showLoading={true}
                   showZoom={true}
+                  onEvents={onEvents}
                   />
                   <ReactEcharts ref='echarts_react_2'
                   option={this.getOption_VFSI()}
@@ -868,6 +904,7 @@ class Home extends Component{
                   lazyUpdate={true}
                   //showLoading={true}
                   showZoom={true}
+                  onEvents={onEvents}
                   />
                   <ReactEcharts ref='echarts_react_3'
                   option={this.getOption_PSA()}
@@ -875,6 +912,7 @@ class Home extends Component{
                   lazyUpdate={true}
                   //showLoading={true}
                   showZoom={true}
+                  onEvents={onEvents}
                   />
                   <ReactEcharts ref='echarts_react_4'
                   option={this.getOption_CO2()}
@@ -882,6 +920,7 @@ class Home extends Component{
                   lazyUpdate={true}
                   //showLoading={true}
                   showZoom={true}
+                  onEvents={onEvents}
                   />
                   </Paper>
               </Grid>
