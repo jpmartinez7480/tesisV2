@@ -2,21 +2,23 @@
 const echart_options = 
     {
         textStyle:{
-            color: '#9a9a9a'
+            color: 'rgba(154,154,154,.70)'
         },
         tooltip:{
             trigger: 'axis'
         },
         toolbox:{
             show: true,
+            itemGap:15,
             feature: {
-                dataView: {readOnly: false},
-                magicType: {show: true, type: ['stack', 'tiled']},
-                restore: {},
-                saveAsImage: {},
+                dataZoom: {
+                    yAxisIndex: 'none',
+                },
+                restore: {title:'inicio'},
+                saveAsImage: {title:'imagen'},
             },
             iconStyle:{
-                borderColor:'#9a9a9a'
+                borderColor:'rgba(154,154,154,.70)'
             }      
         },
         grid: {
