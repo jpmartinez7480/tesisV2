@@ -58,11 +58,19 @@ class Signal extends Component{
     constructor(props){
         super(props);
         this.state = {
-            //signals : ['Inicial','Mediana'],
-            signals: this.props.signals,
-            key: this.props.key,
+            signals: this.props.signals_history,
+            key: 3,
             active: 1
         }
+    }
+
+    static getDerivedStateFromProps(props, state) {
+      if (props.signals_history !== state.signals_history) {
+        return {
+          signals: props.signals_history
+        };
+      }
+      return null;
     }
 
     render(){
@@ -70,15 +78,21 @@ class Signal extends Component{
         return(
             <Paper className = {classes.myCard}>
                 <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Señales</Typography>
-                    <MenuList>
-                        {this.state.signals.map((s,index) => (
-                            <MenuItem button className = {classes.menuItem} key = {index} classes = {{selected:classes.selected}} >
-                                <ListItemIcon style = {{width:'100%'}}><Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/>
-                                    <ListItemText  disableTypography className = {classes.textSignal} primary = {s}></ListItemText>
-                                </ListItemIcon>
-                            </MenuItem> 
-                        ))}
-                    </MenuList>
+                <List>
+                {this.props.signals_history.length !== 0 ? 
+                  
+                  this.state.signals.map((s,index) => (
+                  <ListItem button style = {{paddingRight:'5px',paddingLeft:'5px'}} key = {index}>
+                    <ListItemIcon>
+                      <Timeline className = {classes.mySaveIcon}/>
+                    </ListItemIcon>
+                  <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{s.filter}</Typography>} />
+                </ListItem>
+                ))
+                :
+                <Typography  variant = "body2" align = "center" style = {{color:'#9a9a9a',letterSpacing:'1.1px',paddingTop:'5px',fontStyle:'italic',fontSize:'0.667em'}}>No ha cargado ninguna señal</Typography>
+              }
+              </List>
                 </Paper>
         )
     }

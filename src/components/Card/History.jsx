@@ -8,10 +8,10 @@ import ListItem from '@material-ui/core/ListItem';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Checkbox from '@material-ui/core/Checkbox';
 import Clear from '@material-ui/icons/Clear';
-
+import Save from '@material-ui/icons/Save';
 import blue from '@material-ui/core/colors/blue';
 
 const styles = theme => ({
@@ -55,10 +55,14 @@ const styles = theme => ({
       fontSize:'15px',
       marginLeft:'10px'
     },
+    mySaveIcon:{
+      color: blue[600],
+      margin:'5px',
+    },
 })
 
 
-class Signal extends Component{
+class History extends Component{
     constructor(props){
         super(props);
         this.state = {
@@ -88,6 +92,15 @@ class Signal extends Component{
       this.setState({filename:e.target.files[0]})
     }
 
+    static getDerivedStateFromProps(props, state) {
+      if (props.history !== state.history) {
+        return {
+          history: props.history
+        };
+      }
+      return null;
+    }
+
     render(){
         const { classes } = this.props
         return(
@@ -97,16 +110,9 @@ class Signal extends Component{
                 {this.props.history.length !== 0 ? 
                   this.state.history.map((h,index) => (
                   <ListItem button style = {{paddingRight:'5px',paddingLeft:'5px'}} key = {index}>
-                    <ListItemAvatar>
-                      <Checkbox
-                        classes={{
-                            root: classes.rootChecked,
-                            checked: classes.checked,
-                        }}
-                        onChange={this.handleToggle(1)}
-                        checked={this.state.checked.indexOf(1) !== -1}
-                      />
-                    </ListItemAvatar>
+                    <ListItemIcon>
+                      <Save className = {classes.mySaveIcon}/>
+                    </ListItemIcon>
                   <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ color: 'rgba(154,154,154,0.54)' }}>{h.data}</Typography>} />
                     <ListItemSecondaryAction>
                       <Clear style = {{color: '#D50000',fontSize:'16px'}}/>
@@ -124,4 +130,4 @@ class Signal extends Component{
 }
 
 
-export default (withStyles(styles)(Signal));
+export default (withStyles(styles)(History));

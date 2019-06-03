@@ -242,6 +242,9 @@ const styles = theme => ({
         color:'#fff',
         backgroundColor:blue[500]
       },
+      input:{
+        margin:'10px'
+      }
   
   })
 
@@ -266,7 +269,7 @@ class Home extends Component{
             vsfd_signal:[{"V2":"1"}],
             psa_signal: [{"V4":"1"}],
             co2_signal: [{"V6":"1"}],
-            signals:['Inicial'],
+            signals_history:[],
             history:[],
             times_checked:true,
             x_points_vfs:[],
@@ -300,13 +303,14 @@ class Home extends Component{
             open_butterworth: false,
             open_automatic: false,
             openWait: false,
+            open_dialog_clean: false,
             title_filter: '',
             text_filter:'',
             helper_text:'Pase el mouse sobre un ícono para ver detalle',
             filters: [
               {
-                value:'all',
-                label: 'Automático'
+                value:'automatic',
+                label: 'Automatic'
               },
               {
                 value:'hermite',
@@ -324,10 +328,7 @@ class Home extends Component{
                 value:'median',
                 label: 'Mediana'
               },
-              {
-                value:'automatic',
-                label: 'Automatic'
-              }
+              
             ],
 
         }
@@ -410,7 +411,7 @@ class Home extends Component{
     };
 
     handleClickOpen = () => {
-        this.setState({ loadingGraph:false,open: true });
+        this.setState({ loadingGraph:false,open_dialog_clean: false,open: true });
     };
     
     handleClose = () => {
@@ -434,23 +435,30 @@ class Home extends Component{
         window_hampel:parseInt(this.state.v2),
         thresold_hermite:parseFloat(this.state.v3),
         order_butter:parseInt(this.state.v4),
-        cut_butter:parseInt(this.state.v5)
+        cut_butter:parseFloat(this.state.v5)
       }
-      console.log(obj)
+      
       Axios({
         method: 'POST',
         url: 'http://localhost/ocpu/user/juanpablo/library/automaticFilter/R/automaticFilter/json',
         data: obj
       })
       .then(res => {
-        this.updateDataFilter('Automatic')
-        this.state.serie_vfsd.push({name:'Automatic',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.automatic}})
-        this.state.serie_vfsi.push({name:'Automatic',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.automatic}})
-        this.state.serie_psa.push({name:'Automatic',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.automatic}})
+        let filter = 'Automatic'
+        let aux = this.searchSignal(filter,this.state.signals_history) 
+        if(aux > 1)
+          filter = filter + (aux-1).toString(10)
+        
+        this.updateDataFilter(filter)
+        this.state.serie_vfsd.push({name:'Automatic',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
+        this.state.serie_vfsi.push({name:'Automatic',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
+        this.state.serie_psa.push({name:'Automatic',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
         this.updateOptions()
         //agregar co2
       })
-      .finally(this.state.history.push({name:this.state.filter,data:'W: '+this.state.v1+'/ T: '+this.state.v2}))
+      .finally(
+        this.state.signals_history.push({filter:"Automatic "+this.searchSignal("Automatic",this.state.signals_history).toString(10)}),
+        this.state.history.push({name:this.state.filter,data:'pendiente'}))
 
     }
 
@@ -462,25 +470,30 @@ class Home extends Component{
       let signal_to_filter = [vfsd,vfsi,psa,co2]
 
       var obj = {
-        signal:JSON.stringify(signal_to_filter)
+        signal:JSON.stringify(signal_to_filter),
+        order:parseInt(this.state.v1)
       }
       Axios({
         method: 'POST',
         url: 'http://localhost/ocpu/user/juanpablo/library/hermiteSplineFilter/R/getHermiteSplineInterpolation/json',
         data: obj
       })
-      //.then(res => {this.setState({vsfd_filter: res.data}, () => this.updateDataFilter())})
-      //.then(res => {this.setState({vsfd_filter: res.data[0],vsfi_filter:res.data[1],psa_filter:res.data[2]}, () => this.updateDataFilter())})
       .then(res => {
-        this.updateDataFilter('Hermite')
-        this.state.serie_vfsd.push({name:'Hermite',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hermite}})
-        this.state.serie_vfsi.push({name:'Hermite',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hermite}})
-        this.state.serie_psa.push({name:'Hermite',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hermite}})
+        let filter = 'Hermite'
+        let aux = this.searchSignal(filter,this.state.signals_history) 
+        if(aux > 1)
+          filter = filter + (aux-1).toString(10)
+        this.updateDataFilter(filter)
+        this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
+        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
+        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
         this.updateOptions()
         //agregar co2
       })
-      .finally(this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1}))
-    }
+      .finally(
+        this.state.signals_history.push({filter:"Hermite "+this.searchSignal("Hermite",this.state.signals_history).toString(10)}),
+        this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1}))
+      }
 
     getFilterHampel(){
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
@@ -500,14 +513,20 @@ class Home extends Component{
       })
       //.then(res => {this.setState({vsfd_filter_hampel: res.data[0],vsfi_filter_hampel:res.data[1],psa_filter_hampel:res.data[2]}, () => this.updateDataFilterHampel())})
       .then(res => {
-        this.updateDataFilter('Hampel')
-        this.state.serie_vfsd.push({name:'Hampel',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hampel}})
-        this.state.serie_vfsi.push({name:'Hampel',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hampel}})
-        this.state.serie_psa.push({name:'Hampel',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.hampel}})
+        let filter = 'Hampel'
+        let aux = this.searchSignal(filter,this.state.signals_history) 
+        if(aux > 1)
+          filter = filter + (aux-1).toString(10)
+        this.updateDataFilter(filter)
+        this.state.serie_vfsd.push({name:'Hampel',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
+        this.state.serie_vfsi.push({name:'Hampel',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
+        this.state.serie_psa.push({name:'Hampel',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
         this.updateOptions()
         //agregar co2
       })
-      .finally(this.state.history.push({name:this.state.filter,data:'W: '+this.state.v1+'/ T: '+this.state.v2}))
+      .finally(
+        this.state.signals_history.push({filter:"Hampel "+this.searchSignal("Hampel",this.state.signals_history).toString(10)}),
+        this.state.history.push({name:this.state.filter,data:'W: '+this.state.v1+'/ T: '+this.state.v2}))
     }
 
     getFilterButterworth(){
@@ -528,14 +547,20 @@ class Home extends Component{
       })
       //.then(res => {this.setState({vsfd_filter_butterworth: res.data[0],vsfi_filter_butterworth:res.data[1],psa_filter_butterworth:res.data[2]}, () => this.updateDataFilterButterworth())})
       .then(res => {
-        this.updateDataFilter('Butterworth')
-        this.state.serie_vfsd.push({name:'Butterworth',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.butterworth}})
-        this.state.serie_vfsi.push({name:'Butterworth',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.butterworth}})
-        this.state.serie_psa.push({name:'Butterworth',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.butterworth}})
+        let filter = 'Butterworth'
+        let aux = this.searchSignal(filter,this.state.signals_history) 
+        if(aux > 1)
+          filter = filter + (aux-1).toString(10)
+        this.updateDataFilter(filter)
+        this.state.serie_vfsd.push({name:'Butterworth',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
+        this.state.serie_vfsi.push({name:'Butterworth',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
+        this.state.serie_psa.push({name:'Butterworth',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
         this.updateOptions()
         //agregar co2
       })
-      .finally(this.state.history.push({name:this.state.filter,data:'Ord:'+this.state.v1+'/ Cut: '+this.state.v2}))
+      .finally(
+        this.state.signals_history.push({filter:"Butterworth "+this.searchSignal("Butterworth",this.state.signals_history).toString(10)}),
+        this.state.history.push({name:this.state.filter,data:'Ord:'+this.state.v1+'/ Cut: '+this.state.v2}))
     }
 
     getFilterMedian(){
@@ -556,7 +581,7 @@ class Home extends Component{
       //.then(res => {this.setState({vsfd_filter_median: res.data[0],vsfi_filter_median:res.data[1],psa_filter_median:res.data[2]}, () => this.updateDataFilterMedian())})
       .then(res => {
         let filter = 'Mediana'
-        let aux = this.searchSignal(filter,this.state.signals) 
+        let aux = this.searchSignal(filter,this.state.signals_history) 
         if(aux > 1)
           filter = filter + (aux-1).toString(10)
         
@@ -564,12 +589,14 @@ class Home extends Component{
         this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
         this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
         this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
+        this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
         this.updateOptions()
         //agregar co2
       })
       .finally(
-        this.state.signals.push("Mediana"+this.searchSignal("Mediana",this.state.signals).toString(10)),
-        this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1})
+        this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1}),
+        this.state.signals_history.push({filter:"Mediana "+this.searchSignal("Mediana",this.state.signals_history).toString(10)})
+        
       )
     }
 
@@ -580,55 +607,53 @@ class Home extends Component{
       this.state.data_filter_CO2.push({name:filter,textStyle:echart_options.textStyle})
       this.handleCloseWait()
     }
+    
+    handleCloseDialogClean = () =>{
+      this.setState({open_dialog_clean:false})
+    }
+
+    handleOpenDialogClean = () =>{
+      this.setState({open_dialog_clean:true})
+    }
+
+    handleCleanData = () =>{
+      if(this.state.serie_vfsd.length > 0 || this.state.serie_vfsi.length > 0 || this.state.serie_psa.length > 0 || this.state.serie_co2.length > 0){
+        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'CO2',textStyle:echart_options.textStyle}],filter:''},() => {
+          this.refs.echarts_react_1.getEchartsInstance().dispose()
+          this.refs.echarts_react_2.getEchartsInstance().dispose()
+          this.refs.echarts_react_3.getEchartsInstance().dispose()
+          this.refs.echarts_react_4.getEchartsInstance().dispose()
+          this.handleClickOpen()
+        })
+      }
+      else
+        this.handleClickOpen()
+    }
 
     fetchVFS(json){
+        
         var vsfi = []
         var vsfd = []
         var psa = []
         var co2 = []
         var x_points = []
-        if(this.state.serie_vfsd.length > 0){
-          console.log("if")
+        for(var i = 1; i < json.length; i++){
+          vsfd.push(Number(json[i].V3))
+          vsfi.push(Number(json[i].V4))
+          psa.push(Number(json[i].V5))
+          co2.push(Number(json[i].V6))
+          x_points.push(i)      
+        }
+        this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}]})
+        this.state.serie_vfsd.push({name:'VFSD',type:'line',data:vsfd,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
+        this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
+        this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
+        this.state.serie_co2.push({name:'CO2',type:'line',data:co2,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#288c6c'}})
+        this.setState({isReadySignal:true}, () => {
+          this.handleClose()
+          this.updateOptions()
           
-          this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[]},() => {
-            this.refs.echarts_react_1.getEchartsInstance().clear()
-            this.refs.echarts_react_1.getEchartsInstance().setOption({}, true)
-            this.refs.echarts_react_2.getEchartsInstance().clear()
-            this.refs.echarts_react_2.getEchartsInstance().setOption({}, true)
-            this.refs.echarts_react_3.getEchartsInstance().clear()
-            this.refs.echarts_react_3.getEchartsInstance().setOption({}, true)
-            for(var i = 1; i < json.length; i++){
-              vsfd.push(Number(json[i].V3))
-              vsfi.push(Number(json[i].V4))
-              psa.push(Number(json[i].V5))
-              co2.push(Number(json[i].V6))
-              x_points.push(i)      
-            }
-            this.state.x_points_vfs = x_points
-            this.state.serie_vfsd.push({name:'VFSD',type:'line',data:vsfd,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
-            this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
-            this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
-            this.state.serie_co2.push({name:'CO2',type:'line',data:co2,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#288c6c'}})
-            
-            this.setState({isReadySignal:true}, () => {this.handleClose()})
-          })
-        }
-        else{
-          console.log("else")
-          for(var i = 1; i < json.length; i++){
-            vsfd.push(Number(json[i].V3))
-            vsfi.push(Number(json[i].V4))
-            psa.push(Number(json[i].V5))
-            co2.push(Number(json[i].V6))
-            x_points.push(i)      
-          }
-          this.setState({x_points_vfs:x_points})
-          this.state.serie_vfsd.push({name:'VFSD',type:'line',data:vsfd,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
-          this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
-          this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
-          this.state.serie_co2.push({name:'CO2',type:'line',data:co2,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#288c6c'}})
-          this.setState({isReadySignal:true}, () => {this.handleClose()})
-        }
+        })
       }
 
     handleUploadSignal(event){
@@ -636,7 +661,7 @@ class Home extends Component{
         this.setState({loadingGraph:true})
         const filename = this.state.filename
         const formData = new FormData(event.target)
-        console.log(filename)
+        
         formData.append('filename',filename)
         this.props.loadSignal(formData).then(() => this.fetchVFS(this.props.signal_global))
         
@@ -665,15 +690,12 @@ class Home extends Component{
     handleSendFilter(event){
       event.preventDefault()
       if(this.state.filter === 'hermite'){
-        this.state.signals.push('Hermite')
         this.setState({openWait: true, open_hermite: false}, () => this.sendFilterHermite2())
       }
       else if(this.state.filter === 'hampel'){
-        this.state.signals.push('Hampel')
         this.setState({openWait: true, open_hampel: false}, () => this.getFilterHampel())
       }
       else if(this.state.filter === 'butterworth'){
-        this.state.signals.push('Butterworth')
         this.setState({openWait: true, open_butterworth: false}, () => this.getFilterButterworth())
       }
       else if(this.state.filter === 'median'){
@@ -861,30 +883,37 @@ class Home extends Component{
           text:'VFSD',
           textStyle:echart_options.textStyle
         },
-        xAxis:[{data:this.state.x_points_vfs,}],
+        xAxis:[{data:this.state.x_points_vfs}],
         legend: {
           data:this.state.data_filter_VFS
         },
         series:this.state.serie_vfsd
       })
       this.refs.echarts_react_2.getEchartsInstance().setOption({
-        xAxis:[{data:this.state.x_points_vfs,}],
+        xAxis:[{data:this.state.x_points_vfs}],
         legend: {
           data:this.state.data_filter_VFSI
         },
         series:this.state.serie_vfsi
       })
       this.refs.echarts_react_3.getEchartsInstance().setOption({
-        xAxis:[{data:this.state.x_points_vfs,}],
+        xAxis:[{data:this.state.x_points_vfs}],
         legend: {
           data:this.state.data_filter_PSA
         },
         series:this.state.serie_psa
       })
+      this.refs.echarts_react_4.getEchartsInstance().setOption({
+        xAxis:[{data:this.state.x_points_vfs}],
+        legend: {
+          data:this.state.data_filter_CO2
+        },
+        series:this.state.serie_co2
+      })
     }
 
     onChartClick = (param, echarts) => {
-      console.log(param)
+      console.log(param.seriesIndex)
       this.setState({indexSignal:param.seriesIndex})
     };
 
@@ -910,6 +939,11 @@ class Home extends Component{
         else return 'rgb('+r.toString(10)+','+g.toString(10)+','+(b+num).toString(10)+')'
 
       }
+    }
+
+    getSignalTime(n){
+      console.log(n)
+      return (n/100/60)
     }
 
     renderMissingSignal(){
@@ -970,7 +1004,7 @@ class Home extends Component{
                     <p className={classes.describeSignal}>Nombre archivo:<span style = {{fontStyle:'italic'}}>{this.state.filename.name}</span></p>
                   </Grid> 
                   <Grid item lg = {4} xl = {4} md = {4} style = {{marginTop:'18px'}}>
-                    <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>22 min</span></p>
+                    <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>11 min</span></p>
                   </Grid> 
                   <Grid item lg = {4} xl = {4} md = {4} >
                   <form style = {{display:'flex',flexWrap:'wrap'}} autoComplete="off">
@@ -1001,9 +1035,8 @@ class Home extends Component{
                 <ReactEcharts ref='echarts_react_1'
                   option={this.getOption_VFSD()}
                   style={{height: 300,marginBottom:'15px'}}
-                  lazyUpdate={true}
                   notMerge={true}
-                  //showLoading={true}
+                  lazyUpdate={true}
                   showZoom={true}
                   onEvents={onEvents}
                   />
@@ -1036,7 +1069,7 @@ class Home extends Component{
                   </Paper>
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
-                <Signal key = {this.state.index_key} signals = {this.state.signals}/>
+                <Signal key = {3} signals_history = {this.state.signals_history}/>
                 <History key = {this.state.index_key+1} history = {this.state.history} />
               </Grid>
             </Grid>
@@ -1053,7 +1086,7 @@ class Home extends Component{
                 classes={{paper: classNames(classes.drawer)}}> 
                 <List className={classes.iconsAction}>
                   <ListItem button className={classes.itemAction}>
-                    <ListItemIcon className = {classes.myIcon} onClick = {this.handleClickOpen}><NoteAdd className = {classes.iconStyle}/></ListItemIcon>
+                    <ListItemIcon className = {classes.myIcon} onClick = {this.handleOpenDialogClean}><NoteAdd className = {classes.iconStyle}/></ListItemIcon>
                   </ListItem>
                   <ListItem button className={classes.itemAction}>
                     <ListItemIcon className = {classes.myIcon}><Crop /></ListItemIcon>
@@ -1093,6 +1126,28 @@ class Home extends Component{
                         <Button type = "submit" variant="contained" className = {classes.myPrimaryColor}>Cargar</Button>
                     </form>
                 </FormControl>
+              </Dialog>
+              <Dialog 
+                maxWidth="sm"
+                fullWidth={true}
+                open={this.state.open_dialog_clean}
+                onClose={this.handleCloseDialogClean}
+                aria-labelledby="max-width-dialog-title"
+              >
+                <DialogTitle id="max-width-dialog-title">Nuevo archivo</DialogTitle>
+                  <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                    ¿Está seguro que desea usar otra señal? Los cambios no guardados se perderan.
+                    </DialogContentText>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={this.handleCloseDialogClean} style = {{color: '#2196f3'}}>
+                      No
+                    </Button>
+                    <Button onClick={this.handleCleanData} style = {{color: '#2196f3'}} autoFocus>
+                      Si
+                    </Button>
+                </DialogActions>
               </Dialog>
               <Dialog
               open={this.state.openWait}
@@ -1239,7 +1294,7 @@ class Home extends Component{
                 </DialogContentText>
                 <Input placeholder="Orden Hermite (ej: 1)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
                 <Input placeholder="Ventana Hampel (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
-                <Input placeholder="Thresold (ej: 1.6)" className = {classes.input} type="number" onChange={this.handleChangeInput('v3')} />
+                <Input placeholder="Thresold Hampel(ej: 1.6)" className = {classes.input} type="number" onChange={this.handleChangeInput('v3')} />
                 <Input placeholder="Orden Butter (ej: 5)" className = {classes.input} type="number" onChange={this.handleChangeInput('v4')} />
                 <Input placeholder="Corte Butter (ej: 0.4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v5')} />
               </DialogContent>

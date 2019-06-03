@@ -1,10 +1,10 @@
 const echart_colors = 
 {
-    hermite:'#ba54f5',
+    hermite:'rgb(6, 244, 30)',
     median:'rgb(255,111,0)',
-    hampel:'#00695c',
-    butterworth:'#4a148c',
-    automatic:'#F7D500'
+    hampel:'rgb(244, 6, 208)',
+    butterworth:'rgb(135, 38, 255)',
+    automatic:'rgb(247, 213, 0)'
 }
 
 export default echart_colors;
