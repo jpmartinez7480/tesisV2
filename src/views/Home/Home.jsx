@@ -285,6 +285,7 @@ class Home extends Component{
             v3:'',
             v4:'',
             v5:'',
+            signal_time:0,
             indexSignal:0,
             colorSignal: '',
             serie_vfsd: [],
@@ -479,7 +480,7 @@ class Home extends Component{
         data: obj
       })
       .then(res => {
-        let filter = 'Hermite'
+        let filter = 'Hermite '
         let aux = this.searchSignal(filter,this.state.signals_history) 
         if(aux > 1)
           filter = filter + (aux-1).toString(10)
@@ -491,7 +492,7 @@ class Home extends Component{
         //agregar co2
       })
       .finally(
-        this.state.signals_history.push({filter:"Hermite "+this.searchSignal("Hermite",this.state.signals_history).toString(10)}),
+        this.state.signals_history.push({filter:"Hermite "+this.searchSignal("Hermite ",this.state.signals_history).toString(10)}),
         this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1}))
       }
 
@@ -518,9 +519,9 @@ class Home extends Component{
         if(aux > 1)
           filter = filter + (aux-1).toString(10)
         this.updateDataFilter(filter)
-        this.state.serie_vfsd.push({name:'Hampel',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
-        this.state.serie_vfsi.push({name:'Hampel',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
-        this.state.serie_psa.push({name:'Hampel',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
+        this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
+        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
+        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
         this.updateOptions()
         //agregar co2
       })
@@ -552,9 +553,9 @@ class Home extends Component{
         if(aux > 1)
           filter = filter + (aux-1).toString(10)
         this.updateDataFilter(filter)
-        this.state.serie_vfsd.push({name:'Butterworth',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
-        this.state.serie_vfsi.push({name:'Butterworth',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
-        this.state.serie_psa.push({name:'Butterworth',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
+        this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
+        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
+        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
         this.updateOptions()
         //agregar co2
       })
@@ -587,9 +588,9 @@ class Home extends Component{
         
         this.updateDataFilter(filter)
         this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
-        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
-        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
-        this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:echart_colors.median}})
+        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
+        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
+        this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
         this.updateOptions()
         //agregar co2
       })
@@ -618,7 +619,7 @@ class Home extends Component{
 
     handleCleanData = () =>{
       if(this.state.serie_vfsd.length > 0 || this.state.serie_vfsi.length > 0 || this.state.serie_psa.length > 0 || this.state.serie_co2.length > 0){
-        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'CO2',textStyle:echart_options.textStyle}],filter:''},() => {
+        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'CO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0},() => {
           this.refs.echarts_react_1.getEchartsInstance().dispose()
           this.refs.echarts_react_2.getEchartsInstance().dispose()
           this.refs.echarts_react_3.getEchartsInstance().dispose()
@@ -644,7 +645,9 @@ class Home extends Component{
           co2.push(Number(json[i].V6))
           x_points.push(i)      
         }
-        this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}]})
+        let time = this.getSignalTime(vsfd.length).toFixed(1)
+        
+        this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time})
         this.state.serie_vfsd.push({name:'VFSD',type:'line',data:vsfd,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
         this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
         this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
@@ -750,6 +753,7 @@ class Home extends Component{
         text:'VFSI',
         textStyle:echart_options.textStyle
       },
+      brush:{toolbox:['rect','clear'],throttleType: 'debounce',throttleDelay: 1000,xAxisIndex: 0},
       tooltip: echart_options.tooltip,
       legend: {
         data:[{name:'VFSI',textStyle:echart_options.textStyle}]
@@ -918,26 +922,34 @@ class Home extends Component{
     };
 
     onSelectPoints = (param,echarts) =>{
-      console.log(param)
+      let points = param.batch[0].coordRange[0]
+      console.log(points)
       //this.setState({start_point_cut:Math.abs(param.batch[0].startValue),end_point_cut:param.batch[0].endValue})
+      
     }
 
     searchSignal(signal,signals){
       var regex = RegExp(signal+'*');
-      return signals.filter(function(s){return regex.test(s)}).length
+      return signals.filter(function(s){return regex.test(s.filter)}).length
     }
 
     changeIntensityColor(color,num){
       if(num === 0)  return color
       else{
-        num = num + 30
-        let [r,g,b] = color.substr(4).split(")")[0].split(",");
-        if((b + num) < 256 && g < 256)
-          return 'rgb('+r.toString(10)+','+g.toString(10)+','+(b+num).toString(10)+')'
-        else if((b+num) > 255 && (g+num)>255)
-          return 'rgb('+(r-1).toString(10)+',111,0)'
-        else return 'rgb('+r.toString(10)+','+g.toString(10)+','+(b+num).toString(10)+')'
-
+        num = num * 10
+        var [r,g,b] = color.substr(4).split(")")[0].split(",").map(function(v){return parseInt(v)});
+        if(r+num > 255 && g+num < 255 && b+num < 255)
+          return 'rgb('+(r-num).toString(10)+','+(g+num).toString(10)+','+(b+num).toString(10)+')'
+        else if(r+num < 255 && g+num > 255 && b+num < 255)
+          return 'rgb('+(r+num).toString(10)+','+(g-num).toString(10)+','+(b+num).toString(10)+')' 
+        else if(r+num < 255 && g+num < 255 && b+num > 255)
+          return 'rgb('+(r+num).toString(10)+','+(g+num).toString(10)+','+(b-num).toString(10)+')' 
+        else if(r+num > 255 && g+num > 255 && b+num > 255)
+          return 'rgb('+(r-num).toString(10)+','+(g-num).toString(10)+','+(b-num).toString(10)+')' 
+        else if(r+num < 255 && g+num > 255 && b+num > 255)
+          return 'rgb('+(r+num).toString(10)+','+(g-num).toString(10)+','+(b-num).toString(10)+')' 
+        else if(r+num < 255 && g+num < 255 && b+num < 255)
+          return 'rgb('+(r+num).toString(10)+','+(g+num).toString(10)+','+(b+num).toString(10)+')' 
       }
     }
 
@@ -991,7 +1003,7 @@ class Home extends Component{
         const { classes } = this.props
         let onEvents = {
           'click': this.onChartClick,
-          'mapselected': this.onSelectPoints
+          
         };
         return(
           <div style = {{flexGrow:1}}>
@@ -1004,7 +1016,7 @@ class Home extends Component{
                     <p className={classes.describeSignal}>Nombre archivo:<span style = {{fontStyle:'italic'}}>{this.state.filename.name}</span></p>
                   </Grid> 
                   <Grid item lg = {4} xl = {4} md = {4} style = {{marginTop:'18px'}}>
-                    <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>11 min</span></p>
+                    <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>{this.state.signal_time}</span></p>
                   </Grid> 
                   <Grid item lg = {4} xl = {4} md = {4} >
                   <form style = {{display:'flex',flexWrap:'wrap'}} autoComplete="off">

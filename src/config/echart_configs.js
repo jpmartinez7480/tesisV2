@@ -16,6 +16,7 @@ const echart_options =
                 },
                 restore: {title:'inicio'},
                 saveAsImage: {title:'imagen'},
+                
             },
             iconStyle:{
                 borderColor:'rgba(154,154,154,.70)'
