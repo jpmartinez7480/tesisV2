@@ -10,6 +10,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon'
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuList from '@material-ui/core/MenuList';
+import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Timeline from '@material-ui/icons/Timeline';
 
@@ -38,7 +39,7 @@ const styles = theme => ({
         marginTop:'2px',
         letterSpacing:'1.1px',
         fontSize:'15px',
-        marginLeft:'10px'
+        
       },
       textSelected:{
         color:'#fff',
@@ -78,21 +79,21 @@ class Signal extends Component{
         return(
             <Paper className = {classes.myCard}>
                 <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Señales</Typography>
-                <List>
+                <MenuList>
                 {this.props.signals_history.length !== 0 ? 
                   
                   this.state.signals.map((s,index) => (
-                  <ListItem button style = {{paddingRight:'5px',paddingLeft:'5px'}} key = {index}>
+                  <MenuItem  button className = {classes.menuItem} key = {index} classes = {{selected:classes.selected}} >
                     <ListItemIcon>
-                      <Timeline className = {classes.mySaveIcon}/>
+                      <Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/>
                     </ListItemIcon>
-                  <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{s.filter}</Typography>} />
-                </ListItem>
+                    <ListItemText disableTypography className = {classes.textSignal} primary = {s.filter} />
+                  </MenuItem>
                 ))
                 :
                 <Typography  variant = "body2" align = "center" style = {{color:'#9a9a9a',letterSpacing:'1.1px',paddingTop:'5px',fontStyle:'italic',fontSize:'0.667em'}}>No ha cargado ninguna señal</Typography>
               }
-              </List>
+              </MenuList>
                 </Paper>
         )
     }
