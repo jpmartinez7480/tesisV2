@@ -287,7 +287,7 @@ class Home extends Component{
             v4:'',
             v5:'',
             signal_time:0,
-            indexSignal:this.props.indexSignal,
+            indexSignal:0,
             colorSignal: '',
             serie_vfsd: [],
             serie_vfsi: [],
@@ -424,8 +424,8 @@ class Home extends Component{
       this.setState({filename:e.target.files[0]})
     }
 
-    changeSelectedSignal=(index)=>{
-      this.setState({indexSignal:index},()=>{console.log(this.state.indexSignal)})
+    changeSelectedSignal=index=>{
+      this.setState({indexSignal:index})
     }
 
     getAutomaticFilter(){
@@ -464,6 +464,7 @@ class Home extends Component{
       })
       .finally(
         this.state.signals_history.push({filter:"Automatic "+this.searchSignal("Automatic",this.state.signals_history).toString(10)}),
+        this.props.setSignalHistory(this.state.signals_history),
         this.state.history.push({name:this.state.filter,data:'pendiente'}))
 
     }
@@ -533,6 +534,7 @@ class Home extends Component{
       })
       .finally(
         this.state.signals_history.push({filter:"Hampel "+this.searchSignal("Hampel",this.state.signals_history).toString(10)}),
+        this.props.setSignalHistory(this.state.signals_history),
         this.state.history.push({name:this.state.filter,data:'W: '+this.state.v1+'/ T: '+this.state.v2}))
     }
 
@@ -567,6 +569,7 @@ class Home extends Component{
       })
       .finally(
         this.state.signals_history.push({filter:"Butterworth "+this.searchSignal("Butterworth",this.state.signals_history).toString(10)}),
+        this.props.setSignalHistory(this.state.signals_history),
         this.state.history.push({name:this.state.filter,data:'Ord:'+this.state.v1+'/ Cut: '+this.state.v2}))
     }
 
@@ -602,6 +605,7 @@ class Home extends Component{
       })
       .finally(
         this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1}),
+        this.props.setSignalHistory(this.state.signals_history),
         this.state.signals_history.push({filter:"Mediana "+this.searchSignal("Mediana",this.state.signals_history).toString(10)})
         
       )
@@ -698,7 +702,7 @@ class Home extends Component{
 
     handleSendFilter(event){
       event.preventDefault()
-      console.log("i;:"+this.state.indexSignal)
+      
       if(this.state.filter === 'hermite'){
         this.setState({openWait: true, open_hermite: false}, () => this.sendFilterHermite2())
       }
@@ -1088,7 +1092,7 @@ class Home extends Component{
                   </Paper>
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
-                <Signal key = {3} signals_history = {this.state.signals_history} />
+                <Signal key = {3} signals_history = {this.state.signals_history} changeSelectedSignal = {this.changeSelectedSignal}/>
                 <History key = {this.state.index_key+1} history = {this.state.history} />
               </Grid>
             </Grid>
@@ -1346,7 +1350,7 @@ function mapStateToProps(state){
         vsfi_global: state.vsfi_global,
         psa_global: state.psa_global,
         co2_global: state.co2_global,
-        indexSignal: state.indexSignal,
+        
         signalHistory: state.signalHistory
     }
 }

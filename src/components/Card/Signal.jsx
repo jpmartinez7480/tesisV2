@@ -64,8 +64,8 @@ class Signal extends Component{
         this.state = {
             signals: this.props.signalHistory,
             key: 3,
-            active: 1,
-            indexSignal: 0
+            indexSignal: 0,
+            
         }
     }
 
@@ -86,7 +86,10 @@ class Signal extends Component{
     }
 
     changeSelectedSignal(index){
-      this.setState({indexSignal:index},()=>{console.log(this.state.indexSignal)})
+      this.setState({indexSignal:index})
+      this.props.changeSelectedSignal(index)
+      
+      //this.props.setIndexSignal(index)
     }
 
     render(){
