@@ -14,6 +14,9 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Timeline from '@material-ui/icons/Timeline';
 
+import { connect } from 'react-redux'
+import { setIndexSignal } from '../../actions/actions.index_signal'
+
 const styles = theme => ({
     myCard:{
         backgroundColor:'#27293D',
@@ -59,31 +62,43 @@ class Signal extends Component{
     constructor(props){
         super(props);
         this.state = {
-            signals: this.props.signals_history,
+            signals: this.props.signalHistory,
             key: 3,
-            active: 1
+            active: 1,
+            indexSignal: 0
         }
     }
 
-    static getDerivedStateFromProps(props, state) {
+    /*static getDerivedStateFromProps(props, state) {
       if (props.signals_history !== state.signals_history) {
         return {
           signals: props.signals_history
         };
       }
+     
       return null;
+    }*/
+
+    componentDidUpdate(prevProps,prevState){
+      if(this.props.signalHistory !== prevProps.signalHistory){
+        this.setState({signals:this.props.signalHistory})
+      }
+    }
+
+    changeSelectedSignal(index){
+      this.setState({indexSignal:index},()=>{console.log(this.state.indexSignal)})
     }
 
     render(){
         const { classes } = this.props
         return(
             <Paper className = {classes.myCard}>
-                <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Señales</Typography>
-                <MenuList>
-                {this.props.signals_history.length !== 0 ? 
+              <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Señales</Typography>
+              <MenuList>
+                {this.props.signalHistory.length !== 0 ? 
                   
                   this.state.signals.map((s,index) => (
-                  <MenuItem  button className = {classes.menuItem} key = {index} classes = {{selected:classes.selected}} >
+                  <MenuItem  button className = {classes.menuItem} key = {index} classes = {{selected:classes.selected}} onClick={()=>this.changeSelectedSignal(index)}>
                     <ListItemIcon>
                       <Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/>
                     </ListItemIcon>
@@ -92,13 +107,25 @@ class Signal extends Component{
                 ))
                 :
                 <Typography  variant = "body2" align = "center" style = {{color:'#9a9a9a',letterSpacing:'1.1px',paddingTop:'5px',fontStyle:'italic',fontSize:'0.667em'}}>No ha cargado ninguna señal</Typography>
-              }
+                }
               </MenuList>
-                </Paper>
+            </Paper>
         )
     }
 
 }
 
+function mapStateToProps(state){
+  return{
+      indexSignal: state.indexSignal,
+      signalHistory: state.signalHistory
+  }
+}
 
-export default (withStyles(styles)(Signal));
+const mapDispatchToProps = (dispatch) => ({
+      setIndexSignal: indexSignal => dispatch(setIndexSignal(indexSignal))
+})
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Signal));
+//export default (withStyles(styles)(Signal));

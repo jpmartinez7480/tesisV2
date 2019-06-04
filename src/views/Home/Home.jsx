@@ -48,6 +48,7 @@ import { setSignalVSFD } from '../../actions/actions.vsfd'
 import { setSignalVSFI } from '../../actions/actions.vsfi'
 import { setSignalPSA } from '../../actions/actions.psa'
 import { setSignalCO2 } from '../../actions/actions.co2'
+import { setSignalHistory } from '../../actions/actions.signal_history'
 
 const styles = theme => ({
     root: {
@@ -286,7 +287,7 @@ class Home extends Component{
             v4:'',
             v5:'',
             signal_time:0,
-            indexSignal:0,
+            indexSignal:this.props.indexSignal,
             colorSignal: '',
             serie_vfsd: [],
             serie_vfsi: [],
@@ -336,7 +337,7 @@ class Home extends Component{
         this.onChange = this.onChange.bind(this)
         this.handleUploadSignal = this.handleUploadSignal.bind(this)
         this.handleSendFilter = this.handleSendFilter.bind(this)
-
+        
     }
 
     componentDidUpdate(){
@@ -423,6 +424,10 @@ class Home extends Component{
       this.setState({filename:e.target.files[0]})
     }
 
+    changeSelectedSignal=(index)=>{
+      this.setState({indexSignal:index},()=>{console.log(this.state.indexSignal)})
+    }
+
     getAutomaticFilter(){
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
@@ -493,6 +498,7 @@ class Home extends Component{
       })
       .finally(
         this.state.signals_history.push({filter:"Hermite "+this.searchSignal("Hermite ",this.state.signals_history).toString(10)}),
+        this.props.setSignalHistory(this.state.signals_history),
         this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1}))
       }
 
@@ -647,7 +653,7 @@ class Home extends Component{
         }
         let time = this.getSignalTime(vsfd.length).toFixed(1)
         
-        this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time})
+        this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time},()=>{this.props.setSignalHistory(this.state.signals_history)})
         this.state.serie_vfsd.push({name:'VFSD',type:'line',data:vsfd,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
         this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
         this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
@@ -692,6 +698,7 @@ class Home extends Component{
 
     handleSendFilter(event){
       event.preventDefault()
+      console.log("i;:"+this.state.indexSignal)
       if(this.state.filter === 'hermite'){
         this.setState({openWait: true, open_hermite: false}, () => this.sendFilterHermite2())
       }
@@ -1081,7 +1088,7 @@ class Home extends Component{
                   </Paper>
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
-                <Signal key = {3} signals_history = {this.state.signals_history}/>
+                <Signal key = {3} signals_history = {this.state.signals_history} />
                 <History key = {this.state.index_key+1} history = {this.state.history} />
               </Grid>
             </Grid>
@@ -1339,6 +1346,8 @@ function mapStateToProps(state){
         vsfi_global: state.vsfi_global,
         psa_global: state.psa_global,
         co2_global: state.co2_global,
+        indexSignal: state.indexSignal,
+        signalHistory: state.signalHistory
     }
 }
 
@@ -1347,7 +1356,8 @@ const mapDispatchToProps = (dispatch) => ({
         setSignalVSFD: vfsd => dispatch(setSignalVSFD(vfsd)),
         setSignalVSFI: vfsi => dispatch(setSignalVSFI(vfsi)),
         setSignalPSA: psa => dispatch(setSignalPSA(psa)),
-        setSignalCO2: co2 => dispatch(setSignalCO2(co2))
+        setSignalCO2: co2 => dispatch(setSignalCO2(co2)),
+        setSignalHistory: signal_history =>dispatch(setSignalHistory(signal_history))
 })
 
 

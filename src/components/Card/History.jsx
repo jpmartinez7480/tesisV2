@@ -10,7 +10,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Checkbox from '@material-ui/core/Checkbox';
-import Clear from '@material-ui/icons/Clear';
+import Delete from '@material-ui/icons/Delete';
 import Save from '@material-ui/icons/Save';
 import blue from '@material-ui/core/colors/blue';
 
@@ -56,7 +56,7 @@ const styles = theme => ({
       marginLeft:'10px'
     },
     mySaveIcon:{
-      color: blue[600],
+      color: '#9a9a9a',
       margin:'5px',
     },
 })
@@ -115,7 +115,7 @@ class History extends Component{
                     </ListItemIcon>
                   <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ color: 'rgba(154,154,154,0.54)' }}>{h.data}</Typography>} />
                     <ListItemSecondaryAction>
-                      <Clear style = {{color: '#D50000',fontSize:'16px'}}/>
+                      <Delete style = {{color: '#9a9a9a',fontSize:'20px'}}/>
                     </ListItemSecondaryAction>
                 </ListItem>
                 ))
