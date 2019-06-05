@@ -49,12 +49,15 @@ const styles = theme => ({
         marginTop:'2px',
         letterSpacing:'1.1px',
         fontSize:'15px',
-        marginLeft:'10px'
+        marginLeft:'10px',
+        padding:0
       },
       selected:{
         backgroundColor: '#ED7602 !important',
-        color:'#fff'
-      },
+        '& .Signal-textSignal-387': {
+          color: '#fff !important'
+      }
+    }
 })
 
 
@@ -70,9 +73,9 @@ class Signal extends Component{
     }
 
     /*static getDerivedStateFromProps(props, state) {
-      if (props.signals_history !== state.signals_history) {
+      if (props.signalHistory !== state.signals) {
         return {
-          signals: props.signals_history
+          signals: props.signalHistory
         };
       }
      
@@ -101,7 +104,7 @@ class Signal extends Component{
                 {this.props.signalHistory.length !== 0 ? 
                   
                   this.state.signals.map((s,index) => (
-                  <MenuItem  button className = {classes.menuItem} key = {index} classes = {{selected:classes.selected}} onClick={()=>this.changeSelectedSignal(index)}>
+                  <MenuItem selected={index === this.state.indexSignal} button className = {classes.menuItem} key = {index} classes = {{selected:classes.selected}} onClick={()=>this.changeSelectedSignal(index)}>
                     <ListItemIcon>
                       <Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/>
                     </ListItemIcon>
@@ -130,5 +133,5 @@ const mapDispatchToProps = (dispatch) => ({
 })
 
 
-export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Signal));
-//export default (withStyles(styles)(Signal));
+//export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Signal));
+export default (withStyles(styles)(Signal));

@@ -36,6 +36,7 @@ import FavoriteOutlined from '@material-ui/icons/FavoriteOutlined'
 import Input from '@material-ui/core/Input';
 import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
+import OutlinedInput from '@material-ui/core/OutlinedInput';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import { connect } from 'react-redux'
@@ -161,6 +162,7 @@ const styles = theme => ({
       },
       textField: {
         width: 230,
+        color: '#9a9a9a'
       },
       describeSignal:{
         color:'#9a9a9a',
@@ -310,6 +312,7 @@ class Home extends Component{
             text_filter:'',
             helper_text:'Pase el mouse sobre un ícono para ver detalle',
             filters: [
+              
               {
                 value:'automatic',
                 label: 'Automatic'
@@ -452,19 +455,19 @@ class Home extends Component{
       .then(res => {
         let filter = 'Automatic'
         let aux = this.searchSignal(filter,this.state.signals_history) 
-        if(aux > 1)
-          filter = filter + (aux-1).toString(10)
+        
+        filter = filter + ' ' + (aux-1).toString(10)
         
         this.updateDataFilter(filter)
-        this.state.serie_vfsd.push({name:'Automatic',type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
-        this.state.serie_vfsi.push({name:'Automatic',type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
-        this.state.serie_psa.push({name:'Automatic',type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
+        this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
+        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
+        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
         this.updateOptions()
         //agregar co2
       })
       .finally(
         this.state.signals_history.push({filter:"Automatic "+this.searchSignal("Automatic",this.state.signals_history).toString(10)}),
-        this.props.setSignalHistory(this.state.signals_history),
+        //this.props.setSignalHistory(this.state.signals_history),
         this.state.history.push({name:this.state.filter,data:'pendiente'}))
 
     }
@@ -488,8 +491,8 @@ class Home extends Component{
       .then(res => {
         let filter = 'Hermite '
         let aux = this.searchSignal(filter,this.state.signals_history) 
-        if(aux > 1)
-          filter = filter + (aux-1).toString(10)
+        
+        filter = filter + ' ' + (aux-1).toString(10)
         this.updateDataFilter(filter)
         this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
         this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
@@ -499,7 +502,7 @@ class Home extends Component{
       })
       .finally(
         this.state.signals_history.push({filter:"Hermite "+this.searchSignal("Hermite ",this.state.signals_history).toString(10)}),
-        this.props.setSignalHistory(this.state.signals_history),
+        //this.props.setSignalHistory(this.state.signals_history),
         this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1}))
       }
 
@@ -523,8 +526,8 @@ class Home extends Component{
       .then(res => {
         let filter = 'Hampel'
         let aux = this.searchSignal(filter,this.state.signals_history) 
-        if(aux > 1)
-          filter = filter + (aux-1).toString(10)
+        
+        filter = filter + ' ' + (aux-1).toString(10)
         this.updateDataFilter(filter)
         this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
         this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
@@ -534,7 +537,7 @@ class Home extends Component{
       })
       .finally(
         this.state.signals_history.push({filter:"Hampel "+this.searchSignal("Hampel",this.state.signals_history).toString(10)}),
-        this.props.setSignalHistory(this.state.signals_history),
+        //this.props.setSignalHistory(this.state.signals_history),
         this.state.history.push({name:this.state.filter,data:'W: '+this.state.v1+'/ T: '+this.state.v2}))
     }
 
@@ -558,8 +561,8 @@ class Home extends Component{
       .then(res => {
         let filter = 'Butterworth'
         let aux = this.searchSignal(filter,this.state.signals_history) 
-        if(aux > 1)
-          filter = filter + (aux-1).toString(10)
+        
+        filter = filter + ' ' + (aux-1).toString(10)
         this.updateDataFilter(filter)
         this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
         this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
@@ -569,7 +572,7 @@ class Home extends Component{
       })
       .finally(
         this.state.signals_history.push({filter:"Butterworth "+this.searchSignal("Butterworth",this.state.signals_history).toString(10)}),
-        this.props.setSignalHistory(this.state.signals_history),
+        //this.props.setSignalHistory(this.state.signals_history),
         this.state.history.push({name:this.state.filter,data:'Ord:'+this.state.v1+'/ Cut: '+this.state.v2}))
     }
 
@@ -592,8 +595,8 @@ class Home extends Component{
       .then(res => {
         let filter = 'Mediana'
         let aux = this.searchSignal(filter,this.state.signals_history) 
-        if(aux > 1)
-          filter = filter + (aux-1).toString(10)
+        
+        filter = filter + ' ' + (aux-1).toString(10)
         
         this.updateDataFilter(filter)
         this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
@@ -605,10 +608,25 @@ class Home extends Component{
       })
       .finally(
         this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1}),
-        this.props.setSignalHistory(this.state.signals_history),
-        this.state.signals_history.push({filter:"Mediana "+this.searchSignal("Mediana",this.state.signals_history).toString(10)})
-        
+        this.state.signals_history.push({filter:"Mediana "+this.searchSignal("Mediana",this.state.signals_history).toString(10)}),
+        //this.props.setSignalHistory(this.state.signals_history)
       )
+    }
+
+    exportSignal(){
+      let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
+      let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
+      let psa = this.state.serie_psa[this.state.indexSignal].data
+      let co2 = this.state.serie_co2[0].data
+      let signal_to_filter = [vfsd,vfsi,psa,co2]
+      var obj = {
+        signals:JSON.stringify(signal_to_filter),
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost/ocpu/user/juanpablo/library/exportSignal/R/exportSignal/json',
+        data: obj
+      })
     }
 
     updateDataFilter(filter){
@@ -630,6 +648,7 @@ class Home extends Component{
     handleCleanData = () =>{
       if(this.state.serie_vfsd.length > 0 || this.state.serie_vfsi.length > 0 || this.state.serie_psa.length > 0 || this.state.serie_co2.length > 0){
         this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'CO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0},() => {
+          this.props.setSignalHistory(this.state.signals_history)
           this.refs.echarts_react_1.getEchartsInstance().dispose()
           this.refs.echarts_react_2.getEchartsInstance().dispose()
           this.refs.echarts_react_3.getEchartsInstance().dispose()
@@ -652,7 +671,7 @@ class Home extends Component{
           vsfd.push(Number(json[i].V3))
           vsfi.push(Number(json[i].V4))
           psa.push(Number(json[i].V5))
-          co2.push(Number(json[i].V6))
+          co2.push(Number(json[i].V7))
           x_points.push(i)      
         }
         let time = this.getSignalTime(vsfd.length).toFixed(1)
@@ -941,7 +960,7 @@ class Home extends Component{
 
     searchSignal(signal,signals){
       var regex = RegExp(signal+'*');
-      return signals.filter(function(s){return regex.test(s.filter)}).length
+      return (signals.filter(function(s){return regex.test(s.filter)}).length+1)
     }
 
     changeIntensityColor(color,num){
@@ -968,6 +987,8 @@ class Home extends Component{
       console.log(n)
       return (n/100/60)
     }
+
+    
 
     renderMissingSignal(){
         const { classes } = this.props
@@ -1027,23 +1048,22 @@ class Home extends Component{
                     <p className={classes.describeSignal}>Nombre archivo:<span style = {{fontStyle:'italic'}}>{this.state.filename.name}</span></p>
                   </Grid> 
                   <Grid item lg = {4} xl = {4} md = {4} style = {{marginTop:'18px'}}>
-                    <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>{this.state.signal_time}</span></p>
+                    <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>{this.state.signal_time} min</span></p>
                   </Grid> 
                   <Grid item lg = {4} xl = {4} md = {4} >
-                  <form style = {{display:'flex',flexWrap:'wrap'}} autoComplete="off">
-                    <FormControl className={classes.formControl} style = {{marginBottom:0}}>
-                    <InputLabel htmlFor="age-simple" style = {{color:'rgba(154,154,154,0.54)'}}>Filtros</InputLabel>
+                  <form style = {{display:'flex',flexWrap:'wrap',marginTop:'13px'}} autoComplete="off">
+                    <FormControl  className={classes.formControl} style = {{marginBottom:0}}>
                       <Select
                           name = "filters"
                           className={classes.textField}
                           value={this.state.filter}
                           onChange={this.handleChangeFilter('filter')}
-                          inputProps={{
-                            name: 'filter',
-                            id: 'age-simple',
-                          }}
+                          displayEmpty
                           autoWidth
                       >
+                        <MenuItem value="" disabled>
+                            -- Filtros --
+                          </MenuItem>
                         {this.state.filters.map(option => (
                           <MenuItem key={option.value} value={option.value}>
                             {option.label}
@@ -1092,7 +1112,7 @@ class Home extends Component{
                   </Paper>
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
-                <Signal key = {3} signals_history = {this.state.signals_history} changeSelectedSignal = {this.changeSelectedSignal}/>
+                <Signal key = {3} signalHistory = {this.state.signals_history} changeSelectedSignal = {this.changeSelectedSignal}/>
                 <History key = {this.state.index_key+1} history = {this.state.history} />
               </Grid>
             </Grid>
@@ -1118,7 +1138,7 @@ class Home extends Component{
                     <ListItemIcon className = {classes.myIcon}><FavoriteOutlined /></ListItemIcon>
                   </ListItem>
                   <ListItem button className={classes.itemAction}>
-                    <ListItemIcon className = {classes.myIcon}><Save /></ListItemIcon>
+                    <ListItemIcon className = {classes.myIcon}><Save onClick = {()=>{this.exportSignal()}}/></ListItemIcon>
                   </ListItem>
                 </List>
               </Drawer>
