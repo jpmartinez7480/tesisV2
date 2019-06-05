@@ -58,6 +58,7 @@ const styles = theme => ({
     mySaveIcon:{
       color: '#9a9a9a',
       margin:'5px',
+      cursor:'pointer'
     },
 })
 
@@ -70,6 +71,7 @@ class History extends Component{
             key: this.props.key,
             active: 1,
             checked:[1],
+            indexSignalToDelete: 0
         }
     }
 
@@ -101,6 +103,11 @@ class History extends Component{
       return null;
     }
 
+    chooseSignalToDelete(index){
+      this.setState({indexSignalToDelete:index},()=>{console.log("H:" + this.state.indexSignalToDelete)})
+      this.props.chooseSignalToDelete(index)
+    }
+
     render(){
         const { classes } = this.props
         return(
@@ -115,7 +122,7 @@ class History extends Component{
                     </ListItemIcon>
                   <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ color: 'rgba(154,154,154,0.54)' }}>{h.data}</Typography>} />
                     <ListItemSecondaryAction>
-                      <Delete style = {{color: '#9a9a9a',fontSize:'20px'}}/>
+                      <Delete onClick = {() => {this.chooseSignalToDelete(index)}} style = {{color: '#9a9a9a',fontSize:'20px',cursor:'pointer'}}/>
                     </ListItemSecondaryAction>
                 </ListItem>
                 ))

@@ -290,6 +290,7 @@ class Home extends Component{
             v5:'',
             signal_time:0,
             indexSignal:0,
+            indexSignalToDelete:0,
             colorSignal: '',
             serie_vfsd: [],
             serie_vfsi: [],
@@ -308,6 +309,7 @@ class Home extends Component{
             open_automatic: false,
             openWait: false,
             open_dialog_clean: false,
+            open_dialog_delete_signal:false,
             title_filter: '',
             text_filter:'',
             helper_text:'Pase el mouse sobre un ícono para ver detalle',
@@ -382,6 +384,10 @@ class Home extends Component{
       this.setState({openWait: true})
     }
 
+    handleOpenDialogDeleteSignal = () => {
+      this.setState({open_dialog_delete_signal: true})
+    }
+
     handleCloseHermite = () => {
       this.setState({open_hermite: false})
     }
@@ -404,6 +410,10 @@ class Home extends Component{
 
     handleCloseWait = () => {
       this.setState({openWait: false})
+    }
+
+    handleCloseDialogDeleteSignal = () => {
+      this.setState({open_dialog_delete_signal:false})
     }
 
     handleChange = (event, value) => {
@@ -429,6 +439,30 @@ class Home extends Component{
 
     changeSelectedSignal=index=>{
       this.setState({indexSignal:index})
+    }
+
+    chooseSignalToDelete=index=>{
+      this.setState({indexSignalToDelete:index},()=>{this.handleOpenDialogDeleteSignal()})
+    }
+
+    deleteSignal = () =>{
+      var serie_vfsd_copy = [...this.state.serie_vfsd]
+      var serie_vfsi_copy = [...this.state.serie_vfsi]
+      var serie_psa_copy = [...this.state.serie_psa]
+      var serie_co2_copy= [...this.state.serie_co2]
+      var history_copy = [...this.state.history]
+      var signals_history_copy = [...this.state.signals_history]
+      serie_vfsd_copy.splice(this.state.indexSignalToDelete+1,1)
+      serie_vfsi_copy.splice(this.state.indexSignalToDelete+1,1)
+      serie_psa_copy.splice(this.state.indexSignalToDelete+1,1)
+      serie_co2_copy.splice(this.state.indexSignalToDelete+1,1)
+      history_copy.splice(this.state.indexSignalToDelete)
+      signals_history_copy.splice(this.state.indexSignalToDelete+1,1)
+      this.setState({serie_vfsd:serie_vfsd_copy,serie_vfsi:serie_vfsi_copy,serie_psa:serie_psa_copy,serie_co2:serie_co2_copy,history:history_copy,signals_history:signals_history_copy},()=>{
+        this.updateOptions()
+        this.handleCloseDialogDeleteSignal()
+      })
+      
     }
 
     getAutomaticFilter(){
@@ -648,7 +682,7 @@ class Home extends Component{
     handleCleanData = () =>{
       if(this.state.serie_vfsd.length > 0 || this.state.serie_vfsi.length > 0 || this.state.serie_psa.length > 0 || this.state.serie_co2.length > 0){
         this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'CO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0},() => {
-          this.props.setSignalHistory(this.state.signals_history)
+          //this.props.setSignalHistory(this.state.signals_history)
           this.refs.echarts_react_1.getEchartsInstance().dispose()
           this.refs.echarts_react_2.getEchartsInstance().dispose()
           this.refs.echarts_react_3.getEchartsInstance().dispose()
@@ -1113,7 +1147,7 @@ class Home extends Component{
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
                 <Signal key = {3} signalHistory = {this.state.signals_history} changeSelectedSignal = {this.changeSelectedSignal}/>
-                <History key = {this.state.index_key+1} history = {this.state.history} />
+                <History key = {this.state.index_key+1} history = {this.state.history} chooseSignalToDelete = {this.chooseSignalToDelete} />
               </Grid>
             </Grid>
           </div>
@@ -1150,6 +1184,7 @@ class Home extends Component{
               <Grid container spacing={40} className ={classes.myGrid}>
                   {!this.state.isReadySignal ? this.renderMissingSignal() : this.renderSignal()}
               </Grid>
+              {/* Dialog para seleccionar señal */}
               <Dialog 
                 maxWidth="sm"
                 fullWidth={true}
@@ -1170,6 +1205,9 @@ class Home extends Component{
                     </form>
                 </FormControl>
               </Dialog>
+              {/* Fin Dialog para seleccionar señal */}
+              
+              {/* Dialog para cambiar señal */}
               <Dialog 
                 maxWidth="sm"
                 fullWidth={true}
@@ -1192,6 +1230,9 @@ class Home extends Component{
                     </Button>
                 </DialogActions>
               </Dialog>
+              {/* Fin Dialog para cambiar señal */}
+              
+              {/* Dialog filtrando */}
               <Dialog
               open={this.state.openWait}
               onClose={this.handleCloseWait}
@@ -1211,6 +1252,7 @@ class Home extends Component{
                                         barColorPrimary: classes.linearBarColorPrimary}} />
               </DialogContent>
             </Dialog>
+            {/* Fin Dialog filtrando */}
               {/* Dialog para Hermite */}
               <Dialog
                 open={this.state.open_hermite}
@@ -1351,7 +1393,30 @@ class Home extends Component{
               </DialogActions>
               </Dialog>
               {/* Fin Dialog para Automatic*/}
-
+              
+              {/*Dialog delete signal*/}
+              <Dialog
+                open={this.state.open_dialog_delete_signal}
+                onClose={this.handleCloseDialogDeleteSignal}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+              <DialogTitle id="alert-dialog-title">Eliminar señal</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  ¿Está seguro que desea eliminar la señal resultante?
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.handleCloseDialogDeleteSignal} style = {{color: '#2196f3'}}>
+                  No
+                </Button>
+                <Button onClick={this.deleteSignal} style = {{color: '#2196f3'}} autoFocus>
+                  Si
+                </Button>
+              </DialogActions>
+              </Dialog>
+              {/*Fin Dialog delete signal*/}
             </div>
             
         )
