@@ -14,29 +14,25 @@ import Timeline from '@material-ui/icons/Timeline';
 import Note from '@material-ui/icons/Note';
 import Header from '../../components/Header/Header';
 import Axios from 'axios';
+import InputBase from '@material-ui/core/InputBase';
 import ReactEcharts from 'echarts-for-react';
 import echarts from 'echarts';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Typography from '@material-ui/core/Typography';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import blue from '@material-ui/core/colors/blue';
 import Paper from '@material-ui/core/Paper';
 import echart_options from '../../config/echart_configs';
 import echart_colors from '../../config/echart_colors';
 import ListItem from '@material-ui/core/ListItem';
 import List from '@material-ui/core/List';
-import ListItemText from '@material-ui/core/ListItemText';
 import Drawer from '@material-ui/core/Drawer';
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import Crop from '@material-ui/icons/Crop';
 import NoteAdd from '@material-ui/icons/NoteAdd';
 import Save from '@material-ui/icons/Save';
-import Functions from '@material-ui/icons/Functions';
 import FavoriteOutlined from '@material-ui/icons/FavoriteOutlined'
 import Input from '@material-ui/core/Input';
-import InputLabel from '@material-ui/core/InputLabel';
 import Select from '@material-ui/core/Select';
-import OutlinedInput from '@material-ui/core/OutlinedInput';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import SnackbarWarning from '../../components/Dialogs/snackbar'
@@ -44,7 +40,6 @@ import { connect } from 'react-redux'
 
 import Signal from '../../components/Card/Signal'
 import History from '../../components/Card/History'
-import Checkbox from '@material-ui/core/Checkbox';
 import { loadSignal }  from '../../actions/actions.signal'
 import { setSignalVSFD } from '../../actions/actions.vsfd'
 import { setSignalVSFI } from '../../actions/actions.vsfi'
@@ -1247,7 +1242,7 @@ class Home extends Component{
                                 colorPrimary: classes.linearColorPrimary,
                                 barColorPrimary: classes.linearBarColorPrimary}}
                         />}
-                        <input type = "file" onChange={this.onChange} />
+                        <input required type = "file" onChange={this.onChange} />
                         <Button type = "submit" variant="contained" className = {classes.myPrimaryColor}>Cargar</Button>
                     </form>
                 </FormControl>
@@ -1308,12 +1303,15 @@ class Home extends Component{
                 aria-describedby="alert-dialog-description"
               >
               <DialogTitle id="alert-dialog-title">{title_hermite}</DialogTitle>
+              <form onSubmit={this.handleSendFilter.bind(this)}>
               <DialogContent>
                 <DialogContentText id="alert-dialog-description">
                   {text_hermite}
                 </DialogContentText>
-                <Input 
-                  placeholder="Ingrese porcentaje" 
+                
+                <InputBase 
+                  required
+                  placeholder="Ingrese porcentaje(*)" 
                   className = {classes.input} 
                   type="number" 
                   onChange={this.handleChangeInput('v1')}
@@ -1324,10 +1322,11 @@ class Home extends Component{
                 <Button onClick={this.handleCloseHermite} style = {{color: '#2196f3'}}>
                   No
                 </Button>
-                <Button onClick={this.handleSendFilter} style = {{color: '#2196f3'}} autoFocus>
+                <Button type = "submit"  style = {{color: '#2196f3'}} autoFocus>
                   Si
                 </Button>
               </DialogActions>
+              </form>
               </Dialog>     
               {/* Fin Dialog para Hermite*/}
               {/* Dialog para Mediana */}
@@ -1338,25 +1337,28 @@ class Home extends Component{
                 aria-describedby="alert-dialog-description"
               >
               <DialogTitle id="alert-dialog-title">{title_median}</DialogTitle>
+              <form onSubmit={this.handleSendFilter.bind(this)}>
               <DialogContent>
                 <DialogContentText id="alert-dialog-description">
                   {text_median}
                 </DialogContentText>
-                <Input 
+                <InputBase
                   placeholder="Ingrese orden (ej: 5)" 
                   className = {classes.input} 
                   type="number" 
                   onChange={this.handleChangeInput('v1')}
+                  required
                 />
               </DialogContent>
               <DialogActions>
                 <Button onClick={this.handleCloseMedian} style = {{color: '#2196f3'}}>
                   No
                 </Button>
-                <Button onClick={this.handleSendFilter} style = {{color: '#2196f3'}} autoFocus>
+                <Button type = "submit" style = {{color: '#2196f3'}} autoFocus>
                   Si
                 </Button>
               </DialogActions>
+              </form>
               </Dialog>     
               {/* Fin Dialog para Mediana*/}
 
@@ -1368,21 +1370,23 @@ class Home extends Component{
                 aria-describedby="alert-dialog-description"
               >
               <DialogTitle id="alert-dialog-title">{title_hampel}</DialogTitle>
+              <form onSubmit={this.handleSendFilter.bind(this)}>
               <DialogContent>
                 <DialogContentText id="alert-dialog-description">
                   {text_hampel}
                 </DialogContentText>
-                <Input placeholder="Ventana (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
-                <Input placeholder="Thresold (ej: 1.6)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
+                <InputBase required placeholder="Ventana (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
+                <InputBase required placeholder="Thresold (ej: 1.6)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
               </DialogContent>
               <DialogActions>
                 <Button onClick={this.handleCloseHampel} style = {{color: '#2196f3'}}>
                   No
                 </Button>
-                <Button onClick={this.handleSendFilter} style = {{color: '#2196f3'}} autoFocus>
+                <Button type = "submit" style = {{color: '#2196f3'}} autoFocus>
                   Si
                 </Button>
               </DialogActions>
+              </form>
               </Dialog>
               {/* Fin Dialog para Hampel*/}
 
@@ -1394,21 +1398,23 @@ class Home extends Component{
                 aria-describedby="alert-dialog-description"
               >
               <DialogTitle id="alert-dialog-title">{title_butterworth}</DialogTitle>
+              <form onSubmit={this.handleSendFilter.bind(this)}>
               <DialogContent>
                 <DialogContentText id="alert-dialog-description">
                   {text_butterworth}
                 </DialogContentText>
-                <Input placeholder="Orden (ej: 4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
-                <Input placeholder="Corte (ej: 0.4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
+                <InputBase required placeholder="Orden (ej: 4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
+                <InputBase required placeholder="Corte (ej: 0.4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
               </DialogContent>
               <DialogActions>
                 <Button onClick={this.handleCloseButterworth} style = {{color: '#2196f3'}}>
                   No
                 </Button>
-                <Button onClick={this.handleSendFilter} style = {{color: '#2196f3'}} autoFocus>
+                <Button type = "submit" style = {{color: '#2196f3'}} autoFocus>
                   Si
                 </Button>
               </DialogActions>
+              </form>
               </Dialog>
               {/* Fin Dialog para Butterworth*/}
 
@@ -1420,24 +1426,47 @@ class Home extends Component{
                 aria-describedby="alert-dialog-description"
               >
               <DialogTitle id="alert-dialog-title">{title_automatic}</DialogTitle>
+              <form onSubmit={this.handleSendFilter.bind(this)}>
               <DialogContent>
-                <DialogContentText id="alert-dialog-description">
+                <DialogContentText id="alert-dialog-description" style = {{marginBottom:'20px'}}>
                   {text_automatic}
                 </DialogContentText>
-                <Input placeholder="Orden Hermite (ej: 1)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
-                <Input placeholder="Ventana Hampel (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
-                <Input placeholder="Thresold Hampel(ej: 1.6)" className = {classes.input} type="number" onChange={this.handleChangeInput('v3')} />
-                <Input placeholder="Orden Butter (ej: 5)" className = {classes.input} type="number" onChange={this.handleChangeInput('v4')} />
-                <Input placeholder="Corte Butter (ej: 0.4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v5')} />
+                <Grid container style = {{marginBottom:'10px'}}>
+                  <Grid item lg = {2} xl = {2} md = {3}>
+                    <p style = {{color:'rgba(0,0,0,.7)'}}>Hermite</p>
+                  </Grid>
+                  <Grid item lg = {10} xl = {10} md = {3}>
+                    <InputBase required placeholder="Orden Hermite (ej: 1)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
+                  </Grid>
+                </Grid>
+                <Grid container style = {{marginBottom:'10px'}}>
+                  <Grid item lg = {2} xl = {2} md = {3}>
+                  <p style = {{color:'rgba(0,0,0,.7)'}}>Hampel</p>
+                  </Grid>
+                  <Grid item lg = {10} xl = {10} md = {3}>
+                    <InputBase required placeholder="Ventana Hampel (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
+                    <InputBase required  placeholder="Thresold Hampel(ej: 1.6)" className = {classes.input} type="number" onChange={this.handleChangeInput('v3')} />
+                  </Grid>
+                </Grid>
+                <Grid container style = {{marginBottom:'10px'}}>
+                  <Grid item lg = {2} xl = {2} md = {3}>
+                  <p style = {{color:'rgba(0,0,0,.7)'}}>Butterworth</p>
+                  </Grid>
+                  <Grid item lg = {10} xl = {10} md = {3}>
+                    <InputBase required placeholder="Orden Butter (ej: 5)" className = {classes.input} type="number" onChange={this.handleChangeInput('v4')} />
+                    <InputBase required placeholder="Corte Butter (ej: 0.4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v5')} />
+                  </Grid>
+                </Grid>
               </DialogContent>
               <DialogActions>
                 <Button onClick={this.handleCloseAutomatic} style = {{color: '#2196f3'}}>
                   No
                 </Button>
-                <Button onClick={this.handleSendFilter} style = {{color: '#2196f3'}} autoFocus>
+                <Button type = "submit" style = {{color: '#2196f3'}} autoFocus>
                   Si
                 </Button>
               </DialogActions>
+              </form>
               </Dialog>
               {/* Fin Dialog para Automatic*/}
               
