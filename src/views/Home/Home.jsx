@@ -39,6 +39,7 @@ import Select from '@material-ui/core/Select';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import SnackbarWarning from '../../components/Dialogs/snackbar'
 import { connect } from 'react-redux'
 
 import Signal from '../../components/Card/Signal'
@@ -247,7 +248,8 @@ const styles = theme => ({
       },
       input:{
         margin:'10px'
-      }
+      },
+      
   
   })
 
@@ -310,6 +312,8 @@ class Home extends Component{
             openWait: false,
             open_dialog_clean: false,
             open_dialog_delete_signal:false,
+            open_snackbar:false,
+            message_snackbar:'',
             title_filter: '',
             text_filter:'',
             helper_text:'Pase el mouse sobre un ícono para ver detalle',
@@ -416,6 +420,10 @@ class Home extends Component{
       this.setState({open_dialog_delete_signal:false})
     }
 
+    handleCloseSnackbar = () =>{
+      this.setState({open_snackbar:false})
+    }
+
     handleChange = (event, value) => {
         this.setState({ value });
     };
@@ -469,7 +477,7 @@ class Home extends Component{
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
-      let co2 = this.state.serie_co2[0].data
+      let co2 = this.state.serie_co2[this.state.indexSignal].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
 
       var obj = {
@@ -486,31 +494,38 @@ class Home extends Component{
         url: 'http://localhost/ocpu/user/juanpablo/library/automaticFilter/R/automaticFilter/json',
         data: obj
       })
-      .then(res => {
-        let filter = 'Automatic'
-        let aux = this.searchSignal(filter,this.state.signals_history) 
-        
-        filter = filter + ' ' + (aux-1).toString(10)
-        
-        this.updateDataFilter(filter)
-        this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
-        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
-        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
-        this.updateOptions()
-        //agregar co2
+      .then((res) => {
+        if(res.status === 201){
+          let filter = 'Automatic'
+          let aux = this.searchSignal(filter,this.state.signals_history) 
+          
+          filter = filter + ' ' + (aux-1).toString(10)
+          
+          this.updateDataFilter(filter)
+          this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
+          this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
+          this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
+          this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
+          this.updateOptions()
+        }
+        else {
+          console.log(res)
+          this.setState({open_snackbar:true,message_snackbar:'error'}, () => {this.handleCloseWait()})
+        }
       })
+      .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false})})
       .finally(
         this.state.signals_history.push({filter:"Automatic "+this.searchSignal("Automatic",this.state.signals_history).toString(10)}),
         //this.props.setSignalHistory(this.state.signals_history),
-        this.state.history.push({name:this.state.filter,data:'pendiente'}))
-
+        this.state.history.push({name:this.state.filter,data:'pendiente'})
+      )
     }
 
     sendFilterHermite2(){
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
-      let co2 = this.state.serie_co2[0].data
+      let co2 = this.state.serie_co2[this.state.indexSignal].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
 
       var obj = {
@@ -523,17 +538,25 @@ class Home extends Component{
         data: obj
       })
       .then(res => {
-        let filter = 'Hermite '
-        let aux = this.searchSignal(filter,this.state.signals_history) 
+        if(res.status === 201){
+          let filter = 'Hermite '
+          let aux = this.searchSignal(filter,this.state.signals_history) 
+          
+          filter = filter + ' ' + (aux-1).toString(10)
+          this.updateDataFilter(filter)
+          this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
+          this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
+          this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
+          this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
+          this.updateOptions()
+        }
+        else {
+          console.log(res)
+          this.setState({open_snackbar:true,message_snackbar:'error'}, () => {this.handleCloseWait()})
+        }
         
-        filter = filter + ' ' + (aux-1).toString(10)
-        this.updateDataFilter(filter)
-        this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
-        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
-        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
-        this.updateOptions()
-        //agregar co2
       })
+      .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false})})
       .finally(
         this.state.signals_history.push({filter:"Hermite "+this.searchSignal("Hermite ",this.state.signals_history).toString(10)}),
         //this.props.setSignalHistory(this.state.signals_history),
@@ -544,7 +567,7 @@ class Home extends Component{
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
-      let co2 = this.state.serie_co2[0].data
+      let co2 = this.state.serie_co2[this.state.indexSignal].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
       var obj = {
         signal:JSON.stringify(signal_to_filter),
@@ -558,17 +581,25 @@ class Home extends Component{
       })
       //.then(res => {this.setState({vsfd_filter_hampel: res.data[0],vsfi_filter_hampel:res.data[1],psa_filter_hampel:res.data[2]}, () => this.updateDataFilterHampel())})
       .then(res => {
-        let filter = 'Hampel'
-        let aux = this.searchSignal(filter,this.state.signals_history) 
+        if(res.status === 201){
+          let filter = 'Hampel'
+          let aux = this.searchSignal(filter,this.state.signals_history) 
+          
+          filter = filter + ' ' + (aux-1).toString(10)
+          this.updateDataFilter(filter)
+          this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
+          this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
+          this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
+          this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
+          this.updateOptions()
+        }
+        else {
+          console.log(res)
+          this.setState({open_snackbar:true,message_snackbar:'error'}, () => {this.handleCloseWait()})
+        }
         
-        filter = filter + ' ' + (aux-1).toString(10)
-        this.updateDataFilter(filter)
-        this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
-        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
-        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
-        this.updateOptions()
-        //agregar co2
       })
+      .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false})})
       .finally(
         this.state.signals_history.push({filter:"Hampel "+this.searchSignal("Hampel",this.state.signals_history).toString(10)}),
         //this.props.setSignalHistory(this.state.signals_history),
@@ -579,7 +610,7 @@ class Home extends Component{
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
-      let co2 = this.state.serie_co2[0].data
+      let co2 = this.state.serie_co2[this.state.indexSignal].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
       var obj = {
         signal:JSON.stringify(signal_to_filter),
@@ -593,17 +624,25 @@ class Home extends Component{
       })
       //.then(res => {this.setState({vsfd_filter_butterworth: res.data[0],vsfi_filter_butterworth:res.data[1],psa_filter_butterworth:res.data[2]}, () => this.updateDataFilterButterworth())})
       .then(res => {
-        let filter = 'Butterworth'
-        let aux = this.searchSignal(filter,this.state.signals_history) 
+        if(res.status === 201){
+          let filter = 'Butterworth'
+          let aux = this.searchSignal(filter,this.state.signals_history) 
+          
+          filter = filter + ' ' + (aux-1).toString(10)
+          this.updateDataFilter(filter)
+          this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
+          this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
+          this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
+          this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
+          this.updateOptions()
+        }
+        else {
+          console.log(res)
+          this.setState({open_snackbar:true,message_snackbar:'error'}, () => {this.handleCloseWait()})
+        }
         
-        filter = filter + ' ' + (aux-1).toString(10)
-        this.updateDataFilter(filter)
-        this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
-        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
-        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
-        this.updateOptions()
-        //agregar co2
       })
+      .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false})})
       .finally(
         this.state.signals_history.push({filter:"Butterworth "+this.searchSignal("Butterworth",this.state.signals_history).toString(10)}),
         //this.props.setSignalHistory(this.state.signals_history),
@@ -614,7 +653,7 @@ class Home extends Component{
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
-      let co2 = this.state.serie_co2[0].data
+      let co2 = this.state.serie_co2[this.state.indexSignal].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
       var obj = {
         signal:JSON.stringify(signal_to_filter),
@@ -627,19 +666,26 @@ class Home extends Component{
       })
       //.then(res => {this.setState({vsfd_filter_median: res.data[0],vsfi_filter_median:res.data[1],psa_filter_median:res.data[2]}, () => this.updateDataFilterMedian())})
       .then(res => {
-        let filter = 'Mediana'
-        let aux = this.searchSignal(filter,this.state.signals_history) 
+        if(res.status === 201){
+          let filter = 'Mediana'
+          let aux = this.searchSignal(filter,this.state.signals_history) 
+          
+          filter = filter + ' ' + (aux-1).toString(10)
+          
+          this.updateDataFilter(filter)
+          this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
+          this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
+          this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
+          this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
+          this.updateOptions()
+        }
+        else {
+          console.log(res)
+          this.setState({open_snackbar:true,message_snackbar:'error'}, () => {this.handleCloseWait()})
+        }
         
-        filter = filter + ' ' + (aux-1).toString(10)
-        
-        this.updateDataFilter(filter)
-        this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
-        this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
-        this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
-        this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
-        this.updateOptions()
-        //agregar co2
       })
+      .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false})})
       .finally(
         this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1}),
         this.state.signals_history.push({filter:"Mediana "+this.searchSignal("Mediana",this.state.signals_history).toString(10)}),
@@ -651,7 +697,7 @@ class Home extends Component{
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
-      let co2 = this.state.serie_co2[0].data
+      let co2 = this.state.serie_co2[this.state.indexSignal].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
       var obj = {
         signals:JSON.stringify(signal_to_filter),
@@ -705,7 +751,7 @@ class Home extends Component{
           vsfd.push(Number(json[i].V3))
           vsfi.push(Number(json[i].V4))
           psa.push(Number(json[i].V5))
-          co2.push(Number(json[i].V7))
+          co2.push(Number(json[i].V6))
           x_points.push(i)      
         }
         let time = this.getSignalTime(vsfd.length).toFixed(1)
@@ -1184,6 +1230,7 @@ class Home extends Component{
               <Grid container spacing={40} className ={classes.myGrid}>
                   {!this.state.isReadySignal ? this.renderMissingSignal() : this.renderSignal()}
               </Grid>
+              <SnackbarWarning open_snackbar = {this.state.open_snackbar} message_snackbar = {this.state.message_snackbar} />
               {/* Dialog para seleccionar señal */}
               <Dialog 
                 maxWidth="sm"

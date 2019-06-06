@@ -54,7 +54,7 @@ const styles = theme => ({
       },
       selected:{
         backgroundColor: '#ED7602 !important',
-        '& .Signal-textSignal-387': {
+        '& .Signal-textSignal-396': {
           color: '#fff !important'
       }
     }
