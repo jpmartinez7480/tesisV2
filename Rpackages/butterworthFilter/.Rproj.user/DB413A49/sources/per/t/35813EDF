@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1557627397651.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1916609013",
+    "id" : "35813EDF",
+    "lastKnownWriteTime" : 1557627734,
+    "last_content_update" : 1557627734,
+    "path" : "~/medianFilter/R/median.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "8,30",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

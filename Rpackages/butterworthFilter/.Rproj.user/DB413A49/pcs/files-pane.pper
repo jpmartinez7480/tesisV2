@@ -1,0 +1,9 @@
+{
+    "path" : "~/butterworthFilter",
+    "sortOrder" : [
+        {
+            "ascending" : true,
+            "columnIndex" : 2
+        }
+    ]
+}

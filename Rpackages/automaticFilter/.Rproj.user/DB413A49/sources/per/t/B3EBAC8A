@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1558921900631.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "139643901",
+    "id" : "B3EBAC8A",
+    "lastKnownWriteTime" : 1558987982,
+    "last_content_update" : 1558987982336,
+    "path" : "~/automaticFilter/R/automatic.R",
+    "project_path" : "R/automatic.R",
+    "properties" : {
+        "cursorPosition" : "6,95",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

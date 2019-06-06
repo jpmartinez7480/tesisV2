@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1557758332093.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3366425141",
+    "id" : "697485E1",
+    "lastKnownWriteTime" : 1557149357,
+    "last_content_update" : 1557149357,
+    "path" : "~/hermiteSplineFilter/R/filter.R",
+    "project_path" : null,
+    "properties" : {
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
