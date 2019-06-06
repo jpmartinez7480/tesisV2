@@ -1,10 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import App from './App';
 import Layout from './layouts/layout'
 import Home from './views/Home/Home'
-import Filter from './views/Filter/Filter'
+
 import { HashRouter, Route, Switch } from "react-router-dom";
 import indexRoutes from './routes/index'
 import { Provider } from 'react-redux';

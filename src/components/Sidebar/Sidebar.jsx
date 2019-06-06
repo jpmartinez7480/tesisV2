@@ -2,27 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { withStyles } from '@material-ui/core/styles';
-import Drawer from '@material-ui/core/Drawer';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-import List from '@material-ui/core/List';
+
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Typography from '@material-ui/core/Typography';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon'
-import Crop from '@material-ui/icons/Crop';
-import Timeline from '@material-ui/icons/Timeline';
-import Gesture from '@material-ui/icons/Gesture'
-import Help from '@material-ui/icons/Help';
-import Settings from '@material-ui/icons/Settings';
-import Person from '@material-ui/icons/Person';
-import NoteAdd from '@material-ui/icons/NoteAdd';
-import Save from '@material-ui/icons/Save';
-import FavoriteOutlined from '@material-ui/icons/FavoriteOutlined'
-import Avatar from '@material-ui/core/Avatar';
+
 import logo from '../../assets/logo.png';
-import pink from '@material-ui/core/colors/pink';
-import green from '@material-ui/core/colors/green';
 import blue from '@material-ui/core/colors/blue';
 
 const drawerWidth = 240;
@@ -193,35 +178,6 @@ class MiniDrawer extends React.Component {
             <img src={logo} alt = "logo" className={classes.logo}></img>
         </Toolbar>
         </AppBar>
-        {/*<Drawer
-          variant="permanent"
-          className={classNames(classes.drawer, {
-            [classes.drawerOpen]: this.state.open,
-            [classes.drawerClose]: !this.state.open,
-          })}
-          classes={{
-            paper: classNames({
-              [classes.drawerOpen]: this.state.open,
-              [classes.drawerClose]: !this.state.open,
-            }),
-          }}
-          open={this.state.open}
-        > 
-          <List className={classes.iconsAction}>
-            <ListItem button className={classes.itemAction}>
-              <ListItemIcon className = {classes.myIcon}><NoteAdd className = {classes.iconStyle}/></ListItemIcon>
-            </ListItem>
-            <ListItem button className={classes.itemAction}>
-              <ListItemIcon className = {classes.myIcon}><Crop /></ListItemIcon>
-            </ListItem>
-            <ListItem button className={classes.itemAction}>
-              <ListItemIcon className = {classes.myIcon}><FavoriteOutlined /></ListItemIcon>
-            </ListItem>
-            <ListItem button className={classes.itemAction}>
-              <ListItemIcon className = {classes.myIcon}><Save /></ListItemIcon>
-            </ListItem>
-          </List>
-        </Drawer>*/}
       </div>
     );
   }

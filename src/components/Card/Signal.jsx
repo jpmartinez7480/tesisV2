@@ -2,20 +2,13 @@ import React, { Component } from "react";
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 
-import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
-import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon'
-import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuList from '@material-ui/core/MenuList';
-import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import Timeline from '@material-ui/icons/Timeline';
-
-import { connect } from 'react-redux'
-import { setIndexSignal } from '../../actions/actions.index_signal'
 
 const styles = theme => ({
     myCard:{
@@ -121,17 +114,5 @@ class Signal extends Component{
 
 }
 
-function mapStateToProps(state){
-  return{
-      indexSignal: state.indexSignal,
-      signalHistory: state.signalHistory
-  }
-}
 
-const mapDispatchToProps = (dispatch) => ({
-      setIndexSignal: indexSignal => dispatch(setIndexSignal(indexSignal))
-})
-
-
-//export default connect(mapStateToProps, mapDispatchToProps)(withStyles(styles)(Signal));
 export default (withStyles(styles)(Signal));

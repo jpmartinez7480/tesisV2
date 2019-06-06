@@ -12,7 +12,6 @@ import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
 import Timeline from '@material-ui/icons/Timeline';
 import Note from '@material-ui/icons/Note';
-import Header from '../../components/Header/Header';
 import Axios from 'axios';
 import InputBase from '@material-ui/core/InputBase';
 import ReactEcharts from 'echarts-for-react';
@@ -45,7 +44,7 @@ import { setSignalVSFD } from '../../actions/actions.vsfd'
 import { setSignalVSFI } from '../../actions/actions.vsfi'
 import { setSignalPSA } from '../../actions/actions.psa'
 import { setSignalCO2 } from '../../actions/actions.co2'
-import { setSignalHistory } from '../../actions/actions.signal_history'
+
 
 const styles = theme => ({
     root: {
@@ -751,7 +750,8 @@ class Home extends Component{
         }
         let time = this.getSignalTime(vsfd.length).toFixed(1)
         
-        this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time},()=>{this.props.setSignalHistory(this.state.signals_history)})
+        
+        this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time})
         this.state.serie_vfsd.push({name:'VFSD',type:'line',data:vsfd,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
         this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
         this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
@@ -1521,8 +1521,7 @@ const mapDispatchToProps = (dispatch) => ({
         setSignalVSFD: vfsd => dispatch(setSignalVSFD(vfsd)),
         setSignalVSFI: vfsi => dispatch(setSignalVSFI(vfsi)),
         setSignalPSA: psa => dispatch(setSignalPSA(psa)),
-        setSignalCO2: co2 => dispatch(setSignalCO2(co2)),
-        setSignalHistory: signal_history =>dispatch(setSignalHistory(signal_history))
+        setSignalCO2: co2 => dispatch(setSignalCO2(co2))
 })
 
 

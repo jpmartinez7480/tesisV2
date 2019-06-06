@@ -4,8 +4,7 @@ import Sidebar from "../components/Sidebar/Sidebar";
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import routes from "../routes/routes.js"
-import ToolSidebar from "../components/Sidebar/toolSidebar";
-import ToolbarActions from "../components/Sidebar/ToolbarActions"
+
 const styles = theme => {}
 
 class layout extends Component{

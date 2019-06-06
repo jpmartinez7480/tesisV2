@@ -9,7 +9,6 @@ import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
-import Checkbox from '@material-ui/core/Checkbox';
 import Delete from '@material-ui/icons/Delete';
 import Save from '@material-ui/icons/Save';
 import blue from '@material-ui/core/colors/blue';
