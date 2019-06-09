@@ -5,7 +5,7 @@ const echart_options =
             color: 'rgba(154,154,154,.70)'
         },
         tooltip:{
-            trigger: 'axis'
+            trigger: 'item'
         },
         toolbox:{
             show: true,
