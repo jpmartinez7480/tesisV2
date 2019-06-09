@@ -9,18 +9,21 @@ const echart_options =
         },
         toolbox:{
             show: true,
-            itemGap:15,
+            itemGap:20,
             feature: {
                 dataZoom: {
+                    title:{zoom:'zoom area',back:'restaurar zoom'},
                     yAxisIndex: 'none',
                 },
-                restore: {title:'inicio'},
+                restore: {title:'Restaurar'},
                 saveAsImage: {title:'imagen'},
+                brush:{title:{lineX:'Seleccione área',clear:'Limpiar selección'}}
                 
             },
             iconStyle:{
                 borderColor:'rgba(154,154,154,.70)'
-            }      
+            },
+            right:35      
         },
         grid: {
             show:false,

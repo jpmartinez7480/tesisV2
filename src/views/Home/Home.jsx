@@ -264,6 +264,7 @@ class Home extends Component{
         super(props)
         this.state = {
             filename: null,
+            name_signal:'',
             signal: [{"V1":"","V2":"","V3":"","V4":"","V5":"","V6":"","V7":"","V8":"","V9":"","V10":"","V11":"","V12":"",}],
             vsfi_signal:[{"V3":"1"}],
             vsfd_signal:[{"V2":"1"}],
@@ -446,6 +447,18 @@ class Home extends Component{
     handleChangeInput = name => event => {
       this.setState({ [name]: event.target.value });
     };
+    
+    handleChangeInputTime = name => event => {
+        if(event.target.value.length === 2)
+          this.setState({ [name]: event.target.value+':'});
+        else if(event.target.value.length === 5)
+          this.setState({ [name]: event.target.value+':'});
+        else if(event.target.value.length === 8)
+          this.setState({ [name]: event.target.value+':'});
+        else
+        this.setState({ [name]: event.target.value});
+      
+    }
 
     handleClickOpen = () => {
         this.setState({ loadingGraph:false,open_dialog_clean: false,open: true });
@@ -742,7 +755,7 @@ class Home extends Component{
 
     handleCleanData = () =>{
       if(this.state.serie_vfsd.length > 0 || this.state.serie_vfsi.length > 0 || this.state.serie_psa.length > 0 || this.state.serie_co2.length > 0){
-        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'CO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0,indexSignal:0},() => {
+        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'CO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0,indexSignal:0,name_signal:''},() => {
           //this.props.setSignalHistory(this.state.signals_history)
           this.refs.echarts_react_1.getEchartsInstance().dispose()
           this.refs.echarts_react_2.getEchartsInstance().dispose()
@@ -778,7 +791,7 @@ class Home extends Component{
         this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
         this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
         this.state.serie_co2.push({name:'CO2',type:'line',data:co2,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#288c6c'}})
-        this.setState({isReadySignal:true}, () => {
+        this.setState({isReadySignal:true,name_signal:this.state.filename.name}, () => {
           this.handleClose()
           this.updateOptions()
           
@@ -799,6 +812,8 @@ class Home extends Component{
     handleChange = name => event => {
       this.setState({ [name]: event.target.checked });
     };
+
+
 
     handleChangeFilter = name => event => {  
       if(event.target.value === 'hermite'){
@@ -1100,26 +1115,27 @@ class Home extends Component{
       var times = this.state.x_points_vfs
       var pos1 = -1
       var pos2 = -1
-      for(var i = 0; pos1 === 0 || i < len; i++){
+      console.log(this.state.v1)
+      console.log(this.state.v2)
+      for(var i = 0; i < len; i++){
         if(times[i].localeCompare(this.state.v1) === 0){
           pos1 = i
           i = len
         }
-        else{
-          this.setState({open_snackbar:true,message_snackbar:'el tiempo de inicio no fue encontrado'}, () => {this.handleCloseDialogCutTime()}) 
-          return
-        }
       }
-      for(var j = pos1; pos2 === 0 || j < len; j++){
+      if(pos1 === -1){
+        this.setState({open_snackbar:true,message_snackbar:'el tiempo de inicio no fue encontrado',v1:'',v2:''}, () => {this.handleCloseDialogCutTime()}) 
+        return
+      }
+      for(var j = pos1+1; j < len; j++){
         if(times[j].localeCompare(this.state.v2) === 0){
           pos2 = j
           j = len
         }
-        else{
-          this.setState({open_snackbar:true,message_snackbar:'el tiempo de termino   no fue encontrado'}, () => {this.handleCloseDialogCutTime()}) 
-          return
-        }
-
+      }
+      if(pos2 === -1){
+        this.setState({open_snackbar:true,message_snackbar:'el tiempo de termino no fue encontrado',v1:'',v2:''}, () => {this.handleCloseDialogCutTime()}) 
+        return
       }
       var array_series = [this.state.serie_vfsd[this.state.indexSignal],this.state.serie_vfsi[this.state.indexSignal],this.state.serie_psa[this.state.indexSignal],this.state.serie_co2[this.state.indexSignal]]
       var array_results_json_cutter = []
@@ -1136,9 +1152,13 @@ class Home extends Component{
           serie_vfsi:[array_results_json_cutter[1]],
           serie_psa:[array_results_json_cutter[2]],
           serie_co2:[array_results_json_cutter[3]],
+          signal_time: this.getSignalTime(array_results_json_cutter[0].data.length).toFixed(1),
+          v1:'',
+          v2:''
         },
         ()=>{this.updateOptions() 
-            this.handleCloseDialogCutTime()})
+            this.handleCloseDialogCutTime()
+            })
     }
 
     getPointsToSlice = () =>{
@@ -1159,6 +1179,7 @@ class Home extends Component{
           serie_vfsi:[array_results_json_cutter[1]],
           serie_psa:[array_results_json_cutter[2]],
           serie_co2:[array_results_json_cutter[3]],
+          signal_time: this.getSignalTime(array_results_json_cutter[0].data.length).toFixed(1),
           brushArea:{}
         },
         ()=>{
@@ -1208,7 +1229,6 @@ class Home extends Component{
     }
 
     getSignalTime(n){
-      console.log(n)
       return (n/100/60)
     }
 
@@ -1283,7 +1303,7 @@ class Home extends Component{
                 <Paper className = {classes.paper}>
                 <Grid container style = {{marginBottom:'20px',textAlign:'center',flexGrow:1}}>
                   <Grid item lg = {4} xl = {4} md = {4} style = {{marginTop:'18px'}}>
-                    <p className={classes.describeSignal}>Nombre archivo:<span style = {{fontStyle:'italic'}}>{this.state.filename.name}</span></p>
+                    <p className={classes.describeSignal}>Nombre archivo:<span style = {{fontStyle:'italic'}}>{this.state.name_signal}</span></p>
                   </Grid> 
                   <Grid item lg = {4} xl = {4} md = {4} style = {{marginTop:'18px'}}>
                     <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>{this.state.signal_time} min</span></p>
@@ -1501,15 +1521,19 @@ class Home extends Component{
                         </DialogContentText>  
                         <Input 
                           required
-                          placeholder="Ingrese inicio (HH:MM:SS:CC)" 
-                          className = {classes.input}  
-                          onChange={this.handleChangeInput('v1')} 
+                          placeholder="Inicio (HH:MM:SS:CC)" 
+                          className = {classes.input} 
+                          value = {this.state.v1} 
+                          inputProps={{maxLength: 11}}
+                          onChange={this.handleChangeInputTime('v1')} 
                         />
                         <Input 
                           required
-                          placeholder="Ingrese fin (HH:MM:SS:CC)" 
-                          className = {classes.input}  
-                          onChange={this.handleChangeInput('v2')} 
+                          placeholder="Termino (HH:MM:SS:CC)" 
+                          className = {classes.input}
+                          inputProps={{maxLength: 11}}
+                          value = {this.state.v2}   
+                          onChange={this.handleChangeInputTime('v2')} 
                         />
                       </DialogContent>
                       <DialogActions>
@@ -1710,7 +1734,7 @@ class Home extends Component{
                   </Grid>
                   <Grid item lg = {10} xl = {10} md = {3}>
                     <InputBase required placeholder="Ventana Hampel (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
-                    <InputBase required  placeholder="Thresold Hampel(ej: 1.6)" className = {classes.input} type="number" onChange={this.handleChangeInput('v3')} />
+                    <InputBase required  placeholder="Thresold Hampel(ej: 1.6)" className = {classes.input} onChange={this.handleChangeInput('v3')} />
                   </Grid>
                 </Grid>
                 <Grid container style = {{marginBottom:'10px'}}>
@@ -1719,7 +1743,7 @@ class Home extends Component{
                   </Grid>
                   <Grid item lg = {10} xl = {10} md = {3}>
                     <InputBase required placeholder="Orden Butter (ej: 5)" className = {classes.input} type="number" onChange={this.handleChangeInput('v4')} />
-                    <InputBase required placeholder="Corte Butter (ej: 0.4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v5')} />
+                    <InputBase required placeholder="Corte Butter (ej: 0.4)" className = {classes.input}  onChange={this.handleChangeInput('v5')} />
                   </Grid>
                 </Grid>
               </DialogContent>
