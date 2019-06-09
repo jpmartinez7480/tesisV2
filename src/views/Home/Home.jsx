@@ -306,6 +306,8 @@ class Home extends Component{
             openWait: false,
             open_dialog_clean: false,
             open_dialog_delete_signal:false,
+            open_dialog_cut:false,
+            open_dialog_cut_times: false,
             open_snackbar:false,
             message_snackbar:'',
             title_filter: '',
@@ -335,12 +337,13 @@ class Home extends Component{
               },
               
             ],
+            brushArea:{}
 
         }
         this.onChange = this.onChange.bind(this)
         this.handleUploadSignal = this.handleUploadSignal.bind(this)
         this.handleSendFilter = this.handleSendFilter.bind(this)
-        
+        this.splitSignalTimes = this.splitSignalTimes.bind(this)
     }
 
     componentDidUpdate(){
@@ -386,6 +389,14 @@ class Home extends Component{
       this.setState({open_dialog_delete_signal: true})
     }
 
+    handleOpenDialogCut = () => {
+      this.setState({open_dialog_cut:true})
+    }
+
+    handleOpenDialogCutTime = () => {
+      this.setState({open_dialog_cut_times:true})
+    }
+
     handleCloseHermite = () => {
       this.setState({open_hermite: false})
     }
@@ -412,6 +423,14 @@ class Home extends Component{
 
     handleCloseDialogDeleteSignal = () => {
       this.setState({open_dialog_delete_signal:false})
+    }
+
+    handleCloseDialogCut = () =>{
+      this.setState({open_dialog_cut:false})
+    }
+
+    handleCloseDialogCutTime = () => {
+      this.setState({open_dialog_cut_times:false})
     }
 
     handleCloseSnackbar = () =>{
@@ -721,7 +740,7 @@ class Home extends Component{
 
     handleCleanData = () =>{
       if(this.state.serie_vfsd.length > 0 || this.state.serie_vfsi.length > 0 || this.state.serie_psa.length > 0 || this.state.serie_co2.length > 0){
-        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'CO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0},() => {
+        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'CO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0,indexSignal:0},() => {
           //this.props.setSignalHistory(this.state.signals_history)
           this.refs.echarts_react_1.getEchartsInstance().dispose()
           this.refs.echarts_react_2.getEchartsInstance().dispose()
@@ -741,12 +760,13 @@ class Home extends Component{
         var psa = []
         var co2 = []
         var x_points = []
+        console.log(json)
         for(var i = 1; i < json.length; i++){
           vsfd.push(Number(json[i].V3))
           vsfi.push(Number(json[i].V4))
           psa.push(Number(json[i].V5))
           co2.push(Number(json[i].V6))
-          x_points.push(i)      
+          x_points.push(json[i].V1)      
         }
         let time = this.getSignalTime(vsfd.length).toFixed(1)
         
@@ -820,10 +840,13 @@ class Home extends Component{
           text:'VFSD',
           textStyle:echart_options.textStyle
         },
+        
         tooltip: echart_options.tooltip.trigger,
         legend: {
           data:[{name:'VFSD',textStyle:echart_options.textStyle}]
         },
+        
+        brush:{toolbox:['lineX','clear'],throttleType: 'debounce',throttleDelay: 1000,xAxisIndex: 0},
         toolbox: echart_options.toolbox,
         grid: echart_options.grid,
         dataZoom: echart_options.dataZoom,
@@ -858,7 +881,7 @@ class Home extends Component{
         text:'VFSI',
         textStyle:echart_options.textStyle
       },
-      brush:{toolbox:['rect','clear'],throttleType: 'debounce',throttleDelay: 1000,xAxisIndex: 0},
+      brush:{toolbox:['lineX','clear'],throttleType: 'debounce',throttleDelay: 1000,xAxisIndex: 0},
       tooltip: echart_options.tooltip,
       legend: {
         data:[{name:'VFSI',textStyle:echart_options.textStyle}]
@@ -896,6 +919,7 @@ class Home extends Component{
         text:'PSA',
         textStyle:echart_options.textStyle
       },
+      brush:{toolbox:['lineX','clear'],throttleType: 'debounce',throttleDelay: 1000,xAxisIndex: 0},
       tooltip: echart_options.tooltip,
       legend: {
         data:[{name:'PSA',textStyle:echart_options.textStyle}]
@@ -933,6 +957,7 @@ class Home extends Component{
         text:'CO2',
         textStyle:echart_options.textStyle
       },
+      brush:{toolbox:['lineX','clear'],throttleType: 'debounce',throttleDelay: 1000,xAxisIndex: 0},
       tooltip: echart_options.tooltip,
       legend: {
         data:[{name:'CO2',textStyle:echart_options.textStyle}]
@@ -1022,15 +1047,135 @@ class Home extends Component{
     }
 
     onChartClick = (param, echarts) => {
-      console.log(param.seriesIndex)
+      console.log(param.dataIndex)
       this.setState({indexSignal:param.seriesIndex})
     };
 
-    onSelectPoints = (param,echarts) =>{
-      let points = param.batch[0].coordRange[0]
-      console.log(points)
-      //this.setState({start_point_cut:Math.abs(param.batch[0].startValue),end_point_cut:param.batch[0].endValue})
+    onMouseUp = (param, echarts) => {
+      console.log('UP')
+      console.log(param.dataIndex)
+     
       
+    };
+
+    onMouseDown = (param,echarts) => {
+      console.log('Down')
+      this.refs.echarts_react_1.getEchartsInstance().dispatchAction({
+        type: 'takeGlobalCursor',
+        key: 'brush',
+        brushOption: {
+            brushType: 'lineX',
+            brushMode: 'single'
+        }
+    });
+       
+    }
+
+    sliceSerieData = (params,echarts) =>{
+      console.log(echarts)
+      
+    }
+
+    getCutterArray(array_serie,point1,point2){
+      return array_serie.data.slice(point1,point2+1)
+    }
+
+    getJsonConfigArray(array_serie,array_cutter){
+      var json_object = {
+        name:array_serie.name,
+        type:'line',
+        data:array_cutter,
+        symbol:echart_options.series.symbol,
+        symbolSize: echart_options.series.symbolSize,
+        itemStyle:{color:array_serie.itemStyle.color}
+      }
+      return json_object
+    }
+
+    splitSignalTimes = (event) => {
+      event.preventDefault()
+      var len = this.state.x_points_vfs.length;
+      var times = this.state.x_points_vfs
+      var pos1 = -1
+      var pos2 = -1
+      for(var i = 0; pos1 === 0 || i < len; i++){
+        if(times[i].localeCompare(this.state.v1) === 0){
+          pos1 = i
+          i = len
+        }
+        else{
+          this.setState({open_snackbar:true,message_snackbar:'el tiempo de inicio no fue encontrado'}, () => {this.handleCloseDialogCutTime()}) 
+          return
+        }
+      }
+      for(var j = 0; pos2 === 0 || j < len; j++){
+        if(times[j].localeCompare(this.state.v2) === 0){
+          pos2 = j
+          j = len
+        }
+        else{
+          this.setState({open_snackbar:true,message_snackbar:'el tiempo de termino   no fue encontrado'}, () => {this.handleCloseDialogCutTime()}) 
+          return
+        }
+
+      }
+      var array_series = [this.state.serie_vfsd[this.state.indexSignal],this.state.serie_vfsi[this.state.indexSignal],this.state.serie_psa[this.state.indexSignal],this.state.serie_co2[this.state.indexSignal]]
+      var array_results_json_cutter = []
+      for(var m = 0; m < 4; m++){
+        var cutter = this.getCutterArray(array_series[m],pos1,pos2)
+        var json_result = this.getJsonConfigArray(array_series[m],cutter)
+        array_results_json_cutter.push(json_result)
+      }
+      var x = []
+      for(var k = 0; k < array_results_json_cutter[0].data.length;k++)
+        x.push(k)
+      this.setState({x_points_vfs:x,
+          serie_vfsd:array_results_json_cutter[0],
+          serie_vfsi:array_results_json_cutter[1],
+          serie_psa:array_results_json_cutter[2],
+          serie_co2:array_results_json_cutter[3],
+        },
+        ()=>{this.updateOptions() 
+            this.handleCloseDialogCutTime()})
+    }
+
+    getPointsToSlice = () =>{
+      var point1 = this.state.brushArea.batch[0].areas[0].coordRange[0]
+      var point2 = this.state.brushArea.batch[0].areas[0].coordRange[1]
+      var array_series = [this.state.serie_vfsd[this.state.indexSignal],this.state.serie_vfsi[this.state.indexSignal],this.state.serie_psa[this.state.indexSignal],this.state.serie_co2[this.state.indexSignal]]
+      var array_results_json_cutter = []
+      for(var i = 0; i < 4; i++){
+        var cutter = this.getCutterArray(array_series[i],point1,point2)
+        var json_result = this.getJsonConfigArray(array_series[i],cutter)
+        array_results_json_cutter.push(json_result)
+      }
+      var x = []
+      for(var j = 0; j < array_results_json_cutter[0].data.length;j++)
+        x.push(j)
+      this.setState({x_points_vfs:x,
+          serie_vfsd:array_results_json_cutter[0],
+          serie_vfsi:array_results_json_cutter[1],
+          serie_psa:array_results_json_cutter[2],
+          serie_co2:array_results_json_cutter[3],
+          brushArea:{}
+        },
+        ()=>{this.updateOptions()
+      })
+
+    }
+      
+
+    onMouseMove = (param,echarts) => {
+      
+    }
+
+    onSelectPoints = (param,echarts) =>{
+      this.setState({brushArea:param})
+
+    }
+
+    onChartMouseOver = (param,echarts) => {
+      console.log(param)
     }
 
     searchSignal(signal,signals){
@@ -1063,7 +1208,19 @@ class Home extends Component{
       return (n/100/60)
     }
 
+    isEmpty = json => {
+      for(var key in json){
+        if(json.hasOwnProperty(key))
+          return false
+      }
+      return true
+    }
+
     
+
+    onMouseOut=(param)=>{
+      console.log(param)
+    }
 
     renderMissingSignal(){
         const { classes } = this.props
@@ -1109,7 +1266,9 @@ class Home extends Component{
     renderSignal(){
         const { classes } = this.props
         let onEvents = {
-          'click': this.onChartClick,
+          'mouseup':this.onMouseUp,
+        
+          'brushselected':this.onSelectPoints
           
         };
         return(
@@ -1207,7 +1366,7 @@ class Home extends Component{
                     <ListItemIcon className = {classes.myIcon} onClick = {this.handleOpenDialogClean}><NoteAdd className = {classes.iconStyle}/></ListItemIcon>
                   </ListItem>
                   <ListItem button className={classes.itemAction}>
-                    <ListItemIcon className = {classes.myIcon}><Crop /></ListItemIcon>
+                    <ListItemIcon className = {classes.myIcon}><Crop onClick = {this.handleOpenDialogCutTime}/></ListItemIcon>
                   </ListItem>
                   <ListItem button className={classes.itemAction}>
                     <ListItemIcon className = {classes.myIcon}><FavoriteOutlined /></ListItemIcon>
@@ -1226,6 +1385,7 @@ class Home extends Component{
                   {!this.state.isReadySignal ? this.renderMissingSignal() : this.renderSignal()}
               </Grid>
               <SnackbarWarning open_snackbar = {this.state.open_snackbar} message_snackbar = {this.state.message_snackbar} />
+              
               {/* Dialog para seleccionar señal */}
               <Dialog 
                 maxWidth="sm"
@@ -1273,7 +1433,88 @@ class Home extends Component{
                 </DialogActions>
               </Dialog>
               {/* Fin Dialog para cambiar señal */}
-              
+
+              {/* Dialog para cortar señal */}
+              <Dialog 
+                maxWidth="sm"
+                fullWidth={true}
+                open={this.state.open_dialog_cut}
+                onClose={this.handleCloseDialogCut}
+                aria-labelledby="max-width-dialog-title"
+              >
+                <DialogTitle id="max-width-dialog-title">Cortar señal</DialogTitle>
+                  {!this.isEmpty(this.state.brushArea) && this.state.signals_history.length === 1 ?
+                    <div> 
+                    <DialogContent>
+                      <DialogContentText id="alert-dialog-description">
+                        ¿Está seguro que desea cortar la señal?. El corte se aplicará a las 4 señales
+                      </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={this.handleCloseDialogCut} style = {{color: '#2196f3'}}>
+                        No
+                      </Button>
+                      <Button onClick={this.getPointsToSlice} style = {{color: '#2196f3'}} autoFocus>
+                        Si
+                      </Button>
+                    </DialogActions>
+                  </div>
+                  :
+                  <div> 
+                    <DialogContent>
+                      <DialogContentText id="alert-dialog-description">
+                        No ha seleccionado sección de señal para cortar o existe más de una señal en el mismo gráfico.
+                      </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={this.handleCloseDialogCut} style = {{color: '#2196f3'}}>
+                        Cerrar
+                      </Button>
+                    </DialogActions>
+                  </div>
+                  }
+              </Dialog>
+              {/* Fin Dialog para cortar señal */}
+
+              {/* Dialog para cortar señal indicando tiempos*/}
+              <Dialog 
+                maxWidth="sm"
+                fullWidth={true}
+                open={this.state.open_dialog_cut_times}
+                onClose={this.handleCloseDialogCutTime}
+                aria-labelledby="max-width-dialog-title"
+              >
+                <DialogTitle id="max-width-dialog-title">Cortar señal</DialogTitle>
+                <form onSubmit={this.splitSignalTimes.bind(this)}>
+                  <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                      Ingrese el tiempo de inicio y fin requeridos de la señal  
+                    </DialogContentText>  
+                    <Input 
+                      required
+                      placeholder="Ingrese inicio (HH:MM:SS:CC)" 
+                      className = {classes.input}  
+                      onChange={this.handleChangeInput('v1')} 
+                    />
+                    <Input 
+                      required
+                      placeholder="Ingrese fin (HH:MM:SS:CC)" 
+                      className = {classes.input}  
+                      onChange={this.handleChangeInput('v2')} 
+                    />
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={this.handleCloseDialogCutTimes} style = {{color: '#2196f3'}}>
+                      No
+                    </Button>
+                    <Button type = "submit"  style = {{color: '#2196f3'}} autoFocus>
+                      Si
+                    </Button>
+                  </DialogActions>
+                </form>
+              </Dialog>
+              {/* Fin Dialog para cortar señal indicando tiempos */}
+
               {/* Dialog filtrando */}
               <Dialog
               open={this.state.openWait}
@@ -1376,7 +1617,7 @@ class Home extends Component{
                   {text_hampel}
                 </DialogContentText>
                 <InputBase required placeholder="Ventana (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
-                <InputBase required placeholder="Thresold (ej: 1.6)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
+                <InputBase  required placeholder="Thresold (ej: 1.6)" className = {classes.input}  step=".01" onChange={this.handleChangeInput('v2')} />
               </DialogContent>
               <DialogActions>
                 <Button onClick={this.handleCloseHampel} style = {{color: '#2196f3'}}>
@@ -1404,7 +1645,7 @@ class Home extends Component{
                   {text_butterworth}
                 </DialogContentText>
                 <InputBase required placeholder="Orden (ej: 4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
-                <InputBase required placeholder="Corte (ej: 0.4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
+                <InputBase required placeholder="Corte (ej: 0.4)" className = {classes.input}  onChange={this.handleChangeInput('v2')} />
               </DialogContent>
               <DialogActions>
                 <Button onClick={this.handleCloseButterworth} style = {{color: '#2196f3'}}>
