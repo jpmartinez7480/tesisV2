@@ -27,6 +27,7 @@ import List from '@material-ui/core/List';
 import Drawer from '@material-ui/core/Drawer';
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import Crop from '@material-ui/icons/Crop';
+import CropFree from '@material-ui/icons/CropFree';
 import NoteAdd from '@material-ui/icons/NoteAdd';
 import Save from '@material-ui/icons/Save';
 import FavoriteOutlined from '@material-ui/icons/FavoriteOutlined'
@@ -535,6 +536,7 @@ class Home extends Component{
     }
 
     sendFilterHermite2(){
+      
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
@@ -1108,7 +1110,7 @@ class Home extends Component{
           return
         }
       }
-      for(var j = 0; pos2 === 0 || j < len; j++){
+      for(var j = pos1; pos2 === 0 || j < len; j++){
         if(times[j].localeCompare(this.state.v2) === 0){
           pos2 = j
           j = len
@@ -1127,13 +1129,13 @@ class Home extends Component{
         array_results_json_cutter.push(json_result)
       }
       var x = []
-      for(var k = 0; k < array_results_json_cutter[0].data.length;k++)
-        x.push(k)
+      for(var k = pos1; k < pos2+1; k++)
+        x.push(this.state.x_points_vfs[k])
       this.setState({x_points_vfs:x,
-          serie_vfsd:array_results_json_cutter[0],
-          serie_vfsi:array_results_json_cutter[1],
-          serie_psa:array_results_json_cutter[2],
-          serie_co2:array_results_json_cutter[3],
+          serie_vfsd:[array_results_json_cutter[0]],
+          serie_vfsi:[array_results_json_cutter[1]],
+          serie_psa:[array_results_json_cutter[2]],
+          serie_co2:[array_results_json_cutter[3]],
         },
         ()=>{this.updateOptions() 
             this.handleCloseDialogCutTime()})
@@ -1150,17 +1152,19 @@ class Home extends Component{
         array_results_json_cutter.push(json_result)
       }
       var x = []
-      for(var j = 0; j < array_results_json_cutter[0].data.length;j++)
-        x.push(j)
+      for(var j = point1; j < point2+1; j++)
+        x.push(this.state.x_points_vfs[j])
       this.setState({x_points_vfs:x,
-          serie_vfsd:array_results_json_cutter[0],
-          serie_vfsi:array_results_json_cutter[1],
-          serie_psa:array_results_json_cutter[2],
-          serie_co2:array_results_json_cutter[3],
+          serie_vfsd:[array_results_json_cutter[0]],
+          serie_vfsi:[array_results_json_cutter[1]],
+          serie_psa:[array_results_json_cutter[2]],
+          serie_co2:[array_results_json_cutter[3]],
           brushArea:{}
         },
-        ()=>{this.updateOptions()
-      })
+        ()=>{
+          console.log(this.state.serie_vfsd)
+          this.updateOptions()
+          this.handleCloseDialogCut()})
 
     }
       
@@ -1369,6 +1373,9 @@ class Home extends Component{
                     <ListItemIcon className = {classes.myIcon}><Crop onClick = {this.handleOpenDialogCutTime}/></ListItemIcon>
                   </ListItem>
                   <ListItem button className={classes.itemAction}>
+                    <ListItemIcon className = {classes.myIcon}><CropFree onClick = {this.handleOpenDialogCut}/></ListItemIcon>
+                  </ListItem>
+                  <ListItem button className={classes.itemAction}>
                     <ListItemIcon className = {classes.myIcon}><FavoriteOutlined /></ListItemIcon>
                   </ListItem>
                   <ListItem button className={classes.itemAction}>
@@ -1485,33 +1492,50 @@ class Home extends Component{
                 aria-labelledby="max-width-dialog-title"
               >
                 <DialogTitle id="max-width-dialog-title">Cortar señal</DialogTitle>
-                <form onSubmit={this.splitSignalTimes.bind(this)}>
-                  <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                      Ingrese el tiempo de inicio y fin requeridos de la señal  
-                    </DialogContentText>  
-                    <Input 
-                      required
-                      placeholder="Ingrese inicio (HH:MM:SS:CC)" 
-                      className = {classes.input}  
-                      onChange={this.handleChangeInput('v1')} 
-                    />
-                    <Input 
-                      required
-                      placeholder="Ingrese fin (HH:MM:SS:CC)" 
-                      className = {classes.input}  
-                      onChange={this.handleChangeInput('v2')} 
-                    />
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={this.handleCloseDialogCutTimes} style = {{color: '#2196f3'}}>
-                      No
-                    </Button>
-                    <Button type = "submit"  style = {{color: '#2196f3'}} autoFocus>
-                      Si
-                    </Button>
-                  </DialogActions>
-                </form>
+                {this.state.signals_history.length === 1  ? 
+                  <div>
+                    <form onSubmit={this.splitSignalTimes.bind(this)}>
+                      <DialogContent>
+                        <DialogContentText id="alert-dialog-description">
+                          Ingrese el tiempo de inicio y fin requeridos de la señal  
+                        </DialogContentText>  
+                        <Input 
+                          required
+                          placeholder="Ingrese inicio (HH:MM:SS:CC)" 
+                          className = {classes.input}  
+                          onChange={this.handleChangeInput('v1')} 
+                        />
+                        <Input 
+                          required
+                          placeholder="Ingrese fin (HH:MM:SS:CC)" 
+                          className = {classes.input}  
+                          onChange={this.handleChangeInput('v2')} 
+                        />
+                      </DialogContent>
+                      <DialogActions>
+                        <Button onClick={this.handleCloseDialogCutTime} style = {{color: '#2196f3'}}>
+                          No
+                        </Button>
+                        <Button type = "submit"  style = {{color: '#2196f3'}} autoFocus>
+                          Si
+                        </Button>
+                      </DialogActions>
+                    </form>
+                  </div>
+                  :
+                  <div> 
+                    <DialogContent>
+                      <DialogContentText id="alert-dialog-description">
+                        No ha seleccionado sección de señal para cortar o existe más de una señal en el mismo gráfico.
+                      </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={this.handleCloseDialogCutTime} style = {{color: '#2196f3'}}>
+                        Cerrar
+                      </Button>
+                    </DialogActions>
+                  </div>
+                }
               </Dialog>
               {/* Fin Dialog para cortar señal indicando tiempos */}
 
