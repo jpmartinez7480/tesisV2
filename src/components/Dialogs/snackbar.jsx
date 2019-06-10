@@ -28,11 +28,13 @@ class SnackbarWarning extends Component{
         }
     }
 
-    handleClose = () => {
-        this.setState({open:false})
+    handleCloseSnackbar = () => {
+       this.setState({open:false})
+       this.props.handleCloseSnackbar()
     }
 
     componentDidUpdate(prevProps,prevState){
+      
       if(this.props.open_snackbar !== prevProps.open_snackbar){
         this.setState({open:this.props.open_snackbar})
       }
@@ -48,10 +50,10 @@ class SnackbarWarning extends Component{
                 }}
                 open={this.state.open}
                 autoHideDuration={5000}
-                onClose={this.handleClose}
+                onClose={this.handleCloseSnackbar}
                 >
                 <SnackbarContent
-                  onClose={this.handleClose}
+                  onClose={this.handleCloseSnackbar}
                   className={classes.error}
                   message={this.props.message_snackbar}
                   action={[
@@ -60,7 +62,7 @@ class SnackbarWarning extends Component{
                       aria-label="Close"
                       color="inherit"
                       className={classes.close}
-                      onClick={this.handleClose}
+                      onClick={this.handleCloseSnackbar}
                     >
                       <CloseIcon />
                     </IconButton>

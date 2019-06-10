@@ -576,6 +576,8 @@ class Home extends Component{
           this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
           this.state.serie_psa.push({name:filter,type:'line',data:res.data[2],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
           this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
+          this.state.signals_history.push({filter:"Hermite "+this.searchSignal("Hermite ",this.state.signals_history).toString(10)})
+          this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1})
           this.updateOptions()
         }
         else {
@@ -585,11 +587,8 @@ class Home extends Component{
         
       })
       .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false})})
-      .finally(
-        this.state.signals_history.push({filter:"Hermite "+this.searchSignal("Hermite ",this.state.signals_history).toString(10)}),
-        //this.props.setSignalHistory(this.state.signals_history),
-        this.state.history.push({name:this.state.filter,data:'Ord: '+this.state.v1}))
-      }
+    }
+      
 
     getFilterHampel(){
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
@@ -1411,7 +1410,8 @@ class Home extends Component{
               <Grid container spacing={40} className ={classes.myGrid}>
                   {!this.state.isReadySignal ? this.renderMissingSignal() : this.renderSignal()}
               </Grid>
-              <SnackbarWarning open_snackbar = {this.state.open_snackbar} message_snackbar = {this.state.message_snackbar} />
+              
+              <SnackbarWarning open_snackbar = {this.state.open_snackbar} message_snackbar = {this.state.message_snackbar} handleCloseSnackbar = {this.handleCloseSnackbar}/>
               
               {/* Dialog para seleccionar señal */}
               <Dialog 
