@@ -281,11 +281,12 @@ class Home extends Component{
             isReadySignal: false,
             loadingGraph: false,
             filter: '',
-            v1: '',
-            v2: '',
-            v3:'',
-            v4:'',
-            v5:'',
+            value_order_hermite: 1,
+            value_window_hampel: 10,
+            value_thresold_hampel:1.6,
+            value_order_butter:4,
+            value_slice_butter:0.4,
+            value_order_median: 5,
             signal_time:0,
             indexSignal:0,
             indexSignalToDelete:0,
@@ -522,11 +523,11 @@ class Home extends Component{
 
       var obj = {
         listaSenal:JSON.stringify(signal_to_filter),
-        order_hermite:parseInt(this.state.v1),
-        window_hampel:parseInt(this.state.v2),
-        thresold_hermite:parseFloat(this.state.v3),
-        order_butter:parseInt(this.state.v4),
-        cut_butter:parseFloat(this.state.v5)
+        order_hermite:parseInt(this.state.value_order_hermite),
+        window_hampel:parseInt(this.state.value_window_hampel),
+        thresold_hermite:parseFloat(this.state.value_thresold_hampel),
+        order_butter:parseInt(this.state.value_order_butter),
+        cut_butter:parseFloat(this.state.value_slice_butter)
       }
       
       Axios({
@@ -550,9 +551,9 @@ class Home extends Component{
           var h = [...this.state.history]
           sh.push({filter:"Automatic "+this.searchSignal("Automatic",this.state.signals_history).toString(10)})
           if(this.state.indexSignal >= 1)
-            h.push({name:this.state.filter,data:'pendiente',dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.v1+'/ '+'ventana Hampel: '+ this.state.v2+';'+' umbral Hampel: '+this.state.v3+'/ '+'orden Butterworth: '+this.state.v4+';'+' corte Butterworth:'+this.state.v5})
+            h.push({name:this.state.filter,data:'pendiente',dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite+'/ '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.value_thresold_hampel+'/ '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
           else
-            h.push({name:this.state.filter,data:'pendiente',dialog:'orden Hermite: '+this.state.v1+'/ '+'ventana Hampel: '+ this.state.v2+';'+' umbral Hampel: '+this.state.v3+'/ '+'orden Butterworth: '+this.state.v4+';'+' corte Butterworth:'+this.state.v5})
+            h.push({name:this.state.filter,data:'pendiente',dialog:'orden Hermite: '+this.state.value_order_hermite+'%'+'/ '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.thresold+'/ '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -579,7 +580,7 @@ class Home extends Component{
 
       var obj = {
         signal:JSON.stringify(signal_to_filter),
-        order:parseInt(this.state.v1)
+        order:parseInt(this.state.value_order_hermite)
       }
       Axios({
         method: 'POST',
@@ -601,9 +602,9 @@ class Home extends Component{
           var h = [...this.state.history]
           sh.push({filter:"Hermite "+this.searchSignal("Hermite ",this.state.signals_history).toString(10)})
           if(this.state.indexSignal >= 1)
-            h.push({name:this.state.filter,data:'Ord: '+this.state.v1,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.v1})
+            h.push({name:this.state.filter,data:'Ord: '+this.state.value_order_hermite,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite})
           else
-            h.push({name:this.state.filter,data:'Ord: '+this.state.v1,dialog:'orden Hermite: '+this.state.v1})
+            h.push({name:this.state.filter,data:'Ord: '+this.state.value_order_hermite,dialog:'orden Hermite: '+this.state.value_order_hermite+'%'})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -626,8 +627,8 @@ class Home extends Component{
       let signal_to_filter = [vfsd,vfsi,psa,co2]
       var obj = {
         signal:JSON.stringify(signal_to_filter),
-        window: parseInt(this.state.v1),
-        threshold: parseFloat(this.state.v2)
+        window: parseInt(this.state.value_window_hampel),
+        threshold: parseFloat(this.state.value_thresold_hampel)
       }
       Axios({
         method: 'POST',
@@ -650,9 +651,9 @@ class Home extends Component{
           var h = [...this.state.history]
           sh.push({filter:"Hampel "+this.searchSignal("Hampel ",this.state.signals_history).toString(10)})
           if(this.state.indexSignal >= 1)
-            h.push({name:this.state.filter,data:'W: '+this.state.v1+'/ T: '+this.state.v2,dialog:h[this.state.indexSignal-1].dialog+'\n'+'ventana Hampel: '+this.state.v1+'/ '+ 'umbral: '+this.state.v2})
+            h.push({name:this.state.filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:h[this.state.indexSignal-1].dialog+'\n'+'ventana Hampel: '+this.state.value_window_hampel+'/ '+ 'umbral: '+this.state.value_thresold_hampel})
           else
-            h.push({name:this.state.filter,data:'W: '+this.state.v1+'/ T: '+this.state.v2,dialog:'ventana Hampel: '+this.state.v1+'/ '+ 'umbral: '+this.state.v2})
+            h.push({name:this.state.filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:'ventana Hampel: '+this.state.value_window_hampel+'/ '+ 'umbral: '+this.state.value_thresold_hampel})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -676,8 +677,8 @@ class Home extends Component{
       let signal_to_filter = [vfsd,vfsi,psa,co2]
       var obj = {
         signal:JSON.stringify(signal_to_filter),
-        order: parseInt(this.state.v1),
-        frecuency: parseFloat(this.state.v2)
+        order: parseInt(this.state.value_order_butter),
+        frecuency: parseFloat(this.state.value_slice_butter)
       }
       Axios({
         method: 'POST',
@@ -700,9 +701,9 @@ class Home extends Component{
           var h = [...this.state.history]
           sh.push({filter:"Butterworth "+this.searchSignal("Butterworth ",this.state.signals_history).toString(10)})
           if(this.state.indexSignal >= 1)
-            h.push({name:this.state.filter,data:'Ord:'+this.state.v1+'/ Cut: '+this.state.v2,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Butterworth: '+this.state.v1+'/ '+'corte Butterworth: '+this.state.v2})
+            h.push({name:this.state.filter,data:'Ord:'+this.state.value_order_butter+'/ Cut: '+this.state.value_slice_butter,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Butterworth: '+this.state.value_order_butter+'/ '+'corte Butterworth: '+this.state.value_slice_butter})
           else
-            h.push({name:this.state.filter,data:'Ord:'+this.state.v1+'/ Cut: '+this.state.v2,dialog:'orden Butterworth: '+this.state.v1+'/ '+'corte Butterworth: '+this.state.v2})
+            h.push({name:this.state.filter,data:'Ord:'+this.state.value_order_butter+'/ Cut: '+this.state.value_slice_butter,dialog:'orden Butterworth: '+this.state.value_order_butter+'/ '+'corte Butterworth: '+this.state.value_slice_butter})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -727,7 +728,7 @@ class Home extends Component{
       let signal_to_filter = [vfsd,vfsi,psa,co2]
       var obj = {
         signal:JSON.stringify(signal_to_filter),
-        order: parseInt(this.state.v1),
+        order: parseInt(this.state.value_order_median),
       }
       Axios({
         method: 'POST',
@@ -751,9 +752,9 @@ class Home extends Component{
           var h = [...this.state.history]
           sh.push({filter:"Mediana "+this.searchSignal("Mediana",this.state.signals_history).toString(10)})
           if(this.state.indexSignal >= 1)
-            h.push({name:this.state.filter,data:'Ord: '+this.state.v1,dialog:h.dialog+'\n'+'orden mediana:'+this.state.v1})
+            h.push({name:this.state.filter,data:'Ord: '+this.state.value_order_median,dialog:h.dialog+'\n'+'orden mediana:'+this.state.value_order_median})
           else
-            h.push({name:this.state.filter,data:'Ord: '+this.state.v1,dialog:'orden mediana:'+this.state.v1})
+            h.push({name:this.state.filter,data:'Ord: '+this.state.value_order_median,dialog:'orden mediana:'+this.state.v1})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -1296,6 +1297,7 @@ class Home extends Component{
     showHistoryDetail = () => {
       return(
         <DialogContentText id="alert-dialog-description">
+          Se han aplicado los siguientes filtros a la señal seleccionada:
           {this.state.history[this.state.indexSignalToDelete].dialog}
         </DialogContentText>
       )
@@ -1659,7 +1661,8 @@ class Home extends Component{
                   placeholder="Ingrese porcentaje(*)" 
                   className = {classes.input} 
                   type="number" 
-                  onChange={this.handleChangeInput('v1')}
+                  value={this.state.value_order_hermite}
+                  onChange={this.handleChangeInput('value_order_hermite')}
                   endAdornment={<InputAdornment position="end">%</InputAdornment>} 
                 />
               </DialogContent>
@@ -1690,8 +1693,9 @@ class Home extends Component{
                 <InputBase
                   placeholder="Ingrese orden (ej: 5)" 
                   className = {classes.input} 
-                  type="number" 
-                  onChange={this.handleChangeInput('v1')}
+                  type="number"
+                  value={this.state.value_order_median} 
+                  onChange={this.handleChangeInput('value_order_median')}
                   required
                 />
               </DialogContent>
@@ -1720,8 +1724,8 @@ class Home extends Component{
                 <DialogContentText id="alert-dialog-description">
                   {text_hampel}
                 </DialogContentText>
-                <InputBase required placeholder="Ventana (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
-                <InputBase  required placeholder="Thresold (ej: 1.6)" className = {classes.input}  step=".01" onChange={this.handleChangeInput('v2')} />
+                <InputBase required value = {this.state.value_window_hampel} placeholder="Ventana (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_thresold_window')} />
+                <InputBase  required value = {this.state.value_thresold_hampel} placeholder="Thresold (ej: 1.6)" className = {classes.input}  step=".01" onChange={this.handleChangeInput('value_thresold_hampel')} />
               </DialogContent>
               <DialogActions>
                 <Button onClick={this.handleCloseHampel} style = {{color: '#2196f3'}}>
@@ -1748,8 +1752,8 @@ class Home extends Component{
                 <DialogContentText id="alert-dialog-description">
                   {text_butterworth}
                 </DialogContentText>
-                <InputBase required placeholder="Orden (ej: 4)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
-                <InputBase required placeholder="Corte (ej: 0.4)" className = {classes.input}  onChange={this.handleChangeInput('v2')} />
+                <InputBase required value = {this.state.value_order_butter} placeholder="Orden (ej: 4)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_order_butter')} />
+                <InputBase required value = {this.state.value_slice_butter} placeholder="Corte (ej: 0.4)" className = {classes.input}  onChange={this.handleChangeInput('value_slice_butter')} />
               </DialogContent>
               <DialogActions>
                 <Button onClick={this.handleCloseButterworth} style = {{color: '#2196f3'}}>
@@ -1781,7 +1785,7 @@ class Home extends Component{
                     <p style = {{color:'rgba(0,0,0,.7)'}}>Hermite</p>
                   </Grid>
                   <Grid item lg = {10} xl = {10} md = {3}>
-                    <InputBase required placeholder="Orden Hermite (ej: 1)" className = {classes.input} type="number" onChange={this.handleChangeInput('v1')} />
+                    <InputBase value = {this.state.value_order_hermite} required placeholder="Orden Hermite (ej: 1)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_order_hermite')} />
                   </Grid>
                 </Grid>
                 <Grid container style = {{marginBottom:'10px'}}>
@@ -1789,8 +1793,8 @@ class Home extends Component{
                   <p style = {{color:'rgba(0,0,0,.7)'}}>Hampel</p>
                   </Grid>
                   <Grid item lg = {10} xl = {10} md = {3}>
-                    <InputBase required placeholder="Ventana Hampel (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('v2')} />
-                    <InputBase required  placeholder="Thresold Hampel(ej: 1.6)" className = {classes.input} onChange={this.handleChangeInput('v3')} />
+                    <InputBase required value = {this.state.value_window_hampel} placeholder="Ventana Hampel (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_window_hampel')} />
+                    <InputBase required value = {this.state.value_thresold_hampel} placeholder="Thresold Hampel(ej: 1.6)" className = {classes.input} onChange={this.handleChangeInput('value_thresold_hampel')} />
                   </Grid>
                 </Grid>
                 <Grid container style = {{marginBottom:'10px'}}>
@@ -1798,8 +1802,8 @@ class Home extends Component{
                   <p style = {{color:'rgba(0,0,0,.7)'}}>Butterworth</p>
                   </Grid>
                   <Grid item lg = {10} xl = {10} md = {3}>
-                    <InputBase required placeholder="Orden Butter (ej: 5)" className = {classes.input} type="number" onChange={this.handleChangeInput('v4')} />
-                    <InputBase required placeholder="Corte Butter (ej: 0.4)" className = {classes.input}  onChange={this.handleChangeInput('v5')} />
+                    <InputBase required value = {this.state.value_order_butter} placeholder="Orden Butter (ej: 5)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_order_butter')} />
+                    <InputBase required value = {this.state.value_slice_butter} placeholder="Corte Butter (ej: 0.4)" className = {classes.input}  onChange={this.handleChangeInput('value_slice_butter')} />
                   </Grid>
                 </Grid>
               </DialogContent>

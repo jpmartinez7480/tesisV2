@@ -13,6 +13,7 @@ import Delete from '@material-ui/icons/Delete';
 import Save from '@material-ui/icons/Save';
 import Info from '@material-ui/icons/Info';
 import blue from '@material-ui/core/colors/blue';
+import green from '@material-ui/core/colors/green';
 
 const styles = theme => ({
   rootChecked:{
@@ -59,13 +60,19 @@ const styles = theme => ({
       color: '#9a9a9a',
       margin:'5px',
       cursor:'pointer',
+      "&:hover":{
+        color: green[600]
+      }
     },
     actionIcon:{
       color: '#9a9a9a',
       marginRight:'3px',
       marignLeft:'3px',
       cursor:'pointer',
-      fontSize:'18px'
+      fontSize:'18px',
+      "&:hover":{
+        color: blue[600]
+      }
     }
 })
 
@@ -128,7 +135,7 @@ class History extends Component{
               <List>
                 {this.props.history.length !== 0 ? 
                   this.state.history.map((h,index) => (
-                  <ListItem button style = {{paddingRight:'5px',paddingLeft:'5px'}} key = {index}>
+                  <ListItem button disableRipple style = {{paddingRight:'5px',paddingLeft:'5px',cursor:'default'}} key = {index}>
                     <ListItemIcon>
                       <Save className = {classes.mySaveIcon}/>
                     </ListItemIcon>
