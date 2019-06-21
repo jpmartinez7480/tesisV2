@@ -98,7 +98,7 @@ class Signal extends Component{
                   
                   this.state.signals.map((s,index) => (
                   <MenuItem selected={index === this.state.indexSignal} button className = {classes.menuItem} key = {index} classes = {{selected:classes.selected}} onClick={()=>this.changeSelectedSignal(index)}>
-                    <ListItemIcon>
+                    <ListItemIcon  style = {{marginRight:'5px'}}>
                       <Timeline style = {{color:'#fff',width:'32px',height:'26px'}}/>
                     </ListItemIcon>
                     <ListItemText disableTypography className = {classes.textSignal} primary = {s.filter} />

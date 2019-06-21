@@ -61,15 +61,15 @@ const styles = theme => ({
       margin:'5px',
       cursor:'pointer',
       "&:hover":{
-        color: green[600]
+        color: blue[600]
       }
     },
     actionIcon:{
       color: '#9a9a9a',
-      marginRight:'3px',
+      marginRight:'2px',
       marignLeft:'3px',
       cursor:'pointer',
-      fontSize:'18px',
+      fontSize:'16px',
       "&:hover":{
         color: blue[600]
       }
@@ -136,10 +136,10 @@ class History extends Component{
                 {this.props.history.length !== 0 ? 
                   this.state.history.map((h,index) => (
                   <ListItem button disableRipple style = {{paddingRight:'5px',paddingLeft:'5px',cursor:'default'}} key = {index}>
-                    <ListItemIcon>
+                    <ListItemIcon style = {{marginRight:'5px'}}>
                       <Save className = {classes.mySaveIcon}/>
                     </ListItemIcon>
-                    <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ color: 'rgba(154,154,154,0.54)' }}>{h.data}</Typography>} />
+                    <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ fontSize:'12px',color: 'rgba(154,154,154,0.54)' }}>Ant: {h.prev}</Typography>}  />
                     <div>
                       <ListItemIcon style = {{marginRight:'5px'}}>
                         <Info onClick = {() => {this.handleOpenDialogFullHistory(index)}} className = {classes.actionIcon}/>

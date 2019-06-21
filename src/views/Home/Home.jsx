@@ -287,6 +287,8 @@ class Home extends Component{
             value_order_butter:4,
             value_slice_butter:0.4,
             value_order_median: 5,
+            v1:'',
+            v2:'',
             signal_time:0,
             indexSignal:0,
             indexSignalToDelete:0,
@@ -540,7 +542,7 @@ class Home extends Component{
           let filter = 'Automatic'
           let aux = this.searchSignal(filter,this.state.signals_history) 
           
-          filter = filter + ' ' + (aux).toString(10)
+          filter = (aux).toString(10)+'-'+filter
           
           this.updateDataFilter(filter)
           this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
@@ -549,11 +551,11 @@ class Home extends Component{
           this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
-          sh.push({filter:"Automatic "+this.searchSignal("Automatic",this.state.signals_history).toString(10)})
+          sh.push({filter:this.searchSignal("Automatic",this.state.signals_history).toString(10)+"-Automatic"})
           if(this.state.indexSignal >= 1)
-            h.push({name:this.state.filter,data:'pendiente',dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite+'/ '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.value_thresold_hampel+'/ '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'pendiente',dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite+' / '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.value_thresold_hampel+' / '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
           else
-            h.push({name:this.state.filter,data:'pendiente',dialog:'orden Hermite: '+this.state.value_order_hermite+'%'+'/ '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.thresold+'/ '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'pendiente',dialog:'orden Hermite: '+this.state.value_order_hermite+'%'+' / '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.thresold+' / '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -592,7 +594,7 @@ class Home extends Component{
           let filter = 'Hermite '
           let aux = this.searchSignal(filter,this.state.signals_history) 
           
-          filter = filter + ' ' + (aux).toString(10)
+          filter = (aux).toString(10)+'-'+filter
           this.updateDataFilter(filter)
           this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
           this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
@@ -600,11 +602,11 @@ class Home extends Component{
           this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hermite,aux)}})
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
-          sh.push({filter:"Hermite "+this.searchSignal("Hermite ",this.state.signals_history).toString(10)})
+          sh.push({filter:this.searchSignal("Hermite ",this.state.signals_history).toString(10)+"-Hermite"})
           if(this.state.indexSignal >= 1)
-            h.push({name:this.state.filter,data:'Ord: '+this.state.value_order_hermite,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_hermite,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite})
           else
-            h.push({name:this.state.filter,data:'Ord: '+this.state.value_order_hermite,dialog:'orden Hermite: '+this.state.value_order_hermite+'%'})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_hermite,dialog:'orden Hermite: '+this.state.value_order_hermite+'%'})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -641,7 +643,7 @@ class Home extends Component{
           let filter = 'Hampel'
           let aux = this.searchSignal(filter,this.state.signals_history) 
           
-          filter = filter + ' ' + (aux).toString(10)
+          filter = (aux).toString(10)+'-'+filter
           this.updateDataFilter(filter)
           this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
           this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
@@ -649,11 +651,11 @@ class Home extends Component{
           this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.hampel,aux)}})
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
-          sh.push({filter:"Hampel "+this.searchSignal("Hampel ",this.state.signals_history).toString(10)})
+          sh.push({filter:this.searchSignal("Hampel ",this.state.signals_history).toString(10)+"-Hampel"})
           if(this.state.indexSignal >= 1)
-            h.push({name:this.state.filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:h[this.state.indexSignal-1].dialog+'\n'+'ventana Hampel: '+this.state.value_window_hampel+'/ '+ 'umbral: '+this.state.value_thresold_hampel})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:h[this.state.indexSignal-1].dialog+'\n'+'ventana Hampel: '+this.state.value_window_hampel+' / '+ 'umbral: '+this.state.value_thresold_hampel})
           else
-            h.push({name:this.state.filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:'ventana Hampel: '+this.state.value_window_hampel+'/ '+ 'umbral: '+this.state.value_thresold_hampel})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:'ventana Hampel: '+this.state.value_window_hampel+' / '+ 'umbral: '+this.state.value_thresold_hampel})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -691,7 +693,7 @@ class Home extends Component{
           let filter = 'Butterworth'
           let aux = this.searchSignal(filter,this.state.signals_history) 
           
-          filter = filter + ' ' + (aux).toString(10)
+          filter = (aux).toString(10)+'-'+filter
           this.updateDataFilter(filter)
           this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
           this.state.serie_vfsi.push({name:filter,type:'line',data:res.data[1],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
@@ -699,11 +701,11 @@ class Home extends Component{
           this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.butterworth,aux)}})
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
-          sh.push({filter:"Butterworth "+this.searchSignal("Butterworth ",this.state.signals_history).toString(10)})
+          sh.push({filter:this.searchSignal("Butterworth ",this.state.signals_history).toString(10)+"-Butterworth"})
           if(this.state.indexSignal >= 1)
-            h.push({name:this.state.filter,data:'Ord:'+this.state.value_order_butter+'/ Cut: '+this.state.value_slice_butter,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Butterworth: '+this.state.value_order_butter+'/ '+'corte Butterworth: '+this.state.value_slice_butter})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord:'+this.state.value_order_butter+'/ Cut: '+this.state.value_slice_butter,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Butterworth: '+this.state.value_order_butter+' / '+'corte Butterworth: '+this.state.value_slice_butter})
           else
-            h.push({name:this.state.filter,data:'Ord:'+this.state.value_order_butter+'/ Cut: '+this.state.value_slice_butter,dialog:'orden Butterworth: '+this.state.value_order_butter+'/ '+'corte Butterworth: '+this.state.value_slice_butter})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord:'+this.state.value_order_butter+'/ Cut: '+this.state.value_slice_butter,dialog:'orden Butterworth: '+this.state.value_order_butter+' / '+'corte Butterworth: '+this.state.value_slice_butter})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -741,7 +743,7 @@ class Home extends Component{
           let filter = 'Mediana'
           let aux = this.searchSignal(filter,this.state.signals_history) 
           
-          filter = filter + ' ' + (aux).toString(10)
+          filter = (aux).toString(10)+'-'+filter
           
           this.updateDataFilter(filter)
           this.state.serie_vfsd.push({name:filter,type:'line',data:res.data[0],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
@@ -750,11 +752,11 @@ class Home extends Component{
           this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.median,aux)}})
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
-          sh.push({filter:"Mediana "+this.searchSignal("Mediana",this.state.signals_history).toString(10)})
+          sh.push({filter:this.searchSignal("Mediana",this.state.signals_history).toString(10)+"-Mediana"})
           if(this.state.indexSignal >= 1)
-            h.push({name:this.state.filter,data:'Ord: '+this.state.value_order_median,dialog:h.dialog+'\n'+'orden mediana:'+this.state.value_order_median})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_median,dialog:h.dialog+'\n'+'orden mediana:'+this.state.value_order_median})
           else
-            h.push({name:this.state.filter,data:'Ord: '+this.state.value_order_median,dialog:'orden mediana:'+this.state.v1})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_median,dialog:'orden mediana:'+this.state.v1})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -1295,12 +1297,11 @@ class Home extends Component{
     }
 
     showHistoryDetail = () => {
-      return(
-        <DialogContentText id="alert-dialog-description">
-          Se han aplicado los siguientes filtros a la señal seleccionada:
-          {this.state.history[this.state.indexSignalToDelete].dialog}
-        </DialogContentText>
-      )
+      let history = this.state.history[this.state.indexSignalToDelete].dialog
+      history = history.split('\n')
+      return history.map((c,i) => {
+        return <li key = {i} style = {{color: 'rgba(0,0,0,0.54)'}}>{c}</li>
+      })
     }
 
     renderMissingSignal(){
@@ -1852,8 +1853,10 @@ class Home extends Component{
               >
                 <DialogTitle id="max-width-dialog-title">Detalle historial</DialogTitle>
                 <DialogContent>
-                {this.state.history.length >= 1 ? this.showHistoryDetail(): <p>nada</p>}
-                  
+                  <p style = {{color: 'rgba(0,0,0,0.54)'}}>Se han aplicado los siguientes filtros a la señal seleccionada: </p>
+                  <ul>
+                    {this.state.history.length >= 1 ? this.showHistoryDetail(): <p>nada</p>}
+                  </ul>
                 </DialogContent>
                 <DialogActions>
                 <Button onClick={this.handleCloseDialogFullHistory} style = {{color: '#2196f3'}}>
@@ -1861,7 +1864,7 @@ class Home extends Component{
                 </Button>
               </DialogActions>
               </Dialog>
-              {/* Fin Dialog para seleccionar señal */}
+              {/* Fin Dialog para mostrar historial completo de la señal seleccionada */}
             </div>
             
         )
