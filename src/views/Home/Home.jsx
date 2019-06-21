@@ -311,6 +311,7 @@ class Home extends Component{
             open_dialog_cut:false,
             open_dialog_cut_times: false,
             open_snackbar:false,
+            openDialogFullHistory: false,
             message_snackbar:'',
             title_filter: '',
             text_filter:'',
@@ -439,6 +440,14 @@ class Home extends Component{
       this.setState({open_snackbar:false})
     }
 
+    handleOpenDialogFullHistory = () => {
+      this.setState({openDialogFullHistory: true})
+    }
+
+    handleCloseDialogFullHistory = () => {
+      this.setState({openDialogFullHistory:false})
+    }
+
     handleChange = (event, value) => {
         this.setState({ value });
     };
@@ -478,6 +487,10 @@ class Home extends Component{
 
     chooseSignalToDelete=index=>{
       this.setState({indexSignalToDelete:index},()=>{this.handleOpenDialogDeleteSignal()})
+    }
+
+    FullHistory=index=>{
+      this.setState({indexSignalToDelete:index},()=>{this.handleOpenDialogFullHistory()})
     }
 
     deleteSignal = () =>{
@@ -536,7 +549,10 @@ class Home extends Component{
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
           sh.push({filter:"Automatic "+this.searchSignal("Automatic",this.state.signals_history).toString(10)})
-          h.push({name:this.state.filter,data:'pendiente'})
+          if(this.state.indexSignal >= 1)
+            h.push({name:this.state.filter,data:'pendiente',dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.v1+'/ '+'ventana Hampel: '+ this.state.v2+';'+' umbral Hampel: '+this.state.v3+'/ '+'orden Butterworth: '+this.state.v4+';'+' corte Butterworth:'+this.state.v5})
+          else
+            h.push({name:this.state.filter,data:'pendiente',dialog:'orden Hermite: '+this.state.v1+'/ '+'ventana Hampel: '+ this.state.v2+';'+' umbral Hampel: '+this.state.v3+'/ '+'orden Butterworth: '+this.state.v4+';'+' corte Butterworth:'+this.state.v5})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -584,7 +600,10 @@ class Home extends Component{
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
           sh.push({filter:"Hermite "+this.searchSignal("Hermite ",this.state.signals_history).toString(10)})
-          h.push({name:this.state.filter,data:'Ord: '+this.state.v1})
+          if(this.state.indexSignal >= 1)
+            h.push({name:this.state.filter,data:'Ord: '+this.state.v1,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.v1})
+          else
+            h.push({name:this.state.filter,data:'Ord: '+this.state.v1,dialog:'orden Hermite: '+this.state.v1})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -630,7 +649,10 @@ class Home extends Component{
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
           sh.push({filter:"Hampel "+this.searchSignal("Hampel ",this.state.signals_history).toString(10)})
-          h.push({name:this.state.filter,data:'W: '+this.state.v1+'/ T: '+this.state.v2})
+          if(this.state.indexSignal >= 1)
+            h.push({name:this.state.filter,data:'W: '+this.state.v1+'/ T: '+this.state.v2,dialog:h[this.state.indexSignal-1].dialog+'\n'+'ventana Hampel: '+this.state.v1+'/ '+ 'umbral: '+this.state.v2})
+          else
+            h.push({name:this.state.filter,data:'W: '+this.state.v1+'/ T: '+this.state.v2,dialog:'ventana Hampel: '+this.state.v1+'/ '+ 'umbral: '+this.state.v2})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -677,7 +699,10 @@ class Home extends Component{
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
           sh.push({filter:"Butterworth "+this.searchSignal("Butterworth ",this.state.signals_history).toString(10)})
-          h.push({name:this.state.filter,data:'Ord:'+this.state.v1+'/ Cut: '+this.state.v2})
+          if(this.state.indexSignal >= 1)
+            h.push({name:this.state.filter,data:'Ord:'+this.state.v1+'/ Cut: '+this.state.v2,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Butterworth: '+this.state.v1+'/ '+'corte Butterworth: '+this.state.v2})
+          else
+            h.push({name:this.state.filter,data:'Ord:'+this.state.v1+'/ Cut: '+this.state.v2,dialog:'orden Butterworth: '+this.state.v1+'/ '+'corte Butterworth: '+this.state.v2})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -725,7 +750,10 @@ class Home extends Component{
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
           sh.push({filter:"Mediana "+this.searchSignal("Mediana",this.state.signals_history).toString(10)})
-          h.push({name:this.state.filter,data:'Ord: '+this.state.v1})
+          if(this.state.indexSignal >= 1)
+            h.push({name:this.state.filter,data:'Ord: '+this.state.v1,dialog:h.dialog+'\n'+'orden mediana:'+this.state.v1})
+          else
+            h.push({name:this.state.filter,data:'Ord: '+this.state.v1,dialog:'orden mediana:'+this.state.v1})
           this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
@@ -801,7 +829,7 @@ class Home extends Component{
           vsfd.push(Number(json[i].V3))
           vsfi.push(Number(json[i].V4))
           psa.push(Number(json[i].V5))
-          co2.push(Number(json[i].V6))
+          co2.push(Number(json[i].V7))
           x_points.push(json[i].V1)      
         }
         let time = this.getSignalTime(vsfd.length).toFixed(1)
@@ -1261,10 +1289,16 @@ class Home extends Component{
       return true
     }
 
-    
-
     onMouseOut=(param)=>{
       console.log(param)
+    }
+
+    showHistoryDetail = () => {
+      return(
+        <DialogContentText id="alert-dialog-description">
+          {this.state.history[this.state.indexSignalToDelete].dialog}
+        </DialogContentText>
+      )
     }
 
     renderMissingSignal(){
@@ -1392,7 +1426,7 @@ class Home extends Component{
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
                 <Signal key = {3} signalHistory = {this.state.signals_history} changeSelectedSignal = {this.changeSelectedSignal}/>
-                <History key = {this.state.index_key+1} history = {this.state.history} chooseSignalToDelete = {this.chooseSignalToDelete} />
+                <History key = {this.state.index_key+1} history = {this.state.history} chooseSignalToDelete = {this.chooseSignalToDelete} FullHistory = {this.FullHistory}/>
               </Grid>
             </Grid>
           </div>
@@ -1804,6 +1838,26 @@ class Home extends Component{
               </DialogActions>
               </Dialog>
               {/*Fin Dialog delete signal*/}
+              {/* Dialog para mostrar historial completo de la señal seleccionada */}
+              <Dialog 
+                maxWidth="sm"
+                fullWidth={true}
+                open={this.state.openDialogFullHistory}
+                onClose={this.handleCloseDialogFullHistory}
+                aria-labelledby="max-width-dialog-title"
+              >
+                <DialogTitle id="max-width-dialog-title">Detalle historial</DialogTitle>
+                <DialogContent>
+                {this.state.history.length >= 1 ? this.showHistoryDetail(): <p>nada</p>}
+                  
+                </DialogContent>
+                <DialogActions>
+                <Button onClick={this.handleCloseDialogFullHistory} style = {{color: '#2196f3'}}>
+                  Cerrar
+                </Button>
+              </DialogActions>
+              </Dialog>
+              {/* Fin Dialog para seleccionar señal */}
             </div>
             
         )

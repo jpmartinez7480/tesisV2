@@ -11,6 +11,7 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Delete from '@material-ui/icons/Delete';
 import Save from '@material-ui/icons/Save';
+import Info from '@material-ui/icons/Info';
 import blue from '@material-ui/core/colors/blue';
 
 const styles = theme => ({
@@ -57,8 +58,15 @@ const styles = theme => ({
     mySaveIcon:{
       color: '#9a9a9a',
       margin:'5px',
-      cursor:'pointer'
+      cursor:'pointer',
     },
+    actionIcon:{
+      color: '#9a9a9a',
+      marginRight:'3px',
+      marignLeft:'3px',
+      cursor:'pointer',
+      fontSize:'18px'
+    }
 })
 
 
@@ -107,6 +115,11 @@ class History extends Component{
       this.props.chooseSignalToDelete(index)
     }
 
+    handleOpenDialogFullHistory(index){
+      this.setState({indexSignalToDelete:index})
+      this.props.FullHistory(index)
+    }
+
     render(){
         const { classes } = this.props
         return(
@@ -119,11 +132,20 @@ class History extends Component{
                     <ListItemIcon>
                       <Save className = {classes.mySaveIcon}/>
                     </ListItemIcon>
-                  <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ color: 'rgba(154,154,154,0.54)' }}>{h.data}</Typography>} />
-                    <ListItemSecondaryAction>
-                      <Delete onClick = {() => {this.chooseSignalToDelete(index)}} style = {{color: '#9a9a9a',fontSize:'20px',cursor:'pointer'}}/>
-                    </ListItemSecondaryAction>
-                </ListItem>
+                    <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ color: 'rgba(154,154,154,0.54)' }}>{h.data}</Typography>} />
+                    <div>
+                      <ListItemIcon style = {{marginRight:'5px'}}>
+                        <Info onClick = {() => {this.handleOpenDialogFullHistory(index)}} className = {classes.actionIcon}/>
+                      </ListItemIcon>
+                      <ListItemIcon style = {{marginRight:'5px'}}>
+                        <Delete onClick = {() => {this.chooseSignalToDelete(index)}}  className = {classes.actionIcon}/>  
+                      </ListItemIcon>
+                    </div>
+                    
+                    {/*<ListItemSecondaryAction>
+                      <Delete onClick = {() => {this.chooseSignalToDelete(index)}} style = {{color: '#9a9a9a',fontSize:'16px',cursor:'pointer'}}/>
+                    </ListItemSecondaryAction>*/}
+                  </ListItem>
                 ))
                 :
                 <Typography  variant = "body2" align = "center" style = {{color:'#9a9a9a',letterSpacing:'1.1px',paddingTop:'5px',fontStyle:'italic',fontSize:'0.667em'}}>No ha usado ningún filtro</Typography>
