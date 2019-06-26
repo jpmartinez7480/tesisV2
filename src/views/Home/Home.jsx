@@ -285,7 +285,7 @@ class Home extends Component{
             value_window_hampel: 10,
             value_thresold_hampel:1.6,
             value_order_butter:4,
-            value_slice_butter:0.4,
+            value_slice_butter:20,
             value_order_median: 5,
             v1:'',
             v2:'',
@@ -302,7 +302,7 @@ class Home extends Component{
             data_filter_VFS: [{name:'VFSD',textStyle:echart_options.textStyle}],
             data_filter_VFSI: [{name:'VFSI',textStyle:echart_options.textStyle}],
             data_filter_PSA: [{name:'PSA',textStyle:echart_options.textStyle}],
-            data_filter_CO2: [{name:'CO2',textStyle:echart_options.textStyle}],
+            data_filter_CO2: [{name:'EtCO2',textStyle:echart_options.textStyle}],
             open_hermite: false,
             open_median: false,
             open_hampel: false,
@@ -315,6 +315,7 @@ class Home extends Component{
             open_dialog_cut_times: false,
             open_snackbar:false,
             openDialogFullHistory: false,
+            openBeat: false,
             message_snackbar:'',
             title_filter: '',
             text_filter:'',
@@ -343,7 +344,8 @@ class Home extends Component{
               },
               
             ],
-            brushArea:{}
+            brushArea:{},
+            headerFile:{}
 
         }
         this.onChange = this.onChange.bind(this)
@@ -391,6 +393,10 @@ class Home extends Component{
       this.setState({openWait: true})
     }
 
+    handleOpenBeat = () => {
+      this.setState({openBeat: true})
+    }
+
     handleOpenDialogDeleteSignal = () => {
       this.setState({open_dialog_delete_signal: true})
     }
@@ -425,6 +431,10 @@ class Home extends Component{
 
     handleCloseWait = () => {
       this.setState({openWait: false})
+    }
+
+    handleCloseBeat = () => {
+      this.setState({openBeat: false})
     }
 
     handleCloseDialogDeleteSignal = () => {
@@ -677,10 +687,17 @@ class Home extends Component{
       let psa = this.state.serie_psa[this.state.indexSignal].data
       let co2 = this.state.serie_co2[this.state.indexSignal].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
+      let rate_aux = this.state.headerFile[3].split(':')[1]
+      let rate = ''
+      var i = 0
+      for(var i = 0; rate_aux[i] != 'H'; i++)
+        rate+=rate_aux[i]
+      console.log(rate)
       var obj = {
         signal:JSON.stringify(signal_to_filter),
         order: parseInt(this.state.value_order_butter),
-        frecuency: parseFloat(this.state.value_slice_butter)
+        frecuency: parseFloat(this.state.value_slice_butter),
+        rate: parseInt(rate)
       }
       Axios({
         method: 'POST',
@@ -787,7 +804,16 @@ class Home extends Component{
         url: 'http://localhost/ocpu/user/juanpablo/library/exportSignal/R/exportSignal/json',
         data: obj
       })
+      .then((response) => {
+        console.log(response)
+        const link = document.createElement('a')
+        link.href = response.headers.location+'files/test.fil'
+        link.setAttribute('download','test1.fil')
+        document.body.appendChild(link)
+        link.click()
+      })
     }
+
 
     updateDataFilter(filter){
       this.state.data_filter_VFS.push({name:filter,textStyle:echart_options.textStyle})
@@ -807,7 +833,7 @@ class Home extends Component{
 
     handleCleanData = () =>{
       if(this.state.serie_vfsd.length > 0 || this.state.serie_vfsi.length > 0 || this.state.serie_psa.length > 0 || this.state.serie_co2.length > 0){
-        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'CO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0,indexSignal:0,name_signal:''},() => {
+        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'EtCO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0,indexSignal:0,name_signal:''},() => {
           //this.props.setSignalHistory(this.state.signals_history)
           this.refs.echarts_react_1.getEchartsInstance().dispose()
           this.refs.echarts_react_2.getEchartsInstance().dispose()
@@ -820,35 +846,40 @@ class Home extends Component{
         this.handleClickOpen()
     }
 
-    fetchVFS(json){
-        
-        var vsfi = []
-        var vsfd = []
-        var psa = []
-        var co2 = []
-        var x_points = []
-        console.log(json)
-        for(var i = 1; i < json.length; i++){
-          vsfd.push(Number(json[i].V3))
-          vsfi.push(Number(json[i].V4))
-          psa.push(Number(json[i].V5))
-          co2.push(Number(json[i].V7))
-          x_points.push(json[i].V1)      
-        }
-        let time = this.getSignalTime(vsfd.length).toFixed(1)
-        
-        
-        this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time})
-        this.state.serie_vfsd.push({name:'VFSD',type:'line',data:vsfd,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
-        this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
-        this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
-        this.state.serie_co2.push({name:'CO2',type:'line',data:co2,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#288c6c'}})
-        this.setState({isReadySignal:true,name_signal:this.state.filename.name}, () => {
-          this.handleClose()
-          this.updateOptions()
-          
-        })
+    fetchVFS(json){  
+      var vsfi = []
+      var vsfd = []
+      var psa = []
+      var co2 = []
+      var x_points = []
+      console.log(json)
+      var header = []
+      for(var j = 0; j < 6; j++)
+        header.push(json[j].V1)
+      for(var i = 6; i < json.length; i++){
+        vsfd.push(Number(json[i].V3))
+        vsfi.push(Number(json[i].V4))
+        psa.push(Number(json[i].V5))
+        co2.push(Number(json[i].V7))
+        x_points.push(json[i].V1)      
       }
+      let time = this.getSignalTime(vsfd.length).toFixed(1)
+      var aux_name = ''
+      if(this.state.filename.name.length > 15)
+        aux_name = this.state.filename.name.substring(0,10)+'...'+this.state.filename.name.substring(this.state.filename.name.length-5,this.state.filename.name.length)
+      else aux_name = this.state.filename.name
+      this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time, headerFile:header})
+      this.state.serie_vfsd.push({name:'VFSD',type:'line',data:vsfd,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
+      this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
+      this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
+      this.state.serie_co2.push({name:'EtCO2',type:'line',data:co2,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#288c6c'}})
+      this.setState({isReadySignal:true,name_signal:aux_name}, () => {
+        this.handleClose()
+        this.updateOptions()
+        console.log(this.state.headerFile)
+        
+      })
+    }
 
     handleUploadSignal(event){
         event.preventDefault()
@@ -910,7 +941,7 @@ class Home extends Component{
           textStyle:echart_options.textStyle
         },
         
-        tooltip: echart_options.tooltip.trigger,
+        tooltip: echart_options.tooltip,
         legend: {
           data:[{name:'VFSD',textStyle:echart_options.textStyle}]
         },
@@ -1023,13 +1054,13 @@ class Home extends Component{
     });
     getOption_CO2 = () => ({
       title: {
-        text:'CO2',
+        text:'EtCO2',
         textStyle:echart_options.textStyle
       },
       brush:{toolbox:['lineX','clear'],throttleType: 'debounce',throttleDelay: 1000,xAxisIndex: 0},
       tooltip: echart_options.tooltip,
       legend: {
-        data:[{name:'CO2',textStyle:echart_options.textStyle}]
+        data:[{name:'EtCO2',textStyle:echart_options.textStyle}]
       },
       toolbox: echart_options.toolbox,
       grid: echart_options.grid,
@@ -1110,6 +1141,69 @@ class Home extends Component{
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {
           data:this.state.data_filter_CO2
+        },
+        series:this.state.serie_co2
+      })
+    }
+
+    updateOptionsPar(hb1,hb2,hb3,hb4){
+      this.refs.echarts_react_1.getEchartsInstance().setOption({
+        title: {
+          text:'VFSD',
+          subtext:hb1,
+          x:'center',
+          align:'right',
+          textStyle:echart_options.textStyle
+        },
+        xAxis:[{data:this.state.x_points_vfs}],
+        legend: {
+          data:this.state.data_filter_VFS,
+          x:'left'
+        },
+        series:this.state.serie_vfsd
+      })
+      this.refs.echarts_react_2.getEchartsInstance().setOption({
+        title: {
+          text:'VFSI',
+          subtext:hb2,
+          x:'center',
+          align:'right',
+          textStyle:echart_options.textStyle
+        },
+        xAxis:[{data:this.state.x_points_vfs}],
+        legend: {
+          data:this.state.data_filter_VFSI,
+          x:'left'
+        },
+        series:this.state.serie_vfsi
+      })
+      this.refs.echarts_react_3.getEchartsInstance().setOption({
+        title: {
+          text:'PSA',
+          subtext:hb3,
+          x:'center',
+          align:'right',
+          textStyle:echart_options.textStyle
+        },
+        xAxis:[{data:this.state.x_points_vfs}],
+        legend: {
+          data:this.state.data_filter_PSA,
+          x:'left'
+        },
+        series:this.state.serie_psa
+      })
+      this.refs.echarts_react_4.getEchartsInstance().setOption({
+        title: {
+          text:'EtCO2',
+          subtext:hb4,
+          x:'center',
+          align:'right',
+          textStyle:echart_options.textStyle
+        },
+        xAxis:[{data:this.state.x_points_vfs}],
+        legend: {
+          data:this.state.data_filter_CO2,
+          x:'left'
         },
         series:this.state.serie_co2
       })
@@ -1304,6 +1398,93 @@ class Home extends Component{
       })
     }
 
+    saveFilteredFile = () => {
+      
+    }
+
+    getStartBeat(array,vfsd,vfsi,psa){
+      var vfsd_beat_start = []
+      var vfsi_beat_start = []
+      var psa_beat_start = []
+      var upstroke_cnt = 0
+      for(var i = 0; i < array.length; i++){
+        if(array[i][2] === 1)
+          vfsd_beat_start.push({coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:'#fff'}})
+        else if(array[i][2] === 4)
+          upstroke_cnt+=1
+        if(array[i][4] === 1)
+          vfsi_beat_start.push({coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:'#fff'}})
+        if(array[i][6] === 1)
+          psa_beat_start.push({coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:'#fff'}})
+      }
+      var vfsd_beat = {symbol:'circle',symbolSize:5,data:vfsd_beat_start}
+      var vfsi_beat = {symbol:'circle',symbolSize:5,data:vfsi_beat_start}
+      var psa_beat = {symbol:'circle',symbolSize:5,data:psa_beat_start}
+      console.log(upstroke_cnt)
+      return[vfsd_beat,vfsi_beat,psa_beat]
+    }
+
+    getDataToPar = () =>{
+      this.handleOpenBeat()
+      var vfsd = this.state.serie_vfsd[this.state.indexSignalToDelete].data
+      var vfsi = this.state.serie_vfsi[this.state.indexSignalToDelete].data
+      var psa = this.state.serie_psa[this.state.indexSignalToDelete].data
+      
+      //var co2 = this.state.serie_co2[this.state.indexSignalToDelete].data
+      //var signals = [{filter:'Filtrada'}]
+      //var history = [...this.state.history]
+      //history = [history[this.state.indexSignalToDelete]]
+      //history.push({name:'Filtrada',prev:history[0].name,data:'detec latidos',dialog:history[0].dialog + '\n' + 'detección de latidos'})
+      var beats_detected;
+      var signal_to_detect_beats = [vfsd,vfsi,psa]
+      var obj = {
+        signal:JSON.stringify(signal_to_detect_beats)
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost/ocpu/user/juanpablo/library/detection/R/detection/json',
+        data: obj
+      })
+      .then(res => {
+        console.log(res.data)
+        beats_detected = this.getStartBeat(res.data,vfsd,vfsi,psa)
+        var vfsd_beats = beats_detected[0]
+        var vfsi_beats = beats_detected[1]
+        var psa_beats = beats_detected[2]
+        this.setState({
+            serie_vfsd:[{
+              name:'VFSD',type:'line',data:vfsd,
+              symbol:echart_options.series.symbol,
+              symbolSize: echart_options.series.symbolSize,
+              itemStyle:{color:'#d22824'},
+              markPoint:vfsd_beats
+            }],
+            serie_vfsi:[{
+              name:'VFSI',type:'line',data:vfsi,
+              symbol:echart_options.series.symbol,
+              symbolSize: echart_options.series.symbolSize,
+              itemStyle:{color:'#d22824'},
+              markPoint: vfsi_beats
+            }],
+            serie_psa:[{
+              name:'PSA',type:'line',data:psa,
+              symbol:echart_options.series.symbol,
+              symbolSize: echart_options.series.symbolSize,
+              itemStyle:{color:'#029eb1'},
+              markPoint: psa_beats
+            }]
+          },()=>{
+            console.log(this.state.serie_psa)
+            this.updateOptionsPar()
+            this.handleCloseBeat()
+          })
+      })
+      .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false})})
+      //var marks = {symbol:'arrow',symbolSize:60,data:maximos}
+      
+    }
+
+
     renderMissingSignal(){
         const { classes } = this.props
         return(
@@ -1360,13 +1541,16 @@ class Home extends Component{
               <Grid item lg = {10} xl = {10} md = {9}>
                 <Paper className = {classes.paper}>
                 <Grid container style = {{marginBottom:'20px',textAlign:'center',flexGrow:1}}>
-                  <Grid item lg = {4} xl = {4} md = {4} style = {{marginTop:'18px'}}>
-                    <p className={classes.describeSignal}>Nombre archivo:<span style = {{fontStyle:'italic'}}>{this.state.name_signal}</span></p>
+                  <Grid item lg = {3} xl = {3} md = {3} style = {{marginTop:'18px'}}>
+                    <p className={classes.describeSignal}>Archivo: <span style = {{fontStyle:'italic'}}>{this.state.name_signal}</span></p>
                   </Grid> 
-                  <Grid item lg = {4} xl = {4} md = {4} style = {{marginTop:'18px'}}>
+                  <Grid item lg = {3} xl = {3} md = {3} style = {{marginTop:'18px'}}>
                     <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>{this.state.signal_time} min</span></p>
+                  </Grid>
+                  <Grid item lg = {3} xl = {3} md = {3} style = {{marginTop:'18px'}}>
+                    <p className={classes.describeSignal}>Tasa muestreo: <span style = {{fontStyle:'italic'}}>{this.state.headerFile[3].split(':')[1]}</span></p>
                   </Grid> 
-                  <Grid item lg = {4} xl = {4} md = {4} >
+                  <Grid item lg = {3} xl = {3} md = {3} >
                   <form style = {{display:'flex',flexWrap:'wrap',marginTop:'13px'}} autoComplete="off">
                     <FormControl  className={classes.formControl} style = {{marginBottom:0}}>
                       <Select
@@ -1393,7 +1577,7 @@ class Home extends Component{
                 
                 <ReactEcharts ref='echarts_react_1'
                   option={this.getOption_VFSD()}
-                  style={{height: 300,marginBottom:'15px'}}
+                  style={{height: 300,marginBottom:'30px'}}
                   notMerge={true}
                   lazyUpdate={true}
                   showZoom={true}
@@ -1401,7 +1585,7 @@ class Home extends Component{
                   />
                   <ReactEcharts ref='echarts_react_2'
                   option={this.getOption_VFSI()}
-                  style={{height: 300,marginBottom:'15px'}}
+                  style={{height: 300,marginBottom:'30px'}}
                   lazyUpdate={true}
                   //showLoading={true}
                   showZoom={true}
@@ -1410,7 +1594,7 @@ class Home extends Component{
                   />
                   <ReactEcharts ref='echarts_react_3'
                   option={this.getOption_PSA()}
-                  style={{height: 300,marginBottom:'15px'}}
+                  style={{height: 300,marginBottom:'30px'}}
                   lazyUpdate={true}
                   //showLoading={true}
                   showZoom={true}
@@ -1419,7 +1603,7 @@ class Home extends Component{
                   />
                   <ReactEcharts ref='echarts_react_4'
                   option={this.getOption_CO2()}
-                  style={{height: 300,marginBottom:'15px'}}
+                  style={{height: 300,marginBottom:'30px'}}
                   lazyUpdate={true}
                   //showLoading={true}
                   showZoom={true}
@@ -1444,17 +1628,17 @@ class Home extends Component{
                 variant="permanent"
                 classes={{paper: classNames(classes.drawer)}}> 
                 <List className={classes.iconsAction}>
-                  <ListItem button className={classes.itemAction}>
+                  <ListItem button className={classes.itemAction} title = "Nuevo Archivo">
                     <ListItemIcon className = {classes.myIcon} onClick = {this.handleOpenDialogClean}><NoteAdd className = {classes.iconStyle}/></ListItemIcon>
                   </ListItem>
-                  <ListItem button className={classes.itemAction}>
+                  <ListItem button className={classes.itemAction} title = "Cortar señal">
                     <ListItemIcon className = {classes.myIcon}><Crop onClick = {this.handleOpenDialogCutTime}/></ListItemIcon>
                   </ListItem>
-                  <ListItem button className={classes.itemAction}>
+                  <ListItem button className={classes.itemAction} title = "Cortar selección">
                     <ListItemIcon className = {classes.myIcon}><CropFree onClick = {this.handleOpenDialogCut}/></ListItemIcon>
                   </ListItem>
-                  <ListItem button className={classes.itemAction}>
-                    <ListItemIcon className = {classes.myIcon}><FavoriteOutlined /></ListItemIcon>
+                  <ListItem button className={classes.itemAction} title = "Detectar latidos">
+                    <ListItemIcon className = {classes.myIcon}><FavoriteOutlined onClick = {()=>{this.getDataToPar()}} /></ListItemIcon>
                   </ListItem>
                   <ListItem button className={classes.itemAction}>
                     <ListItemIcon className = {classes.myIcon}><Save onClick = {()=>{this.exportSignal()}}/></ListItemIcon>
@@ -1643,6 +1827,27 @@ class Home extends Component{
               </DialogContent>
             </Dialog>
             {/* Fin Dialog filtrando */}
+            {/* Dialog detectar latidos */}
+            <Dialog
+              open={this.state.openBeat}
+              onClose={this.handleCloseBeat}
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+              maxWidth="sm"
+              fullWidth={true}
+            >
+              <DialogTitle id="alert-dialog-title">Detectando latidos</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  Por favor espere ... 
+                </DialogContentText>
+                <br />
+                <LinearProgress classes={{
+                                        colorPrimary: classes.linearColorPrimary,
+                                        barColorPrimary: classes.linearBarColorPrimary}} />
+              </DialogContent>
+            </Dialog>
+            {/* Fin Dialog filtrando */}
               {/* Dialog para Hermite */}
               <Dialog
                 open={this.state.open_hermite}
@@ -1754,7 +1959,7 @@ class Home extends Component{
                   {text_butterworth}
                 </DialogContentText>
                 <InputBase required value = {this.state.value_order_butter} placeholder="Orden (ej: 4)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_order_butter')} />
-                <InputBase required value = {this.state.value_slice_butter} placeholder="Corte (ej: 0.4)" className = {classes.input}  onChange={this.handleChangeInput('value_slice_butter')} />
+                <InputBase required value = {this.state.value_slice_butter} placeholder="Corte (ej: 20)" className = {classes.input}  onChange={this.handleChangeInput('value_slice_butter')} />
               </DialogContent>
               <DialogActions>
                 <Button onClick={this.handleCloseButterworth} style = {{color: '#2196f3'}}>
@@ -1804,7 +2009,7 @@ class Home extends Component{
                   </Grid>
                   <Grid item lg = {10} xl = {10} md = {3}>
                     <InputBase required value = {this.state.value_order_butter} placeholder="Orden Butter (ej: 5)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_order_butter')} />
-                    <InputBase required value = {this.state.value_slice_butter} placeholder="Corte Butter (ej: 0.4)" className = {classes.input}  onChange={this.handleChangeInput('value_slice_butter')} />
+                    <InputBase required value = {this.state.value_slice_butter} placeholder="Corte Butter (ej: 20)" className = {classes.input}  onChange={this.handleChangeInput('value_slice_butter')} />
                   </Grid>
                 </Grid>
               </DialogContent>

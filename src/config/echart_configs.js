@@ -37,7 +37,7 @@ const echart_options =
         dataZoom: {
             show: true,
             start: 0,
-            end: 1,
+            end: 10,
             type: 'slider',
             backgroundColor:'rgba(12,134,202,0.4)',
             borderColor: 'rgba(154,154,154,0.54)',
@@ -80,7 +80,7 @@ const echart_options =
         },
         series:{
             symbol:'circle',
-            symbolSize: '5',
+            symbolSize: '1',
         }
 
 
