@@ -4,6 +4,11 @@ const echart_options =
         textStyle:{
             color: 'rgba(154,154,154,.70)'
         },
+        subtextStyle:{
+            color: 'rgba(154,154,154,.54)',
+            fontWeigth: 'lighter',
+            
+        },
         tooltip:{
             trigger: 'axis'
         },

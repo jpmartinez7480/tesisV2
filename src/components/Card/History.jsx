@@ -10,6 +10,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Delete from '@material-ui/icons/Delete';
+import FavoriteOutlined from '@material-ui/icons/FavoriteOutlined'
 import Save from '@material-ui/icons/Save';
 import Info from '@material-ui/icons/Info';
 import blue from '@material-ui/core/colors/blue';
@@ -31,10 +32,10 @@ const styles = theme => ({
         width: '0.4em'
       },
       '&::-webkit-scrollbar-track': {
-        '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.2)'
+        '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.4)'
       },
       '&::-webkit-scrollbar-thumb': {
-        backgroundColor: 'rgba(30,30,47,.8)',
+        backgroundColor: 'rgba(154,154,154,.4)',
         outline: '1px solid slategrey',
         borderRadius:'30px'
       }
@@ -69,7 +70,7 @@ const styles = theme => ({
       marginRight:'2px',
       marignLeft:'3px',
       cursor:'pointer',
-      fontSize:'16px',
+      fontSize:'14px',
       "&:hover":{
         color: blue[600]
       }
@@ -127,6 +128,11 @@ class History extends Component{
       this.props.FullHistory(index)
     }
 
+    chooseSignalToDetectBeat(index){
+      this.setState({indexSignalToDelete:index})
+      this.props.ConfirmDetectBeat(index)
+    }
+
     render(){
         const { classes } = this.props
         return(
@@ -137,10 +143,10 @@ class History extends Component{
                   this.state.history.map((h,index) => (
                   <ListItem button disableRipple style = {{paddingRight:'5px',paddingLeft:'5px',cursor:'default'}} key = {index}>
                     <ListItemIcon style = {{marginRight:'5px'}}>
-                      <Save className = {classes.mySaveIcon}/>
+                      <Save className = {classes.mySaveIcon} onClick={()=>{this.chooseSignalToDetectBeat(index)}}/>
                     </ListItemIcon>
                     <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ fontSize:'12px',color: 'rgba(154,154,154,0.54)' }}>Ant: {h.prev}</Typography>}  />
-                    <div>
+                    <div style = {{marginTop:'10px'}}>
                       <ListItemIcon style = {{marginRight:'5px'}}>
                         <Info onClick = {() => {this.handleOpenDialogFullHistory(index)}} className = {classes.actionIcon}/>
                       </ListItemIcon>

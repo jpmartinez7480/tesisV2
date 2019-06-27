@@ -36,6 +36,7 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import SnackbarWarning from '../../components/Dialogs/snackbar'
+import TextField from '@material-ui/core/TextField';
 import { connect } from 'react-redux'
 
 import Signal from '../../components/Card/Signal'
@@ -297,6 +298,9 @@ class Home extends Component{
             serie_vfsi: [],
             serie_psa: [],
             serie_co2: [],
+            signal_history_backup:[],
+            is_heart_beat_detected:false,
+            serie_signals_history:[],
             start_point_cut:0,
             end_point_cut:0,
             data_filter_VFS: [{name:'VFSD',textStyle:echart_options.textStyle}],
@@ -316,6 +320,7 @@ class Home extends Component{
             open_snackbar:false,
             openDialogFullHistory: false,
             openBeat: false,
+            open_confirm_beat: false,
             message_snackbar:'',
             title_filter: '',
             text_filter:'',
@@ -345,7 +350,8 @@ class Home extends Component{
               
             ],
             brushArea:{},
-            headerFile:{}
+            headerFile:{},
+            etco2_echart:'block'
 
         }
         this.onChange = this.onChange.bind(this)
@@ -394,7 +400,11 @@ class Home extends Component{
     }
 
     handleOpenBeat = () => {
-      this.setState({openBeat: true})
+      this.setState({openBeat: true},()=>{this.handleCloseConfirmBeat()})
+    }
+
+    handleOpenConfirmBeat = () => {
+      this.setState({open_confirm_beat:true})
     }
 
     handleOpenDialogDeleteSignal = () => {
@@ -435,6 +445,10 @@ class Home extends Component{
 
     handleCloseBeat = () => {
       this.setState({openBeat: false})
+    }
+
+    handleCloseConfirmBeat = () => {
+      this.setState({open_confirm_beat:false})
     }
 
     handleCloseDialogDeleteSignal = () => {
@@ -506,23 +520,56 @@ class Home extends Component{
       this.setState({indexSignalToDelete:index},()=>{this.handleOpenDialogFullHistory()})
     }
 
+    ConfirmDetectBeat=index=>{
+      this.setState({indexSignalToDelete:index},()=>{this.handleOpenConfirmBeat()})
+    }
+
     deleteSignal = () =>{
-      var serie_vfsd_copy = [...this.state.serie_vfsd]
-      var serie_vfsi_copy = [...this.state.serie_vfsi]
-      var serie_psa_copy = [...this.state.serie_psa]
-      var serie_co2_copy= [...this.state.serie_co2]
-      var history_copy = [...this.state.history]
-      var signals_history_copy = [...this.state.signals_history]
-      serie_vfsd_copy.splice(this.state.indexSignalToDelete+1,1)
-      serie_vfsi_copy.splice(this.state.indexSignalToDelete+1,1)
-      serie_psa_copy.splice(this.state.indexSignalToDelete+1,1)
-      serie_co2_copy.splice(this.state.indexSignalToDelete+1,1)
-      history_copy.splice(this.state.indexSignalToDelete)
-      signals_history_copy.splice(this.state.indexSignalToDelete+1,1)
-      this.setState({serie_vfsd:serie_vfsd_copy,serie_vfsi:serie_vfsi_copy,serie_psa:serie_psa_copy,serie_co2:serie_co2_copy,history:history_copy,signals_history:signals_history_copy},()=>{
-        this.updateOptions()
-        this.handleCloseDialogDeleteSignal()
-      })
+      if(!this.state.is_heart_beat_detected){
+        var serie_vfsd_copy = [...this.state.serie_vfsd]
+        
+        var serie_vfsi_copy = [...this.state.serie_vfsi]
+        var serie_psa_copy = [...this.state.serie_psa]
+        var serie_co2_copy= [...this.state.serie_co2]
+        var history_copy = [...this.state.history]
+        var signals_history_copy = [...this.state.signals_history]
+        serie_vfsd_copy.splice(this.state.indexSignalToDelete+1,1)
+        serie_vfsi_copy.splice(this.state.indexSignalToDelete+1,1)
+        serie_psa_copy.splice(this.state.indexSignalToDelete+1,1)
+        serie_co2_copy.splice(this.state.indexSignalToDelete+1,1)
+        history_copy.splice(this.state.indexSignalToDelete,1)
+        signals_history_copy.splice(this.state.indexSignalToDelete+1,1)
+        this.setState({indexSignalToDelete:0,indexSignal:0,serie_vfsd:serie_vfsd_copy,serie_vfsi:serie_vfsi_copy,serie_psa:serie_psa_copy,serie_co2:serie_co2_copy,history:history_copy,signals_history:signals_history_copy},()=>{
+          this.updateOptions()
+          this.handleCloseDialogDeleteSignal()
+        })
+      }
+      else{
+        var serie_vfsd_copy_backup = this.state.serie_signals_history[0]
+        var serie_vfsi_copy_backup = this.state.serie_signals_history[1]
+        var serie_psa_copy_backup = this.state.serie_signals_history[2]
+        var serie_co2_copy_backup = this.state.serie_signals_history[3]
+        var history_copy_backup = [...this.state.history]
+        var signals_history_copy_backup = [...this.state.signal_history_backup]
+        history_copy_backup.splice(this.state.indexSignalToDelete,1)
+        this.setState({
+              indexSignalToDelete:0,
+              indexSignal:0,
+              etco2_echart:'block',
+              serie_vfsd:serie_vfsd_copy_backup,
+              serie_vfsi:serie_vfsi_copy_backup,
+              serie_psa:serie_psa_copy_backup,
+              serie_co2:serie_co2_copy_backup,
+              history:history_copy_backup,
+              signals_history:signals_history_copy_backup,
+              is_heart_beat_detected: false
+            },
+            ()=>{
+            this.updateOptions()
+            this.handleCloseDialogDeleteSignal()
+          })
+      }
+      
       
     }
 
@@ -1150,10 +1197,11 @@ class Home extends Component{
       this.refs.echarts_react_1.getEchartsInstance().setOption({
         title: {
           text:'VFSD',
-          subtext:hb1,
+          subtext:'Latidos detectados: ' + hb1,
           x:'center',
           align:'right',
-          textStyle:echart_options.textStyle
+          textStyle:echart_options.textStyle,
+          subtextStyle:echart_options.subtextStyle
         },
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {
@@ -1165,10 +1213,11 @@ class Home extends Component{
       this.refs.echarts_react_2.getEchartsInstance().setOption({
         title: {
           text:'VFSI',
-          subtext:hb2,
+          subtext:'Latidos detectados: ' + hb2,
           x:'center',
           align:'right',
-          textStyle:echart_options.textStyle
+          textStyle:echart_options.textStyle,
+          subtextStyle:echart_options.subtextStyle
         },
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {
@@ -1180,10 +1229,11 @@ class Home extends Component{
       this.refs.echarts_react_3.getEchartsInstance().setOption({
         title: {
           text:'PSA',
-          subtext:hb3,
+          subtext:'Latidos detectados: ' + hb3,
           x:'center',
           align:'right',
-          textStyle:echart_options.textStyle
+          textStyle:echart_options.textStyle,
+          subtextStyle:echart_options.subtextStyle
         },
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {
@@ -1198,7 +1248,8 @@ class Home extends Component{
           subtext:hb4,
           x:'center',
           align:'right',
-          textStyle:echart_options.textStyle
+          textStyle:echart_options.textStyle,
+          
         },
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {
@@ -1406,35 +1457,40 @@ class Home extends Component{
       var vfsd_beat_start = []
       var vfsi_beat_start = []
       var psa_beat_start = []
-      var upstroke_cnt = 0
       for(var i = 0; i < array.length; i++){
         if(array[i][2] === 1)
           vfsd_beat_start.push({coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:'#fff'}})
-        else if(array[i][2] === 4)
-          upstroke_cnt+=1
+        //else if(array[i][2] === 6 && array[i+1][2] === 0)
+        //  vfsd_beat_start.push({coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:'#fff'}})
         if(array[i][4] === 1)
           vfsi_beat_start.push({coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:'#fff'}})
+          
         if(array[i][6] === 1)
           psa_beat_start.push({coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:'#fff'}})
       }
       var vfsd_beat = {symbol:'circle',symbolSize:5,data:vfsd_beat_start}
       var vfsi_beat = {symbol:'circle',symbolSize:5,data:vfsi_beat_start}
       var psa_beat = {symbol:'circle',symbolSize:5,data:psa_beat_start}
-      console.log(upstroke_cnt)
       return[vfsd_beat,vfsi_beat,psa_beat]
     }
 
     getDataToPar = () =>{
       this.handleOpenBeat()
-      var vfsd = this.state.serie_vfsd[this.state.indexSignalToDelete].data
-      var vfsi = this.state.serie_vfsi[this.state.indexSignalToDelete].data
-      var psa = this.state.serie_psa[this.state.indexSignalToDelete].data
+      var vfsd = this.state.serie_vfsd[this.state.indexSignal].data
+      var vfsi = this.state.serie_vfsi[this.state.indexSignal].data
+      var psa = this.state.serie_psa[this.state.indexSignal].data
+      var signals_aux = [this.state.serie_vfsd,this.state.serie_vfsi,this.state.serie_psa,this.state.serie_co2]
+      var signals_history_aux = [...this.state.signals_history]
+
+      //var signals = [{filter:this.state.history[this.state.indexSignalToDelete].name}]
+      var signals = [{filter:this.state.signals_history[this.state.indexSignal].filter}]
+      var history = [...this.state.history]
       
-      //var co2 = this.state.serie_co2[this.state.indexSignalToDelete].data
-      //var signals = [{filter:'Filtrada'}]
-      //var history = [...this.state.history]
       //history = [history[this.state.indexSignalToDelete]]
-      //history.push({name:'Filtrada',prev:history[0].name,data:'detec latidos',dialog:history[0].dialog + '\n' + 'detección de latidos'})
+      if(history.length > 0)
+        history.push({name:'latidos',prev:history[0].name,data:'detec latidos',dialog:history[0].dialog + '\n' + 'detección de latidos'})
+      else
+        history.push({name:'latidos',prev:signals[0].filter,data:'detec latidos',dialog:'detección de latidos'})
       var beats_detected;
       var signal_to_detect_beats = [vfsd,vfsi,psa]
       var obj = {
@@ -1446,12 +1502,18 @@ class Home extends Component{
         data: obj
       })
       .then(res => {
-        console.log(res.data)
         beats_detected = this.getStartBeat(res.data,vfsd,vfsi,psa)
         var vfsd_beats = beats_detected[0]
         var vfsi_beats = beats_detected[1]
         var psa_beats = beats_detected[2]
         this.setState({
+            signals_history: signals,
+            history: history,
+            is_heart_beat_detected:true,
+            serie_signals_history:signals_aux,
+            signal_history_backup:signals_history_aux,
+            indexSignal:0,
+            etco2_echart:'none',
             serie_vfsd:[{
               name:'VFSD',type:'line',data:vfsd,
               symbol:echart_options.series.symbol,
@@ -1474,8 +1536,7 @@ class Home extends Component{
               markPoint: psa_beats
             }]
           },()=>{
-            console.log(this.state.serie_psa)
-            this.updateOptionsPar()
+            this.updateOptionsPar(vfsd_beats.data.length,vfsi_beats.data.length,psa_beats.data.length)
             this.handleCloseBeat()
           })
       })
@@ -1551,7 +1612,7 @@ class Home extends Component{
                     <p className={classes.describeSignal}>Tasa muestreo: <span style = {{fontStyle:'italic'}}>{this.state.headerFile[3].split(':')[1]}</span></p>
                   </Grid> 
                   <Grid item lg = {3} xl = {3} md = {3} >
-                  <form style = {{display:'flex',flexWrap:'wrap',marginTop:'13px'}} autoComplete="off">
+                  <form style = {{display:'flex',flexWrap:'wrap',marginTop:'13px'}} autoComplete="off" >
                     <FormControl  className={classes.formControl} style = {{marginBottom:0}}>
                       <Select
                           name = "filters"
@@ -1560,6 +1621,7 @@ class Home extends Component{
                           onChange={this.handleChangeFilter('filter')}
                           displayEmpty
                           autoWidth
+                          disabled={this.state.is_heart_beat_detected}
                       >
                         <MenuItem value="" disabled>
                             -- Filtros --
@@ -1603,7 +1665,7 @@ class Home extends Component{
                   />
                   <ReactEcharts ref='echarts_react_4'
                   option={this.getOption_CO2()}
-                  style={{height: 300,marginBottom:'30px'}}
+                  style={{height: 300,marginBottom:'30px',display:this.state.etco2_echart}}
                   lazyUpdate={true}
                   //showLoading={true}
                   showZoom={true}
@@ -1613,7 +1675,7 @@ class Home extends Component{
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
                 <Signal key = {3} signalHistory = {this.state.signals_history} changeSelectedSignal = {this.changeSelectedSignal}/>
-                <History key = {this.state.index_key+1} history = {this.state.history} chooseSignalToDelete = {this.chooseSignalToDelete} FullHistory = {this.FullHistory}/>
+                <History key = {this.state.index_key+1} history = {this.state.history} chooseSignalToDelete = {this.chooseSignalToDelete} FullHistory = {this.FullHistory} ConfirmDetectBeat = {this.ConfirmDetectBeat}/>
               </Grid>
             </Grid>
           </div>
@@ -1638,7 +1700,7 @@ class Home extends Component{
                     <ListItemIcon className = {classes.myIcon}><CropFree onClick = {this.handleOpenDialogCut}/></ListItemIcon>
                   </ListItem>
                   <ListItem button className={classes.itemAction} title = "Detectar latidos">
-                    <ListItemIcon className = {classes.myIcon}><FavoriteOutlined onClick = {()=>{this.getDataToPar()}} /></ListItemIcon>
+                    <ListItemIcon className = {classes.myIcon}><FavoriteOutlined onClick = {this.handleOpenConfirmBeat} /></ListItemIcon>
                   </ListItem>
                   <ListItem button className={classes.itemAction}>
                     <ListItemIcon className = {classes.myIcon}><Save onClick = {()=>{this.exportSignal()}}/></ListItemIcon>
@@ -1827,6 +1889,30 @@ class Home extends Component{
               </DialogContent>
             </Dialog>
             {/* Fin Dialog filtrando */}
+            {/* Dialog para confirmar la deteccion de latidos */}
+            <Dialog 
+                maxWidth="sm"
+                fullWidth={true}
+                open={this.state.open_confirm_beat}
+                onClose={this.handleCloseConfirmBeat}
+                aria-labelledby="max-width-dialog-title"
+              >
+                <DialogTitle id="max-width-dialog-title">Detectar latidos</DialogTitle>
+                  <DialogContent>
+                    <p style = {{color:'rgba(0,0,0,.54)'}}>¿Está seguro que desea detectar latidos? Las señales no usadas serán guardadas.</p>
+                    <p style = {{color:'rgba(0,0,0,.54)'}}>Para recuperarlas solo debe eliminar el resultado de este proceso en el historial.</p>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={this.handleCloseConfirmBeat} style = {{color: '#2196f3'}}>
+                      No
+                    </Button>
+                    <Button onClick={()=>{this.getDataToPar()}} style = {{color: '#2196f3'}} autoFocus>
+                      Si
+                    </Button>
+                </DialogActions>
+              </Dialog>
+              {/* Fin Dialog para confirmar la deteccion de latidos */}
+
             {/* Dialog detectar latidos */}
             <Dialog
               open={this.state.openBeat}
@@ -1862,11 +1948,12 @@ class Home extends Component{
                   {text_hermite}
                 </DialogContentText>
                 
-                <InputBase 
+                <TextField 
                   required
                   placeholder="Ingrese porcentaje(*)" 
                   className = {classes.input} 
                   type="number" 
+                  helperText = "Ingrese porcentaje (ej:1)"
                   value={this.state.value_order_hermite}
                   onChange={this.handleChangeInput('value_order_hermite')}
                   endAdornment={<InputAdornment position="end">%</InputAdornment>} 
@@ -1896,8 +1983,9 @@ class Home extends Component{
                 <DialogContentText id="alert-dialog-description">
                   {text_median}
                 </DialogContentText>
-                <InputBase
+                <TextField
                   placeholder="Ingrese orden (ej: 5)" 
+                  helperText = "Ingrese orden (ej:5)"
                   className = {classes.input} 
                   type="number"
                   value={this.state.value_order_median} 
@@ -1930,8 +2018,8 @@ class Home extends Component{
                 <DialogContentText id="alert-dialog-description">
                   {text_hampel}
                 </DialogContentText>
-                <InputBase required value = {this.state.value_window_hampel} placeholder="Ventana (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_thresold_window')} />
-                <InputBase  required value = {this.state.value_thresold_hampel} placeholder="Thresold (ej: 1.6)" className = {classes.input}  step=".01" onChange={this.handleChangeInput('value_thresold_hampel')} />
+                <TextField required value = {this.state.value_window_hampel} placeholder="Ventana (ej: 10)" helperText="Ventana (ej:10)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_thresold_window')} />
+                <TextField  required value = {this.state.value_thresold_hampel} placeholder="Thresold (ej: 1.6)" helperText="Thresold (ej:1.6)" className = {classes.input}  step=".01" onChange={this.handleChangeInput('value_thresold_hampel')} />
               </DialogContent>
               <DialogActions>
                 <Button onClick={this.handleCloseHampel} style = {{color: '#2196f3'}}>
@@ -1958,8 +2046,8 @@ class Home extends Component{
                 <DialogContentText id="alert-dialog-description">
                   {text_butterworth}
                 </DialogContentText>
-                <InputBase required value = {this.state.value_order_butter} placeholder="Orden (ej: 4)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_order_butter')} />
-                <InputBase required value = {this.state.value_slice_butter} placeholder="Corte (ej: 20)" className = {classes.input}  onChange={this.handleChangeInput('value_slice_butter')} />
+                <TextField required value = {this.state.value_order_butter} placeholder="Orden (ej: 4)" helperText="Orden (ej:4)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_order_butter')} />
+                <TextField required value = {this.state.value_slice_butter} placeholder="Corte (ej: 20)" helperText="Corte (ej: 20)" className = {classes.input}  onChange={this.handleChangeInput('value_slice_butter')} />
               </DialogContent>
               <DialogActions>
                 <Button onClick={this.handleCloseButterworth} style = {{color: '#2196f3'}}>
@@ -1991,7 +2079,7 @@ class Home extends Component{
                     <p style = {{color:'rgba(0,0,0,.7)'}}>Hermite</p>
                   </Grid>
                   <Grid item lg = {10} xl = {10} md = {3}>
-                    <InputBase value = {this.state.value_order_hermite} required placeholder="Orden Hermite (ej: 1)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_order_hermite')} />
+                    <TextField value = {this.state.value_order_hermite} required placeholder="Orden Hermite (ej: 1)" helperText="Orden Hermite (ej: 1)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_order_hermite')} />
                   </Grid>
                 </Grid>
                 <Grid container style = {{marginBottom:'10px'}}>
@@ -1999,8 +2087,8 @@ class Home extends Component{
                   <p style = {{color:'rgba(0,0,0,.7)'}}>Hampel</p>
                   </Grid>
                   <Grid item lg = {10} xl = {10} md = {3}>
-                    <InputBase required value = {this.state.value_window_hampel} placeholder="Ventana Hampel (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_window_hampel')} />
-                    <InputBase required value = {this.state.value_thresold_hampel} placeholder="Thresold Hampel(ej: 1.6)" className = {classes.input} onChange={this.handleChangeInput('value_thresold_hampel')} />
+                    <TextField required value = {this.state.value_window_hampel} placeholder="Ventana Hampel (ej: 10)" helperText= "Ventana Hampel (ej: 10)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_window_hampel')} />
+                    <TextField required value = {this.state.value_thresold_hampel} placeholder="Thresold Hampel(ej: 1.6)" helperText="Thresold Hampel(ej: 1.6)" className = {classes.input} onChange={this.handleChangeInput('value_thresold_hampel')} />
                   </Grid>
                 </Grid>
                 <Grid container style = {{marginBottom:'10px'}}>
@@ -2008,8 +2096,8 @@ class Home extends Component{
                   <p style = {{color:'rgba(0,0,0,.7)'}}>Butterworth</p>
                   </Grid>
                   <Grid item lg = {10} xl = {10} md = {3}>
-                    <InputBase required value = {this.state.value_order_butter} placeholder="Orden Butter (ej: 5)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_order_butter')} />
-                    <InputBase required value = {this.state.value_slice_butter} placeholder="Corte Butter (ej: 20)" className = {classes.input}  onChange={this.handleChangeInput('value_slice_butter')} />
+                    <TextField required value = {this.state.value_order_butter} placeholder="Orden Butter (ej: 5)" helperText="Orden Butter (ej: 5)" className = {classes.input} type="number" onChange={this.handleChangeInput('value_order_butter')} />
+                    <TextField required value = {this.state.value_slice_butter} placeholder="Corte Butter (ej: 20)" helperText="Corte Butter (ej: 20)" className = {classes.input}  onChange={this.handleChangeInput('value_slice_butter')} />
                   </Grid>
                 </Grid>
               </DialogContent>

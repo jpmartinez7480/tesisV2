@@ -19,12 +19,12 @@ const styles = theme => ({
           width: '0.4em'
         },
         '&::-webkit-scrollbar-track': {
-          '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.2)'
+          '-webkit-box-shadow': 'inset 0 0 6px rgba(0,0,0,0.4)'
         },
         '&::-webkit-scrollbar-thumb': {
-          backgroundColor: 'rgba(30,30,47,.8)',
+          backgroundColor: 'rgba(154,154,154,.4)',
           outline: '1px solid slategrey',
-          borderRadius:'30px'
+          borderRadius:'20px'
         }
       },
       myCardTitle:{
