@@ -139,9 +139,10 @@ class History extends Component{
             <Paper className = {classes.myCard} style = {{marginTop:'30px'}}>
               <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Historial</Typography>
               <List>
-                {this.props.history.length !== 0 ? 
+                {this.props.history.length !== 0  ? 
                   this.state.history.map((h,index) => (
-                  <ListItem button disableRipple style = {{paddingRight:'5px',paddingLeft:'5px',cursor:'default'}} key = {index}>
+                  h.data !== '-1' ? 
+                    <ListItem button disableRipple style = {{paddingRight:'5px',paddingLeft:'5px',cursor:'default'}} key = {index}>
                     <ListItemIcon style = {{marginRight:'5px'}}>
                       <Save className = {classes.mySaveIcon} onClick={()=>{this.chooseSignalToDetectBeat(index)}}/>
                     </ListItemIcon>
@@ -154,10 +155,18 @@ class History extends Component{
                         <Delete onClick = {() => {this.chooseSignalToDelete(index)}}  className = {classes.actionIcon}/>  
                       </ListItemIcon>
                     </div>
-                    
-                    {/*<ListItemSecondaryAction>
-                      <Delete onClick = {() => {this.chooseSignalToDelete(index)}} style = {{color: '#9a9a9a',fontSize:'16px',cursor:'pointer'}}/>
-                    </ListItemSecondaryAction>*/}
+                  </ListItem>
+                  :
+                  <ListItem button disableRipple style = {{paddingRight:'5px',paddingLeft:'5px',cursor:'default'}} key = {index}>
+                    <ListItemIcon style = {{marginRight:'5px'}}>
+                      <Save className = {classes.mySaveIcon} onClick={()=>{this.chooseSignalToDetectBeat(index)}}/>
+                    </ListItemIcon>
+                    <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ fontSize:'12px',color: 'rgba(154,154,154,0.54)' }}>Ant: {h.prev}</Typography>}  />
+                    <div style = {{marginTop:'10px'}}>
+                      <ListItemIcon style = {{marginRight:'5px'}}>
+                        <Info onClick = {() => {this.handleOpenDialogFullHistory(index)}} className = {classes.actionIcon}/>
+                      </ListItemIcon>
+                    </div>
                   </ListItem>
                 ))
                 :

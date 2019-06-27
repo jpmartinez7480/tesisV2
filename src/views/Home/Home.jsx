@@ -298,8 +298,10 @@ class Home extends Component{
             serie_vfsi: [],
             serie_psa: [],
             serie_co2: [],
+            signal_backup_cut:[],
             signal_history_backup:[],
             is_heart_beat_detected:false,
+            signal_is_cut: false,
             serie_signals_history:[],
             start_point_cut:0,
             end_point_cut:0,
@@ -527,18 +529,21 @@ class Home extends Component{
     deleteSignal = () =>{
       if(!this.state.is_heart_beat_detected){
         var serie_vfsd_copy = [...this.state.serie_vfsd]
-        
+        var aux = this.state.is_signal_cut ? this.state.indexSignalToDelete : this.state.indexSignalToDelete+1
         var serie_vfsi_copy = [...this.state.serie_vfsi]
         var serie_psa_copy = [...this.state.serie_psa]
         var serie_co2_copy= [...this.state.serie_co2]
         var history_copy = [...this.state.history]
         var signals_history_copy = [...this.state.signals_history]
-        serie_vfsd_copy.splice(this.state.indexSignalToDelete+1,1)
-        serie_vfsi_copy.splice(this.state.indexSignalToDelete+1,1)
-        serie_psa_copy.splice(this.state.indexSignalToDelete+1,1)
-        serie_co2_copy.splice(this.state.indexSignalToDelete+1,1)
-        history_copy.splice(this.state.indexSignalToDelete,1)
-        signals_history_copy.splice(this.state.indexSignalToDelete+1,1)
+        serie_vfsd_copy.splice(aux,1)
+        serie_vfsi_copy.splice(aux,1)
+        serie_psa_copy.splice(aux,1)
+        serie_co2_copy.splice(aux,1)
+        if(this.state.is_signal_cut)
+          history_copy.splice(aux,1)
+        else
+          history_copy.splice(aux-1,1)
+        signals_history_copy.splice(aux,1)
         this.setState({indexSignalToDelete:0,indexSignal:0,serie_vfsd:serie_vfsd_copy,serie_vfsi:serie_vfsi_copy,serie_psa:serie_psa_copy,serie_co2:serie_co2_copy,history:history_copy,signals_history:signals_history_copy},()=>{
           this.updateOptions()
           this.handleCloseDialogDeleteSignal()
@@ -579,14 +584,18 @@ class Home extends Component{
       let psa = this.state.serie_psa[this.state.indexSignal].data
       let co2 = this.state.serie_co2[this.state.indexSignal].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
-
+      let rate_aux = this.state.headerFile[0].header[3].split(':')[1]
+      let rate = ''
+      for(var i = 0; rate_aux[i] != 'H'; i++)
+        rate+=rate_aux[i]
       var obj = {
         listaSenal:JSON.stringify(signal_to_filter),
         order_hermite:parseInt(this.state.value_order_hermite),
         window_hampel:parseInt(this.state.value_window_hampel),
         thresold_hermite:parseFloat(this.state.value_thresold_hampel),
         order_butter:parseInt(this.state.value_order_butter),
-        cut_butter:parseFloat(this.state.value_slice_butter)
+        cut_butter:parseFloat(this.state.value_slice_butter),
+        rate: parseInt(rate)
       }
       
       Axios({
@@ -609,11 +618,15 @@ class Home extends Component{
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
           sh.push({filter:this.searchSignal("Automatic",this.state.signals_history).toString(10)+"-Automatic"})
-          if(this.state.indexSignal >= 1)
+          if(this.state.indexSignal >= 1  && !this.state.is_signal_cut)
             h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'pendiente',dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite+' / '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.value_thresold_hampel+' / '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
+          else if(this.state.indexSignal === 0 && this.state.is_signal_cut)
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'pendiente',dialog:h[this.state.indexSignal].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite+' / '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.value_thresold_hampel+' / '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
+          else if(this.state.indexSignal >= 1 && this.state.is_signal_cut)
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'pendiente',dialog:h[this.state.indexSignal].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite+' / '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.value_thresold_hampel+' / '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
           else
-            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'pendiente',dialog:'orden Hermite: '+this.state.value_order_hermite+'%'+' / '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.thresold+' / '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
-          this.setState({signals_history:sh,history:h})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'pendiente',dialog:'orden Hermite: '+this.state.value_order_hermite+'%'+' / '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.value_thresold_hampel+' / '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
+          this.setState({signals_history:sh,history:h},()=>{console.log(this.state.history)})
           this.updateOptions()
         }
         else {
@@ -660,11 +673,15 @@ class Home extends Component{
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
           sh.push({filter:this.searchSignal("Hermite ",this.state.signals_history).toString(10)+"-Hermite"})
-          if(this.state.indexSignal >= 1)
+          if(this.state.indexSignal >= 1 && !this.state.is_signal_cut)
             h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_hermite,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite})
+          else if(this.state.indexSignal === 0 && this.state.is_signal_cut)
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_hermite,dialog:h[this.state.indexSignal].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite})
+          else if(this.state.indexSignal >= 1 && this.state.is_signal_cut)
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_hermite,dialog:h[this.state.indexSignal].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite})
           else
             h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_hermite,dialog:'orden Hermite: '+this.state.value_order_hermite+'%'})
-          this.setState({signals_history:sh,history:h})
+          this.setState({signals_history:sh,history:h},()=>{console.log(this.state.history)})
           this.updateOptions()
         }
         else {
@@ -709,11 +726,18 @@ class Home extends Component{
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
           sh.push({filter:this.searchSignal("Hampel ",this.state.signals_history).toString(10)+"-Hampel"})
-          if(this.state.indexSignal >= 1)
-            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:h[this.state.indexSignal-1].dialog+'\n'+'ventana Hampel: '+this.state.value_window_hampel+' / '+ 'umbral: '+this.state.value_thresold_hampel})
+          
+          if(this.state.indexSignal >= 1 && !this.state.is_signal_cut)
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:h[this.state.indexSignal-1].dialog+'\n'+'ventana Hampel: '+this.state.value_window_hampel+' / '+ 'umbral Hampel: '+this.state.value_thresold_hampel})
+          else if((this.state.indexSignal === 0 && this.state.is_signal_cut))
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:h[this.state.indexSignal].dialog+'\n'+'ventana Hampel: '+this.state.value_window_hampel+' / '+ 'umbral: '+this.state.value_thresold_hampel}) 
+          else if((this.state.indexSignal >= 1 && this.state.is_signal_cut)){
+            console.log(h[this.state.indexSignal].dialog)
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:h[this.state.indexSignal].dialog+'\n'+'ventana Hampel: '+this.state.value_window_hampel+' / '+ 'umbral: '+this.state.value_thresold_hampel}) 
+          }
           else
-            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:'ventana Hampel: '+this.state.value_window_hampel+' / '+ 'umbral: '+this.state.value_thresold_hampel})
-          this.setState({signals_history:sh,history:h})
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'W: '+this.state.value_window_hampel+'/ T: '+this.state.value_thresold_hampel,dialog:'ventana Hampel: '+this.state.value_window_hampel+' / '+ 'umbral Hampel: '+this.state.value_thresold_hampel})
+          this.setState({signals_history:sh,history:h},()=>{console.log(this.state.history)})
           this.updateOptions()
         }
         else {
@@ -734,12 +758,11 @@ class Home extends Component{
       let psa = this.state.serie_psa[this.state.indexSignal].data
       let co2 = this.state.serie_co2[this.state.indexSignal].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
-      let rate_aux = this.state.headerFile[3].split(':')[1]
+      let rate_aux = this.state.headerFile[0].header[3].split(':')[1]
       let rate = ''
       var i = 0
       for(var i = 0; rate_aux[i] != 'H'; i++)
         rate+=rate_aux[i]
-      console.log(rate)
       var obj = {
         signal:JSON.stringify(signal_to_filter),
         order: parseInt(this.state.value_order_butter),
@@ -766,11 +789,15 @@ class Home extends Component{
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
           sh.push({filter:this.searchSignal("Butterworth ",this.state.signals_history).toString(10)+"-Butterworth"})
-          if(this.state.indexSignal >= 1)
+          if(this.state.indexSignal >= 1  && !this.state.is_signal_cut)
             h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord:'+this.state.value_order_butter+'/ Cut: '+this.state.value_slice_butter,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Butterworth: '+this.state.value_order_butter+' / '+'corte Butterworth: '+this.state.value_slice_butter})
+          else if(this.state.indexSignal === 0 && this.state.is_signal_cut)
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord:'+this.state.value_order_butter+'/ Cut: '+this.state.value_slice_butter,dialog:h[this.state.indexSignal].dialog+'\n'+'orden Butterworth: '+this.state.value_order_butter+' / '+'corte Butterworth: '+this.state.value_slice_butter}) 
+          else if(this.state.indexSignal >= 1 && this.state.is_signal_cut)
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord:'+this.state.value_order_butter+'/ Cut: '+this.state.value_slice_butter,dialog:h[this.state.indexSignal].dialog+'\n'+'orden Butterworth: '+this.state.value_order_butter+' / '+'corte Butterworth: '+this.state.value_slice_butter}) 
           else
             h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord:'+this.state.value_order_butter+'/ Cut: '+this.state.value_slice_butter,dialog:'orden Butterworth: '+this.state.value_order_butter+' / '+'corte Butterworth: '+this.state.value_slice_butter})
-          this.setState({signals_history:sh,history:h})
+          this.setState({signals_history:sh,history:h},()=>{console.log(this.state.history)})
           this.updateOptions()
         }
         else {
@@ -817,11 +844,16 @@ class Home extends Component{
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
           sh.push({filter:this.searchSignal("Mediana",this.state.signals_history).toString(10)+"-Mediana"})
-          if(this.state.indexSignal >= 1)
-            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_median,dialog:h.dialog+'\n'+'orden mediana:'+this.state.value_order_median})
+          if(this.state.indexSignal >= 1  && !this.state.is_signal_cut)
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_median,dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden mediana: '+this.state.value_order_median})
+          else if(this.state.indexSignal ===0 && this.state.is_signal_cut)
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_median,dialog:h[this.state.indexSignal].dialog+'\n'+'orden mediana: '+this.state.value_order_median}) 
+          else if(this.state.indexSignal >= 1 && this.state.is_signal_cut)
+            h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_median,dialog:h[this.state.indexSignal].dialog+'\n'+'orden mediana: '+this.state.value_order_median}) 
+          
           else
             h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_median,dialog:'orden mediana:'+this.state.v1})
-          this.setState({signals_history:sh,history:h})
+          this.setState({signals_history:sh,history:h},()=>{console.log(this.state.history)})
           this.updateOptions()
         }
         else {
@@ -842,9 +874,16 @@ class Home extends Component{
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
       let co2 = this.state.serie_co2[this.state.indexSignal].data
-      let signal_to_filter = [vfsd,vfsi,psa,co2]
+      let times = this.state.x_points_vfs
+      let header_file = this.state.headerFile
+      let history = this.state.history
+      header_file[1] = {history:history}
+      
+      let signal_to_filter = [vfsd,vfsi,psa,co2,times]
       var obj = {
         signals:JSON.stringify(signal_to_filter),
+        header: JSON.stringify(header_file),
+        filename: this.state.filename.name.split(".")[0]
       }
       Axios({
         method: 'POST',
@@ -854,8 +893,8 @@ class Home extends Component{
       .then((response) => {
         console.log(response)
         const link = document.createElement('a')
-        link.href = response.headers.location+'files/test.fil'
-        link.setAttribute('download','test1.fil')
+        link.href = response.headers.location+'files/test.zip'
+        link.setAttribute('download','test1.zip')
         document.body.appendChild(link)
         link.click()
       })
@@ -899,10 +938,12 @@ class Home extends Component{
       var psa = []
       var co2 = []
       var x_points = []
-      console.log(json)
       var header = []
-      for(var j = 0; j < 6; j++)
+      for(var j = 0; j < 4; j++)
         header.push(json[j].V1)
+      header.push(json[4].V1 + "\t"+json[4].V2 + "\t"+json[4].V3 + "\t"+json[4].V4 + "\t"+json[4].V5 + "\t"+json[4].V6 + "\t"+json[4].V7 + "\t"+json[4].V8 + "\t")
+      header.push(json[5].V1 + "\t"+json[5].V2 + "\t"+json[5].V3 + "\t"+json[5].V4 + "\t"+json[5].V5 + "\t"+json[5].V6 + "\t"+json[5].V7 + "\t"+json[5].V8 + "\t")
+      console.log(header)
       for(var i = 6; i < json.length; i++){
         vsfd.push(Number(json[i].V3))
         vsfi.push(Number(json[i].V4))
@@ -910,12 +951,12 @@ class Home extends Component{
         co2.push(Number(json[i].V7))
         x_points.push(json[i].V1)      
       }
-      let time = this.getSignalTime(vsfd.length).toFixed(1)
+      let time = this.getSignalTime(vsfd.length)
       var aux_name = ''
       if(this.state.filename.name.length > 15)
         aux_name = this.state.filename.name.substring(0,10)+'...'+this.state.filename.name.substring(this.state.filename.name.length-5,this.state.filename.name.length)
       else aux_name = this.state.filename.name
-      this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time, headerFile:header})
+      this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time, headerFile:[{header:header}]})
       this.state.serie_vfsd.push({name:'VFSD',type:'line',data:vsfd,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
       this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
       this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
@@ -923,7 +964,7 @@ class Home extends Component{
       this.setState({isReadySignal:true,name_signal:aux_name}, () => {
         this.handleClose()
         this.updateOptions()
-        console.log(this.state.headerFile)
+        
         
       })
     }
@@ -1312,8 +1353,7 @@ class Home extends Component{
       var times = this.state.x_points_vfs
       var pos1 = -1
       var pos2 = -1
-      console.log(this.state.v1)
-      console.log(this.state.v2)
+      var h = [...this.state.history]
       for(var i = 0; i < len; i++){
         if(times[i].localeCompare(this.state.v1) === 0){
           pos1 = i
@@ -1344,14 +1384,17 @@ class Home extends Component{
       var x = []
       for(var k = pos1; k < pos2+1; k++)
         x.push(this.state.x_points_vfs[k])
+      h.push({name:"corte de señal",prev:"Inicial",data:'-1',dialog:'Se realizó un corte entre '+this.state.v1 +" y " + this.state.v2})
       this.setState({x_points_vfs:x,
+          history:h,
           serie_vfsd:[array_results_json_cutter[0]],
           serie_vfsi:[array_results_json_cutter[1]],
           serie_psa:[array_results_json_cutter[2]],
           serie_co2:[array_results_json_cutter[3]],
-          signal_time: this.getSignalTime(array_results_json_cutter[0].data.length).toFixed(1),
+          signal_time: this.getSignalTime(array_results_json_cutter[0].data.length),
           v1:'',
-          v2:''
+          v2:'',
+          is_signal_cut:true
         },
         ()=>{this.updateOptions() 
             this.handleCloseDialogCutTime()
@@ -1363,6 +1406,7 @@ class Home extends Component{
       var point2 = this.state.brushArea.batch[0].areas[0].coordRange[1]
       var array_series = [this.state.serie_vfsd[this.state.indexSignal],this.state.serie_vfsi[this.state.indexSignal],this.state.serie_psa[this.state.indexSignal],this.state.serie_co2[this.state.indexSignal]]
       var array_results_json_cutter = []
+      var h = [...this.state.history]
       for(var i = 0; i < 4; i++){
         var cutter = this.getCutterArray(array_series[i],point1,point2)
         var json_result = this.getJsonConfigArray(array_series[i],cutter)
@@ -1371,16 +1415,18 @@ class Home extends Component{
       var x = []
       for(var j = point1; j < point2+1; j++)
         x.push(this.state.x_points_vfs[j])
+      h.push({name:"corte de señal",prev:"Inicial",data:'-1',dialog:'Se realizó un corte entre '+this.state.x_points_vfs[point1] +" y " + this.state.x_points_vfs[point2]})
       this.setState({x_points_vfs:x,
+          history:h,
           serie_vfsd:[array_results_json_cutter[0]],
           serie_vfsi:[array_results_json_cutter[1]],
           serie_psa:[array_results_json_cutter[2]],
           serie_co2:[array_results_json_cutter[3]],
-          signal_time: this.getSignalTime(array_results_json_cutter[0].data.length).toFixed(1),
-          brushArea:{}
+          signal_time: this.getSignalTime(array_results_json_cutter[0].data.length),
+          brushArea:{},
+          is_signal_cut: true
         },
         ()=>{
-          console.log(this.state.serie_vfsd)
           this.updateOptions()
           this.handleCloseDialogCut()})
 
@@ -1426,7 +1472,7 @@ class Home extends Component{
     }
 
     getSignalTime(n){
-      return (n/100/60)
+      return n/100/60 > 1  ? (n/100/60).toFixed(1).toString(10) + " min" : (n/100).toFixed(1).toString(10) + " seg" 
     }
 
     isEmpty = json => {
@@ -1606,10 +1652,10 @@ class Home extends Component{
                     <p className={classes.describeSignal}>Archivo: <span style = {{fontStyle:'italic'}}>{this.state.name_signal}</span></p>
                   </Grid> 
                   <Grid item lg = {3} xl = {3} md = {3} style = {{marginTop:'18px'}}>
-                    <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>{this.state.signal_time} min</span></p>
+                    <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>{this.state.signal_time} </span></p>
                   </Grid>
                   <Grid item lg = {3} xl = {3} md = {3} style = {{marginTop:'18px'}}>
-                    <p className={classes.describeSignal}>Tasa muestreo: <span style = {{fontStyle:'italic'}}>{this.state.headerFile[3].split(':')[1]}</span></p>
+                    <p className={classes.describeSignal}>Tasa muestreo: <span style = {{fontStyle:'italic'}}>{this.state.headerFile[0].header[3].split(':')[1]}</span></p>
                   </Grid> 
                   <Grid item lg = {3} xl = {3} md = {3} >
                   <form style = {{display:'flex',flexWrap:'wrap',marginTop:'13px'}} autoComplete="off" >
@@ -1829,16 +1875,14 @@ class Home extends Component{
                           placeholder="Inicio (HH:MM:SS:CC)" 
                           className = {classes.input} 
                           value = {this.state.v1} 
-                          inputProps={{maxLength: 11}}
-                          onChange={this.handleChangeInputTime('v1')} 
+                          onChange={this.handleChangeInput('v1')} 
                         />
                         <Input 
                           required
                           placeholder="Termino (HH:MM:SS:CC)" 
                           className = {classes.input}
-                          inputProps={{maxLength: 11}}
                           value = {this.state.v2}   
-                          onChange={this.handleChangeInputTime('v2')} 
+                          onChange={this.handleChangeInput('v2')} 
                         />
                       </DialogContent>
                       <DialogActions>
