@@ -244,9 +244,7 @@ const styles = theme => ({
       },
       input:{
         margin:'10px'
-      },
-      
-  
+      }
   })
 
 const text_hampel = 'Debe ingresar valor de ventana y thresold para usar este filtro. Para rapidez los valores por defecto se muestran'
@@ -300,6 +298,7 @@ class Home extends Component{
             serie_co2: [],
             signal_backup_cut:[],
             signal_history_backup:[],
+            heart_beats_detected: [],
             is_heart_beat_detected:false,
             signal_is_cut: false,
             serie_signals_history:[],
@@ -323,6 +322,9 @@ class Home extends Component{
             openDialogFullHistory: false,
             openBeat: false,
             open_confirm_beat: false,
+            open_sync_signals: false,
+            open_sync_signals_wait: false,
+            open_confirm_save: false,
             message_snackbar:'',
             title_filter: '',
             text_filter:'',
@@ -409,6 +411,18 @@ class Home extends Component{
       this.setState({open_confirm_beat:true})
     }
 
+    handleOpenSyncSignals = () => {
+      this.setState({open_sync_signals: true})
+    }
+
+    handleOpenSyncSignalsWait = () => {
+      this.setState({open_sync_signals_wait: true})
+    }
+
+    handleOpenSave = () => {
+      this.setState({open_confirm_save:true})
+    }
+
     handleOpenDialogDeleteSignal = () => {
       this.setState({open_dialog_delete_signal: true})
     }
@@ -451,6 +465,18 @@ class Home extends Component{
 
     handleCloseConfirmBeat = () => {
       this.setState({open_confirm_beat:false})
+    }
+
+    handleCloseSyncSignals = () => {
+      this.setState({open_sync_signals: false})
+    }
+
+    handleCloseConfirmSave = () => {
+      this.setState({open_confirm_save: false})
+    }
+
+    handleCloseSyncSignalsWait = () => {
+      this.setState({open_sync_signals_wait: false})
     }
 
     handleCloseDialogDeleteSignal = () => {
@@ -522,8 +548,8 @@ class Home extends Component{
       this.setState({indexSignalToDelete:index},()=>{this.handleOpenDialogFullHistory()})
     }
 
-    ConfirmDetectBeat=index=>{
-      this.setState({indexSignalToDelete:index},()=>{this.handleOpenConfirmBeat()})
+    ConfirmSave=index=>{
+      this.setState({indexSignalToDelete:index},()=>{this.handleOpenSave()})
     }
 
     deleteSignal = () =>{
@@ -869,7 +895,42 @@ class Home extends Component{
         //this.props.setSignalHistory(this.state.signals_history))
     }
 
-    exportSignal(){
+    exportSignal2(){
+      var aux = this.state.is_signal_cut ? this.state.indexSignalToDelete : this.state.indexSignalToDelete+1
+      let vfsd = this.state.serie_vfsd[aux].data
+      let vfsi = this.state.serie_vfsi[aux].data
+      let psa = this.state.serie_psa[aux].data
+      let co2 = this.state.serie_co2[aux].data
+      let times = this.state.x_points_vfs
+      let header_file = this.state.headerFile
+      
+      let history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
+      let filename = this.state.filename.name.split(".")[0]
+      header_file[1] = {history:history}
+      
+      let signal_to_filter = [vfsd,vfsi,psa,co2,times]
+      var obj = {
+        signals:JSON.stringify(signal_to_filter),
+        header: JSON.stringify(header_file),
+        filename: filename
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost/ocpu/user/juanpablo/library/exportSignal/R/exportSignal/json',
+        data: obj
+      })
+      .then((response) => {
+        console.log(response)
+        const link = document.createElement('a')
+        link.href = response.headers.location+'files/'+filename+'_fil.zip'
+        link.setAttribute('download',filename+'_fil.zip')
+        document.body.appendChild(link)
+        link.click()
+        this.handleCloseConfirmSave()
+      })
+    }
+
+    exportSignal = () =>{
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
       let psa = this.state.serie_psa[this.state.indexSignal].data
@@ -919,7 +980,8 @@ class Home extends Component{
 
     handleCleanData = () =>{
       if(this.state.serie_vfsd.length > 0 || this.state.serie_vfsi.length > 0 || this.state.serie_psa.length > 0 || this.state.serie_co2.length > 0){
-        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'EtCO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0,indexSignal:0,name_signal:''},() => {
+        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'EtCO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0,indexSignal:0,name_signal:'',signal_is_cut:false,signal_history_backup:[],is_heart_beat_detected:false,},
+        () => {
           //this.props.setSignalHistory(this.state.signals_history)
           this.refs.echarts_react_1.getEchartsInstance().dispose()
           this.refs.echarts_react_2.getEchartsInstance().dispose()
@@ -943,13 +1005,23 @@ class Home extends Component{
         header.push(json[j].V1)
       header.push(json[4].V1 + "\t"+json[4].V2 + "\t"+json[4].V3 + "\t"+json[4].V4 + "\t"+json[4].V5 + "\t"+json[4].V6 + "\t"+json[4].V7 + "\t"+json[4].V8 + "\t")
       header.push(json[5].V1 + "\t"+json[5].V2 + "\t"+json[5].V3 + "\t"+json[5].V4 + "\t"+json[5].V5 + "\t"+json[5].V6 + "\t"+json[5].V7 + "\t"+json[5].V8 + "\t")
-      console.log(header)
-      for(var i = 6; i < json.length; i++){
-        vsfd.push(Number(json[i].V3))
-        vsfi.push(Number(json[i].V4))
-        psa.push(Number(json[i].V5))
-        co2.push(Number(json[i].V7))
-        x_points.push(json[i].V1)      
+      if(this.state.filename.name.split(".")[1] === 'fil'){
+        for(var i = 6; i < json.length; i++){
+          vsfd.push(Number(json[i].V3))
+          vsfi.push(Number(json[i].V4))
+          psa.push(Number(json[i].V5))
+          co2.push(Number(json[i].V6))
+          x_points.push(json[i].V1)      
+        }
+      }
+      else{
+        for(var i = 6; i < json.length; i++){
+          vsfd.push(Number(json[i].V3))
+          vsfi.push(Number(json[i].V4))
+          psa.push(Number(json[i].V5))
+          co2.push(Number(json[i].V7))
+          x_points.push(json[i].V1)      
+        }
       }
       let time = this.getSignalTime(vsfd.length)
       var aux_name = ''
@@ -1207,6 +1279,7 @@ class Home extends Component{
         },
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {
+          type:'scroll',
           data:this.state.data_filter_VFS
         },
         series:this.state.serie_vfsd
@@ -1214,6 +1287,7 @@ class Home extends Component{
       this.refs.echarts_react_2.getEchartsInstance().setOption({
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {
+          type:'scroll',
           data:this.state.data_filter_VFSI
         },
         series:this.state.serie_vfsi
@@ -1221,6 +1295,7 @@ class Home extends Component{
       this.refs.echarts_react_3.getEchartsInstance().setOption({
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {
+          type:'scroll',
           data:this.state.data_filter_PSA
         },
         series:this.state.serie_psa
@@ -1228,6 +1303,7 @@ class Home extends Component{
       this.refs.echarts_react_4.getEchartsInstance().setOption({
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {
+          type:'scroll',
           data:this.state.data_filter_CO2
         },
         series:this.state.serie_co2
@@ -1245,10 +1321,7 @@ class Home extends Component{
           subtextStyle:echart_options.subtextStyle
         },
         xAxis:[{data:this.state.x_points_vfs}],
-        legend: {
-          data:this.state.data_filter_VFS,
-          x:'left'
-        },
+        legend: {show:false},
         series:this.state.serie_vfsd
       })
       this.refs.echarts_react_2.getEchartsInstance().setOption({
@@ -1260,11 +1333,8 @@ class Home extends Component{
           textStyle:echart_options.textStyle,
           subtextStyle:echart_options.subtextStyle
         },
+        legend: {show:false},
         xAxis:[{data:this.state.x_points_vfs}],
-        legend: {
-          data:this.state.data_filter_VFSI,
-          x:'left'
-        },
         series:this.state.serie_vfsi
       })
       this.refs.echarts_react_3.getEchartsInstance().setOption({
@@ -1276,6 +1346,7 @@ class Home extends Component{
           textStyle:echart_options.textStyle,
           subtextStyle:echart_options.subtextStyle
         },
+        legend: {show:false},
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {
           data:this.state.data_filter_PSA,
@@ -1283,21 +1354,47 @@ class Home extends Component{
         },
         series:this.state.serie_psa
       })
-      this.refs.echarts_react_4.getEchartsInstance().setOption({
+    }
+
+    updateOptionsSync(hb1,hb2,hb3,hb4){
+      this.refs.echarts_react_1.getEchartsInstance().setOption({
         title: {
-          text:'EtCO2',
-          subtext:hb4,
+          text:'VFSD Sync',
+          subtext:'Latidos detectados: ' + hb1,
           x:'center',
           align:'right',
           textStyle:echart_options.textStyle,
-          
+          subtextStyle:echart_options.subtextStyle
         },
+        legend:{show:false},
         xAxis:[{data:this.state.x_points_vfs}],
-        legend: {
-          data:this.state.data_filter_CO2,
-          x:'left'
+        series:this.state.serie_vfsd
+      })
+      this.refs.echarts_react_2.getEchartsInstance().setOption({
+        title: {
+          text:'VFSI Sync',
+          subtext:'Latidos detectados: ' + hb2,
+          x:'center',
+          align:'right',
+          textStyle:echart_options.textStyle,
+          subtextStyle:echart_options.subtextStyle
         },
-        series:this.state.serie_co2
+        legend:{show:false},
+        xAxis:[{data:this.state.x_points_vfs}],
+        series:this.state.serie_vfsi
+      })
+      this.refs.echarts_react_3.getEchartsInstance().setOption({
+        title: {
+          text:'PSA Sync',
+          subtext:'Latidos detectados: ' + hb3,
+          x:'center',
+          align:'right',
+          textStyle:echart_options.textStyle,
+          subtextStyle:echart_options.subtextStyle
+        },
+        legend:{show:false},
+        xAxis:[{data:this.state.x_points_vfs}],
+        series:this.state.serie_psa
       })
     }
 
@@ -1308,9 +1405,7 @@ class Home extends Component{
 
     onMouseUp = (param, echarts) => {
       console.log('UP')
-      console.log(param.dataIndex)
-     
-      
+      console.log(param.dataIndex)      
     };
 
     onMouseDown = (param,echarts) => {
@@ -1505,14 +1600,23 @@ class Home extends Component{
       var psa_beat_start = []
       for(var i = 0; i < array.length; i++){
         if(array[i][2] === 1)
-          vfsd_beat_start.push({coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:'#fff'}})
-        //else if(array[i][2] === 6 && array[i+1][2] === 0)
-        //  vfsd_beat_start.push({coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:'#fff'}})
+          vfsd_beat_start.push({coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+        else if(array[i][2] === 3)
+          vfsd_beat_start.push({coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.upstroke}})
+        else if(array[i][2] === 4)
+        vfsd_beat_start.push({coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.peak}})
         if(array[i][4] === 1)
-          vfsi_beat_start.push({coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:'#fff'}})
-          
+          vfsi_beat_start.push({coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+        else if(array[i][4] === 3)
+          vfsi_beat_start.push({coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.upstroke}})
+        else if(array[i][4] === 4)
+          vfsi_beat_start.push({coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.peak}})
         if(array[i][6] === 1)
-          psa_beat_start.push({coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:'#fff'}})
+          psa_beat_start.push({coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+        else if(array[i][6] === 3)
+          psa_beat_start.push({coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.upstroke}})
+        else if(array[i][6] === 4)
+          psa_beat_start.push({coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.peak}})
       }
       var vfsd_beat = {symbol:'circle',symbolSize:5,data:vfsd_beat_start}
       var vfsi_beat = {symbol:'circle',symbolSize:5,data:vfsi_beat_start}
@@ -1540,7 +1644,8 @@ class Home extends Component{
       var beats_detected;
       var signal_to_detect_beats = [vfsd,vfsi,psa]
       var obj = {
-        signal:JSON.stringify(signal_to_detect_beats)
+        signal:JSON.stringify(signal_to_detect_beats),
+        times: JSON.stringify(this.state.x_points_vfs)
       }
       Axios({
         method: 'POST',
@@ -1553,6 +1658,7 @@ class Home extends Component{
         var vfsi_beats = beats_detected[1]
         var psa_beats = beats_detected[2]
         this.setState({
+            heart_beats_detected:res.data,
             signals_history: signals,
             history: history,
             is_heart_beat_detected:true,
@@ -1582,7 +1688,7 @@ class Home extends Component{
               markPoint: psa_beats
             }]
           },()=>{
-            this.updateOptionsPar(vfsd_beats.data.length,vfsi_beats.data.length,psa_beats.data.length)
+            this.updateOptionsPar(vfsd_beats.data.length/3,vfsi_beats.data.length/3,psa_beats.data.length/3)
             this.handleCloseBeat()
           })
       })
@@ -1591,6 +1697,119 @@ class Home extends Component{
       
     }
 
+    sync_heartbeat(){
+      this.handleOpenSyncSignalsWait()
+      this.handleCloseSyncSignals()
+      //var signals = [{filter:this.state.signals_history[this.state.indexSignal].filter}]
+      var history = [...this.state.history]
+      var signals_aux = [this.state.serie_vfsd,this.state.serie_vfsi,this.state.serie_psa,this.state.serie_co2]
+      if(history.length > 0)
+        history.push({name:'sync',prev:history[0].name,data:'señales sync',dialog:history[0].dialog + '\n' + 'señales sincronizadas'})
+      else
+        history.push({name:'sync',prev:this.state.signals_history[0].filter,data:'señales sync',dialog:'señales sincronizadas'})
+      var obj = {
+        signal:JSON.stringify(this.state.heart_beats_detected),
+        times: JSON.stringify(this.state.x_points_vfs)
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost/ocpu/user/juanpablo/library/sync/R/sync/json',
+        data: obj
+      })
+      .then(res=>{
+        console.log(res.data)
+        var sync_data = this.getSyncHeartBeat(res.data)
+        this.setState({
+          //signals_history: signals,
+          history: history,
+          //is_heart_beat_detected:true,
+          //serie_signals_history:signals_aux,
+          //signal_history_backup:signals_history_aux,
+          indexSignal:0,
+          etco2_echart:'none',
+          x_points_vfs:sync_data[0],
+          serie_vfsd:[{
+            name:'VFSD',type:'line',data:sync_data[1],
+            symbol:echart_options.series.symbol,
+            symbolSize: echart_options.series.symbolSize,
+            itemStyle:{color:'#d22824'},
+            markPoint:sync_data[4]
+          }],
+          serie_vfsi:[{
+            name:'VFSI',type:'line',data:sync_data[2],
+            symbol:echart_options.series.symbol,
+            symbolSize: echart_options.series.symbolSize,
+            itemStyle:{color:'#d22824'},
+            markPoint: sync_data[5]
+          }],
+          serie_psa:[{
+            name:'PSA',type:'line',data:sync_data[3],
+            symbol:echart_options.series.symbol,
+            symbolSize: echart_options.series.symbolSize,
+            itemStyle:{color:'#029eb1'},
+            markPoint: sync_data[6]
+          }]
+        },()=>{
+
+          this.updateOptionsSync(sync_data[4].data.length/3,sync_data[5].data.length/3,sync_data[6].data.length/3)
+          this.handleCloseSyncSignalsWait()
+          //this.handleCloseBeat()
+        })
+    })
+    //.catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false})})
+    
+    }
+
+    getSyncHeartBeat(sync_json){
+      console.log(sync_json)
+      var sync_time = []
+      var vfsd_sync = []
+      var vfsi_sync = []
+      var psa_sync = []
+      var heartbeat_vfsd = []
+      var heartbeat_vfsi = []
+      var heartbeat_psa = []
+      var actual_vfsd = 0
+      var actual_vfsi = 0
+      var actual_psa = 0
+      for(var i = 0; i < sync_json.length; i++){
+        sync_time.push(sync_json[i].Time)
+        vfsd_sync.push(sync_json[i].vfsd)
+        vfsi_sync.push(sync_json[i].vfsi)
+        psa_sync.push(sync_json[i].psa)
+        
+        if(sync_json[i].LATIDO_vfsd > actual_vfsd){
+          actual_vfsd = sync_json[i].LATIDO_vfsd
+          heartbeat_vfsd.push({coord:[sync_json[i].Time,sync_json[i].vfsd],itemStyle:{color:'#fff'}})
+        }
+        else if(sync_json[i].vfsd_pos === 3)
+          heartbeat_vfsd.push({coord:[sync_json[i].Time,sync_json[i].vfsd],itemStyle:{color:echart_colors.upstroke}})
+        else if(sync_json[i].vfsd_pos === 4)
+          heartbeat_vfsd.push({coord:[sync_json[i].Time,sync_json[i].vfsd],itemStyle:{color:echart_colors.peak}})
+        
+        if(sync_json[i].LATIDO_vfsi > actual_vfsi){
+          actual_vfsi = sync_json[i].LATIDO_vfsi
+          heartbeat_vfsi.push({coord:[sync_json[i].Time,sync_json[i].vfsi],itemStyle:{color:'#fff'}})
+        }
+        else if(sync_json[i].vfsi_pos === 3)
+          heartbeat_vfsi.push({coord:[sync_json[i].Time,sync_json[i].vfsi],itemStyle:{color:echart_colors.upstroke}})
+        else if(sync_json[i].vfsi_pos === 4)
+          heartbeat_vfsi.push({coord:[sync_json[i].Time,sync_json[i].vfsi],itemStyle:{color:echart_colors.peak}})
+        
+        if(sync_json[i].LATIDO_psa > actual_psa){
+          actual_psa = sync_json[i].LATIDO_psa
+          heartbeat_psa.push({coord:[sync_json[i].Time,sync_json[i].psa],itemStyle:{color:'#fff'}})
+        }
+        else if(sync_json[i].psa_pos === 3)
+          heartbeat_psa.push({coord:[sync_json[i].Time,sync_json[i].psa],itemStyle:{color:echart_colors.upstroke}})
+        else if(sync_json[i].psa_pos === 4)
+          heartbeat_psa.push({coord:[sync_json[i].Time,sync_json[i].psa],itemStyle:{color:echart_colors.peak}})
+      }
+      var vfsd_beat_sync = {symbol:'circle',symbolSize:5,data:heartbeat_vfsd}
+      var vfsi_beat_sync = {symbol:'circle',symbolSize:5,data:heartbeat_vfsi}
+      var psa_beat_sync = {symbol:'circle',symbolSize:5,data:heartbeat_psa}
+      return([sync_time,vfsd_sync,vfsi_sync,psa_sync,vfsd_beat_sync,vfsi_beat_sync,psa_beat_sync])
+    }
 
     renderMissingSignal(){
         const { classes } = this.props
@@ -1721,7 +1940,7 @@ class Home extends Component{
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
                 <Signal key = {3} signalHistory = {this.state.signals_history} changeSelectedSignal = {this.changeSelectedSignal}/>
-                <History key = {this.state.index_key+1} history = {this.state.history} chooseSignalToDelete = {this.chooseSignalToDelete} FullHistory = {this.FullHistory} ConfirmDetectBeat = {this.ConfirmDetectBeat}/>
+                <History key = {this.state.index_key+1} history = {this.state.history} chooseSignalToDelete = {this.chooseSignalToDelete} FullHistory = {this.FullHistory} ConfirmSave = {this.ConfirmSave}/>
               </Grid>
             </Grid>
           </div>
@@ -1748,9 +1967,11 @@ class Home extends Component{
                   <ListItem button className={classes.itemAction} title = "Detectar latidos">
                     <ListItemIcon className = {classes.myIcon}><FavoriteOutlined onClick = {this.handleOpenConfirmBeat} /></ListItemIcon>
                   </ListItem>
-                  <ListItem button className={classes.itemAction}>
-                    <ListItemIcon className = {classes.myIcon}><Save onClick = {()=>{this.exportSignal()}}/></ListItemIcon>
+
+                  <ListItem button className={classes.itemAction} title = "Detectar latidos">
+                    <ListItemIcon className = {classes.myIcon}><FavoriteOutlined onClick = {this.handleOpenSyncSignals} /></ListItemIcon>
                   </ListItem>
+                  
                 </List>
               </Drawer>
               <Grid container style = {{marginTop:'10px',height:'40px'}}>
@@ -1811,6 +2032,30 @@ class Home extends Component{
                 </DialogActions>
               </Dialog>
               {/* Fin Dialog para cambiar señal */}
+              {/* Dialog para guardar señal */}
+              <Dialog 
+                maxWidth="sm"
+                fullWidth={true}
+                open={this.state.open_confirm_save}
+                onClose={this.handleCloseConfirmSave}
+                aria-labelledby="max-width-dialog-title"
+              >
+                <DialogTitle id="max-width-dialog-title">Guardar señal resultante</DialogTitle>
+                  <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                    ¿Está seguro que desea guardar la señal seleccionada?
+                    </DialogContentText>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={this.handleCloseConfirmSave} style = {{color: '#2196f3'}}>
+                      No
+                    </Button>
+                    <Button onClick={()=>this.exportSignal2()} style = {{color: '#2196f3'}} autoFocus>
+                      Si
+                    </Button>
+                </DialogActions>
+              </Dialog>
+              {/* Fin Dialog para guardar señal */}
 
               {/* Dialog para cortar señal */}
               <Dialog 
@@ -1920,6 +2165,7 @@ class Home extends Component{
               aria-describedby="alert-dialog-description"
               maxWidth="sm"
               fullWidth={true}
+              disableBackdropClick={true}
             >
               <DialogTitle id="alert-dialog-title">Filtrando</DialogTitle>
               <DialogContent>
@@ -1942,18 +2188,36 @@ class Home extends Component{
                 aria-labelledby="max-width-dialog-title"
               >
                 <DialogTitle id="max-width-dialog-title">Detectar latidos</DialogTitle>
-                  <DialogContent>
-                    <p style = {{color:'rgba(0,0,0,.54)'}}>¿Está seguro que desea detectar latidos? Las señales no usadas serán guardadas.</p>
-                    <p style = {{color:'rgba(0,0,0,.54)'}}>Para recuperarlas solo debe eliminar el resultado de este proceso en el historial.</p>
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={this.handleCloseConfirmBeat} style = {{color: '#2196f3'}}>
-                      No
-                    </Button>
-                    <Button onClick={()=>{this.getDataToPar()}} style = {{color: '#2196f3'}} autoFocus>
-                      Si
-                    </Button>
-                </DialogActions>
+                  {this.state.signals_history.length >= 1  ?
+                    <div>
+                    <DialogContent>
+                      <p style = {{color:'rgba(0,0,0,.54)'}}>¿Está seguro que desea detectar latidos? Las señales no usadas serán guardadas.</p>
+                      <p style = {{color:'rgba(0,0,0,.54)'}}>Para recuperarlas solo debe eliminar el resultado de este proceso en el historial.</p>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={this.handleCloseConfirmBeat} style = {{color: '#2196f3'}}>
+                        No
+                      </Button>
+                      <Button onClick={()=>{this.getDataToPar()}} style = {{color: '#2196f3'}} autoFocus>
+                        Si
+                      </Button>
+                    </DialogActions>
+                    </div>
+                  :
+                  <div> 
+                    <DialogContent>
+                      <DialogContentText id="alert-dialog-description">
+                        No ha cargado una señal. Imposible realizar la operación.
+                      </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={this.handleCloseConfirmBeat} style = {{color: '#2196f3'}}>
+                        Cerrar
+                      </Button>
+                    </DialogActions>
+                  </div>
+                  }
+                  
               </Dialog>
               {/* Fin Dialog para confirmar la deteccion de latidos */}
 
@@ -1965,6 +2229,7 @@ class Home extends Component{
               aria-describedby="alert-dialog-description"
               maxWidth="sm"
               fullWidth={true}
+              disableBackdropClick={true}
             >
               <DialogTitle id="alert-dialog-title">Detectando latidos</DialogTitle>
               <DialogContent>
@@ -1977,7 +2242,71 @@ class Home extends Component{
                                         barColorPrimary: classes.linearBarColorPrimary}} />
               </DialogContent>
             </Dialog>
-            {/* Fin Dialog filtrando */}
+            {/* Fin Dialog detectar latidos */}
+            {/* Dialog para confirmar la sync de señales */}
+            <Dialog 
+                maxWidth="sm"
+                fullWidth={true}
+                open={this.state.open_sync_signals}
+                onClose={this.handleCloseSyncSignals}
+                aria-labelledby="max-width-dialog-title"
+              >
+                <DialogTitle id="max-width-dialog-title">Sincronizar señales</DialogTitle>
+                  {this.state.signals_history.length >= 1  && this.state.is_heart_beat_detected ?
+                    <div>
+                    <DialogContent>
+                      <p style = {{color:'rgba(0,0,0,.54)'}}>¿Está seguro que desea sincronizar las señales (VFSD, VFSI, PSA)? </p>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={this.handleCloseSyncSignals} style = {{color: '#2196f3'}}>
+                        No
+                      </Button>
+                      <Button onClick={()=>{this.sync_heartbeat()}} style = {{color: '#2196f3'}} autoFocus>
+                        Si
+                      </Button>
+                    </DialogActions>
+                    </div>
+                  :
+                  <div> 
+                    <DialogContent>
+                      <DialogContentText id="alert-dialog-description">
+                        No ha cargado una señal. Imposible realizar la operación.
+                      </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={this.handleCloseSyncSignals} style = {{color: '#2196f3'}}>
+                        Cerrar
+                      </Button>
+                    </DialogActions>
+                  </div>
+                  }
+                  
+              </Dialog>
+              {/* Fin Dialog para confirmar la sync de señales */}
+
+            {/* Dialog sync señales */}
+            <Dialog
+              open={this.state.open_sync_signals_wait}
+              onClose={this.handleCloseSyncSignalsWait}
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+              maxWidth="sm"
+              disableBackdropClick={true}
+              fullWidth={true}
+            >
+              <DialogTitle id="alert-dialog-title">Sincronizando señales</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  Por favor espere ... 
+                </DialogContentText>
+                <br />
+                <LinearProgress classes={{
+                                        colorPrimary: classes.linearColorPrimary,
+                                        barColorPrimary: classes.linearBarColorPrimary}} />
+              </DialogContent>
+            </Dialog>
+            {/* Fin Dialog sync señales */}
+
               {/* Dialog para Hermite */}
               <Dialog
                 open={this.state.open_hermite}

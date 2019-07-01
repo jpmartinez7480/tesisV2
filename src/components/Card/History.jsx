@@ -119,7 +119,7 @@ class History extends Component{
     }
 
     chooseSignalToDelete(index){
-      this.setState({indexSignalToDelete:index},()=>{console.log("H:" + this.state.indexSignalToDelete)})
+      this.setState({indexSignalToDelete:index})
       this.props.chooseSignalToDelete(index)
     }
 
@@ -128,9 +128,9 @@ class History extends Component{
       this.props.FullHistory(index)
     }
 
-    chooseSignalToDetectBeat(index){
+    chooseSignalToSave(index){
       this.setState({indexSignalToDelete:index})
-      this.props.ConfirmDetectBeat(index)
+      this.props.ConfirmSave(index)
     }
 
     render(){
@@ -144,7 +144,7 @@ class History extends Component{
                   h.data !== '-1' ? 
                     <ListItem button disableRipple style = {{paddingRight:'5px',paddingLeft:'5px',cursor:'default'}} key = {index}>
                     <ListItemIcon style = {{marginRight:'5px'}}>
-                      <Save className = {classes.mySaveIcon} onClick={()=>{this.chooseSignalToDetectBeat(index)}}/>
+                      <Save className = {classes.mySaveIcon} onClick={()=>{this.chooseSignalToSave(index)}}/>
                     </ListItemIcon>
                     <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ fontSize:'12px',color: 'rgba(154,154,154,0.54)' }}>Ant: {h.prev}</Typography>}  />
                     <div style = {{marginTop:'10px'}}>
@@ -159,7 +159,7 @@ class History extends Component{
                   :
                   <ListItem button disableRipple style = {{paddingRight:'5px',paddingLeft:'5px',cursor:'default'}} key = {index}>
                     <ListItemIcon style = {{marginRight:'5px'}}>
-                      <Save className = {classes.mySaveIcon} onClick={()=>{this.chooseSignalToDetectBeat(index)}}/>
+                      <Save className = {classes.mySaveIcon} onClick={()=>{this.chooseSignalToSave(index)}}/>
                     </ListItemIcon>
                     <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ fontSize:'12px',color: 'rgba(154,154,154,0.54)' }}>Ant: {h.prev}</Typography>}  />
                     <div style = {{marginTop:'10px'}}>
