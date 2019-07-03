@@ -38,6 +38,8 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import SnackbarWarning from '../../components/Dialogs/snackbar'
 import TextField from '@material-ui/core/TextField';
 import { connect } from 'react-redux'
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
 
 import Signal from '../../components/Card/Signal'
 import History from '../../components/Card/History'
@@ -47,7 +49,8 @@ import { setSignalVSFI } from '../../actions/actions.vsfi'
 import { setSignalPSA } from '../../actions/actions.psa'
 import { setSignalCO2 } from '../../actions/actions.co2'
 
-
+import detectHeartbeatIcon from '../../assets/icons/detect_heartbeat2.png'
+import syncHeartBeatIcon from '../../assets/icons/sync_heartbeat2.png'
 const styles = theme => ({
     root: {
       flexGrow: 1,
@@ -301,6 +304,7 @@ class Home extends Component{
             heart_beats_detected: [],
             is_heart_beat_detected:false,
             signal_is_cut: false,
+            is_signal_sync: false,
             serie_signals_history:[],
             start_point_cut:0,
             end_point_cut:0,
@@ -325,6 +329,8 @@ class Home extends Component{
             open_sync_signals: false,
             open_sync_signals_wait: false,
             open_confirm_save: false,
+            open_pcc_rap: false,
+            open_wait_pccrap: false,
             message_snackbar:'',
             title_filter: '',
             text_filter:'',
@@ -355,13 +361,17 @@ class Home extends Component{
             ],
             brushArea:{},
             headerFile:{},
-            etco2_echart:'block'
+            etco2_echart:'block',
+            RL:false,
+            RE:false,
+            sync_data:[]
 
         }
         this.onChange = this.onChange.bind(this)
         this.handleUploadSignal = this.handleUploadSignal.bind(this)
         this.handleSendFilter = this.handleSendFilter.bind(this)
         this.splitSignalTimes = this.splitSignalTimes.bind(this)
+        this.getPCCRAP = this.getPCCRAP.bind(this)
     }
 
     componentDidUpdate(){
@@ -417,6 +427,14 @@ class Home extends Component{
 
     handleOpenSyncSignalsWait = () => {
       this.setState({open_sync_signals_wait: true})
+    }
+
+    handleOpenPCCRAP = () => {
+      this.setState({open_pcc_rap:true})
+    }
+    
+    handleOpenWaitPCCRAP = () => {
+      this.setState({open_wait_pccrap: true})
     }
 
     handleOpenSave = () => {
@@ -479,6 +497,14 @@ class Home extends Component{
       this.setState({open_sync_signals_wait: false})
     }
 
+    handleClosePCCRAP = () => {
+      this.setState({open_pcc_rap:false})
+    }
+
+    handleCloseWaitPCCRAP = () => {
+      this.setState({open_wait_pccrap: false})
+    }
+
     handleCloseDialogDeleteSignal = () => {
       this.setState({open_dialog_delete_signal:false})
     }
@@ -535,6 +561,8 @@ class Home extends Component{
     onChange(e){
       this.setState({filename:e.target.files[0]})
     }
+
+   
 
     changeSelectedSignal=index=>{
       this.setState({indexSignal:index})
@@ -1638,7 +1666,7 @@ class Home extends Component{
       
       //history = [history[this.state.indexSignalToDelete]]
       if(history.length > 0)
-        history.push({name:'latidos',prev:history[0].name,data:'detec latidos',dialog:history[0].dialog + '\n' + 'detección de latidos'})
+        history.push({name:'latidos',prev:signals[0].filter,data:'detec latidos',dialog:history[this.state.indexSignalToDelete].dialog + '\n' + 'detección de latidos'})
       else
         history.push({name:'latidos',prev:signals[0].filter,data:'detec latidos',dialog:'detección de latidos'})
       var beats_detected;
@@ -1698,18 +1726,25 @@ class Home extends Component{
     }
 
     sync_heartbeat(){
+    
       this.handleOpenSyncSignalsWait()
       this.handleCloseSyncSignals()
       //var signals = [{filter:this.state.signals_history[this.state.indexSignal].filter}]
       var history = [...this.state.history]
       var signals_aux = [this.state.serie_vfsd,this.state.serie_vfsi,this.state.serie_psa,this.state.serie_co2]
+      let rate_aux = this.state.headerFile[0].header[3].split(':')[1]
       if(history.length > 0)
-        history.push({name:'sync',prev:history[0].name,data:'señales sync',dialog:history[0].dialog + '\n' + 'señales sincronizadas'})
+        history.push({name:'sync',prev:this.state.signals_history[this.state.indexSignal].filter,data:'señales sync',dialog:history[this.state.indexSignalToDelete].dialog + '\n' + 'señales sincronizadas'})
       else
         history.push({name:'sync',prev:this.state.signals_history[0].filter,data:'señales sync',dialog:'señales sincronizadas'})
+      let rate = ''
+      var i = 0
+      for(var i = 0; rate_aux[i] != 'H'; i++)
+        rate+=rate_aux[i]
       var obj = {
         signal:JSON.stringify(this.state.heart_beats_detected),
-        times: JSON.stringify(this.state.x_points_vfs)
+        times: JSON.stringify(this.state.x_points_vfs),
+        frecuency:parseInt(rate)
       }
       Axios({
         method: 'POST',
@@ -1721,7 +1756,9 @@ class Home extends Component{
         var sync_data = this.getSyncHeartBeat(res.data)
         this.setState({
           //signals_history: signals,
+          is_signal_sync: true,
           history: history,
+          sync_data:res.data,
           //is_heart_beat_detected:true,
           //serie_signals_history:signals_aux,
           //signal_history_backup:signals_history_aux,
@@ -1750,13 +1787,13 @@ class Home extends Component{
             markPoint: sync_data[6]
           }]
         },()=>{
-
+          
           this.updateOptionsSync(sync_data[4].data.length/3,sync_data[5].data.length/3,sync_data[6].data.length/3)
           this.handleCloseSyncSignalsWait()
           //this.handleCloseBeat()
         })
     })
-    //.catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false})})
+    .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false}, ()=>{this.handleCloseSyncSignalsWait()})})
     
     }
 
@@ -1809,6 +1846,27 @@ class Home extends Component{
       var vfsi_beat_sync = {symbol:'circle',symbolSize:5,data:heartbeat_vfsi}
       var psa_beat_sync = {symbol:'circle',symbolSize:5,data:heartbeat_psa}
       return([sync_time,vfsd_sync,vfsi_sync,psa_sync,vfsd_beat_sync,vfsi_beat_sync,psa_beat_sync])
+    }
+
+    getPCCRAP = (event) =>{
+      event.preventDefault()
+      this.handleOpenWaitPCCRAP()
+      this.handleClosePCCRAP()
+      
+      var obj = {
+        signal:JSON.stringify(this.state.sync_data),
+        times: JSON.stringify(this.state.x_points_vfs)
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost/ocpu/user/juanpablo/library/par/R/getParFile/json',
+        data: obj
+      })
+      .then(res => {
+        console.log(res.data)
+        this.handleCloseWaitPCCRAP()
+      })
+      .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false}, () => {this.handleCloseWaitPCCRAP()})})
     }
 
     renderMissingSignal(){
@@ -1965,18 +2023,22 @@ class Home extends Component{
                     <ListItemIcon className = {classes.myIcon}><CropFree onClick = {this.handleOpenDialogCut}/></ListItemIcon>
                   </ListItem>
                   <ListItem button className={classes.itemAction} title = "Detectar latidos">
-                    <ListItemIcon className = {classes.myIcon}><FavoriteOutlined onClick = {this.handleOpenConfirmBeat} /></ListItemIcon>
+                    <ListItemIcon className = {classes.myIcon}><img src = {detectHeartbeatIcon} alt="" width="24" height="24" onClick = {this.handleOpenConfirmBeat}/></ListItemIcon>
                   </ListItem>
-
-                  <ListItem button className={classes.itemAction} title = "Detectar latidos">
-                    <ListItemIcon className = {classes.myIcon}><FavoriteOutlined onClick = {this.handleOpenSyncSignals} /></ListItemIcon>
+                  
+                  <ListItem button className={classes.itemAction} title = "Sincronizar señales">
+                    <ListItemIcon className = {classes.myIcon}><img src = {syncHeartBeatIcon} alt="" width="24" height="24" onClick = {this.handleOpenSyncSignals} /></ListItemIcon>
+                  </ListItem>
+                  <ListItem button className={classes.itemAction} title = "Calcular PCC y RAP">
+                    <ListItemIcon className = {classes.myIcon}><FavoriteOutlined onClick = {this.handleOpenPCCRAP} /></ListItemIcon>
                   </ListItem>
                   
                 </List>
               </Drawer>
               <Grid container style = {{marginTop:'10px',height:'40px'}}>
                 <Grid item xl = {12} lg={12} md={12} style = {{backgroundColor:'#27293D',boxShadow:'0 1px 20px 0 rgba(0,0,0,.1)'}}>
-                  <Typography style = {{marginTop:'8px',color:'#9a9a9a',fontStyle:'italic',marginLeft:'10px'}}>{this.state.helper_text}</Typography>
+                  {/*<Typography style = {{marginTop:'8px',color:'#9a9a9a',fontStyle:'italic',marginLeft:'10px'}}>{this.state.helper_text}</Typography>*/}
+                  
                 </Grid>
               </Grid>
               <Grid container spacing={40} className ={classes.myGrid}>
@@ -2306,6 +2368,133 @@ class Home extends Component{
               </DialogContent>
             </Dialog>
             {/* Fin Dialog sync señales */}
+            {/* Dialog para pcc y rap */}
+            <Dialog
+                open={this.state.open_pcc_rap}
+                onClose={this.handleClosePCCRAP}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+              <DialogTitle id="alert-dialog-title">Detectar PCC y RAP</DialogTitle>
+              {this.state.is_signal_sync ? 
+                <form onSubmit={this.getPCCRAP.bind(this)}>
+                <DialogContent>
+                  <DialogContentText id="alert-dialog-description">
+                    Seleccione los métodos con los que desee calcular la PCC (presión cierre crítico) y RAP (resistencia área-producto).
+                  </DialogContentText>
+                  <Grid container >
+                    <Grid item lg = {12} xl = {12} md = {12}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={this.state.RL}
+                            onChange={this.handleChange('RL')}
+                            value="RL"
+                            inputProps={{
+                              'aria-label': 'primary checkbox',
+                            }}
+                        />
+                        }
+                        label= "Regresión Lineal"
+                      />
+                    </Grid>
+                    <Grid item lg = {12} xl = {12} md = {12}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={this.state.RE}
+                            onChange={this.handleChange('RE')}
+                            value="RE"
+                            inputProps={{
+                              'aria-label': 'primary checkbox',
+                            }}
+                        />
+                        }
+                        label= "Regresión Exponencial"
+                      />
+                    </Grid>
+                    <Grid item lg = {12} xl = {12} md = {12}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={this.state.RE}
+                            onChange={this.handleChange('PS')}
+                            value="RE"
+                            inputProps={{
+                              'aria-label': 'primary checkbox',
+                            }}
+                        />
+                        }
+                        label= "Puntos sistólicos y diastólicos"
+                      />
+                    </Grid>
+                    <Grid item lg = {12} xl = {12} md = {12}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={this.state.RE}
+                            onChange={this.handleChange('PM')}
+                            value="RE"
+                            inputProps={{
+                              'aria-label': 'primary checkbox',
+                            }}
+                        />
+                        }
+                        label= "Puntos medios y diastólicos"
+                      />
+                    </Grid>
+                    
+                  </Grid> 
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={this.handleClosePCCRAP} style = {{color: '#2196f3'}}>
+                    Cancelar
+                  </Button>
+                  <Button type = "submit"  style = {{color: '#2196f3'}} autoFocus>
+                    Aceptar
+                  </Button>
+                </DialogActions>
+                </form>
+                :
+                <div>
+                  <DialogContent>
+                      <DialogContentText id="alert-dialog-description">
+                        No ha cargado una señal o no ha realizado la sincronización entre las señales.
+                      </DialogContentText>
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={this.handleClosePCCRAP} style = {{color: '#2196f3'}}>
+                        Cerrar
+                      </Button>
+                    </DialogActions>
+                </div>
+              }
+
+              {/* Dialog espera calculo de pcc y rap */}
+            <Dialog
+              open={this.state.open_wait_pccrap}
+              onClose={this.handleCloseWaitPCCRAP}
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+              maxWidth="sm"
+              fullWidth={true}
+              disableBackdropClick={true}
+            >
+              <DialogTitle id="alert-dialog-title">Calculando PCC y RAP</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  Por favor espere ... 
+                </DialogContentText>
+                <br />
+                <LinearProgress classes={{
+                                        colorPrimary: classes.linearColorPrimary,
+                                        barColorPrimary: classes.linearBarColorPrimary}} />
+              </DialogContent>
+            </Dialog>
+            {/* Fin Dialog espera calculo pcc y rap */}
+              
+              </Dialog>     
+              {/* Fin Dialog para pcc y rap*/}
 
               {/* Dialog para Hermite */}
               <Dialog
