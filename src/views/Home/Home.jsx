@@ -1628,23 +1628,23 @@ class Home extends Component{
       var psa_beat_start = []
       for(var i = 0; i < array.length; i++){
         if(array[i][2] === 1)
-          vfsd_beat_start.push({coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+          vfsd_beat_start.push({name: 'inicio', coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.start_heartbeat}})
         else if(array[i][2] === 3)
-          vfsd_beat_start.push({coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.upstroke}})
+          vfsd_beat_start.push({name: 'upstroke', coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.upstroke}})
         else if(array[i][2] === 4)
-        vfsd_beat_start.push({coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.peak}})
+        vfsd_beat_start.push({name: 'peak', coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.peak}})
         if(array[i][4] === 1)
-          vfsi_beat_start.push({coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+          vfsi_beat_start.push({name: 'inicio',coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.start_heartbeat}})
         else if(array[i][4] === 3)
-          vfsi_beat_start.push({coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.upstroke}})
+          vfsi_beat_start.push({name: 'upstroke',coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.upstroke}})
         else if(array[i][4] === 4)
-          vfsi_beat_start.push({coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.peak}})
+          vfsi_beat_start.push({name: 'peak',coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.peak}})
         if(array[i][6] === 1)
-          psa_beat_start.push({coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+          psa_beat_start.push({name: 'inicio',coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.start_heartbeat}})
         else if(array[i][6] === 3)
-          psa_beat_start.push({coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.upstroke}})
+          psa_beat_start.push({name: 'upstroke',coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.upstroke}})
         else if(array[i][6] === 4)
-          psa_beat_start.push({coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.peak}})
+          psa_beat_start.push({name: 'peak',coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.peak}})
       }
       var vfsd_beat = {symbol:'circle',symbolSize:5,data:vfsd_beat_start}
       var vfsi_beat = {symbol:'circle',symbolSize:5,data:vfsi_beat_start}
@@ -1720,7 +1720,7 @@ class Home extends Component{
             this.handleCloseBeat()
           })
       })
-      .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false})})
+      .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false}, ()=>{this.handleCloseBeat()})})
       //var marks = {symbol:'arrow',symbolSize:60,data:maximos}
       
     }
