@@ -39,19 +39,49 @@ const echart_options =
             borderColor:'rgba(154,154,154,0.54)'
             
         },
-        dataZoom: {
-            show: true,
-            start: 0,
-            end: 10,
-            type: 'slider',
-            backgroundColor:'rgba(12,134,202,0.4)',
-            borderColor: 'rgba(154,154,154,0.54)',
-            dataBackground:{
-              lineStyle:{
-                color:'#fff'
-              }
+        dataZoom: 
+        [
+            {
+                show: true,
+                start: 0,
+                end: 10,
+                type: 'slider',
+                backgroundColor:'rgba(12,134,202,0.7)',
+                borderColor: 'rgba(154,154,154,0.54)',
+                dataBackground:{
+                lineStyle:{
+                    color:'#fff'
+                }
+                },
+                xAxisIndex:[0]
+            },
+            {
+                show: true,
+                start: 0,
+                end: 80,
+                type: 'slider',
+                backgroundColor:'rgba(12,134,202,0.7)',
+                borderColor: 'rgba(154,154,154,0.54)',
+                dataBackground:{
+                lineStyle:{
+                    color:'#fff'
+                }
+                },
+                yAxisIndex:[0]
+            },
+            {
+                type: 'inside',
+                xAxisIndex: [0],
+                start: 0,
+                end: 35
+            },
+            {
+                type: 'inside',
+                yAxisIndex: [0],
+                start: 0,
+                end: 50
             }
-        },
+        ],
         xAxis:{
             type: 'category',
             boundaryGap: true,

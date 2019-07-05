@@ -29,6 +29,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon'
 import Crop from '@material-ui/icons/Crop';
 import CropFree from '@material-ui/icons/CropFree';
 import NoteAdd from '@material-ui/icons/NoteAdd';
+import Visibility from '@material-ui/icons/Visibility';
 import Save from '@material-ui/icons/Save';
 import FavoriteOutlined from '@material-ui/icons/FavoriteOutlined'
 import Input from '@material-ui/core/Input';
@@ -364,7 +365,8 @@ class Home extends Component{
             etco2_echart:'block',
             RL:false,
             RE:false,
-            sync_data:[]
+            sync_data:[],
+            line: true
 
         }
         this.onChange = this.onChange.bind(this)
@@ -384,7 +386,7 @@ class Home extends Component{
             echart2.group = 'group1';
             echart3.group = 'group1';
             echart4.group = 'group1';
-            echarts.connect('group1');
+            //echarts.connect('group1');
         }
         
     }
@@ -1433,20 +1435,28 @@ class Home extends Component{
 
     onMouseUp = (param, echarts) => {
       console.log('UP')
-      console.log(param.dataIndex)      
+      console.log(param)      
     };
 
     onMouseDown = (param,echarts) => {
       console.log('Down')
-      this.refs.echarts_react_1.getEchartsInstance().dispatchAction({
+      console.log(param)  
+      /*this.refs.echarts_react_1.getEchartsInstance().dispatchAction({
         type: 'takeGlobalCursor',
         key: 'brush',
         brushOption: {
             brushType: 'lineX',
             brushMode: 'single'
         }
-    });
-       
+    });*/
+    }
+
+    choosePeak = (param,echarts) => {
+
+    }
+
+    changePeak = (param,echarts) =>{
+
     }
 
     sliceSerieData = (params,echarts) =>{
@@ -1604,10 +1614,6 @@ class Home extends Component{
           return false
       }
       return true
-    }
-
-    onMouseOut=(param)=>{
-      console.log(param)
     }
 
     showHistoryDetail = () => {
@@ -1914,7 +1920,7 @@ class Home extends Component{
         const { classes } = this.props
         let onEvents = {
           'mouseup':this.onMouseUp,
-        
+          'mousedown':this.onMouseDown,
           'brushselected':this.onSelectPoints
           
         };
@@ -1927,6 +1933,7 @@ class Home extends Component{
                 <Grid container style = {{marginBottom:'20px',textAlign:'center',flexGrow:1}}>
                   <Grid item lg = {3} xl = {3} md = {3} style = {{marginTop:'18px'}}>
                     <p className={classes.describeSignal}>Archivo: <span style = {{fontStyle:'italic'}}>{this.state.name_signal}</span></p>
+                  
                   </Grid> 
                   <Grid item lg = {3} xl = {3} md = {3} style = {{marginTop:'18px'}}>
                     <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>{this.state.signal_time} </span></p>
@@ -1958,6 +1965,7 @@ class Home extends Component{
                     </FormControl>
                     </form>
                   </Grid>
+                  
                 </Grid>
                 
                 <ReactEcharts ref='echarts_react_1'

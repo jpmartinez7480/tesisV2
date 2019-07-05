@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
-
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
 import Typography from '@material-ui/core/Typography';
 import Paper from '@material-ui/core/Paper';
 import ListItemIcon from '@material-ui/core/ListItemIcon'
@@ -61,9 +62,14 @@ class Signal extends Component{
             signals: this.props.signalHistory,
             key: 3,
             indexSignal: 0,
+            line:true
             
         }
     }
+
+    handleChange = name => event => {
+      this.setState({ [name]: event.target.checked });
+    };
 
     /*static getDerivedStateFromProps(props, state) {
       if (props.signalHistory !== state.signals) {
@@ -91,6 +97,7 @@ class Signal extends Component{
     render(){
         const { classes } = this.props
         return(
+          
             <Paper className = {classes.myCard}>
               <Typography variant = "subtitle1" align = "center" style = {{color:'#fff',letterSpacing:'1.1px',paddingTop:'5px'}}>Señales</Typography>
               <MenuList>
@@ -109,6 +116,8 @@ class Signal extends Component{
                 }
               </MenuList>
             </Paper>
+            
+            
         )
     }
 
