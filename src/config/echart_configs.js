@@ -58,7 +58,7 @@ const echart_options =
             {
                 show: true,
                 start: 0,
-                end: 80,
+                end: 150,
                 type: 'slider',
                 backgroundColor:'rgba(12,134,202,0.7)',
                 borderColor: 'rgba(154,154,154,0.54)',

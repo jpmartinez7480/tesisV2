@@ -1,6 +1,6 @@
 import Axios from 'axios';
 
-const url = 'http://localhost/ocpu/user/juanpablo/library/readFile2/R/read_signal_file/json'
+const url = 'http://localhost/ocpu/user/juanpablo/library/readFile/R/read_signal_file/json'
 
 export const loadSignal = (formData) =>{
 

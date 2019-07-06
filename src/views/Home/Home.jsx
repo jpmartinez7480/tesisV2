@@ -37,11 +37,12 @@ import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import SnackbarWarning from '../../components/Dialogs/snackbar'
+import SnackbarPeak from '../../components/Dialogs/snackbar_peak'
 import TextField from '@material-ui/core/TextField';
 import { connect } from 'react-redux'
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
-
+import Tooltip from '@material-ui/core/Tooltip';
 import Signal from '../../components/Card/Signal'
 import History from '../../components/Card/History'
 import { loadSignal }  from '../../actions/actions.signal'
@@ -324,6 +325,7 @@ class Home extends Component{
             open_dialog_cut:false,
             open_dialog_cut_times: false,
             open_snackbar:false,
+            open_snackbar_peak:false,
             openDialogFullHistory: false,
             openBeat: false,
             open_confirm_beat: false,
@@ -366,7 +368,9 @@ class Home extends Component{
             RL:false,
             RE:false,
             sync_data:[],
-            line: true
+            line: true,
+            cnt_click_peak: 0,
+            peak_selected: {}
 
         }
         this.onChange = this.onChange.bind(this)
@@ -521,6 +525,10 @@ class Home extends Component{
 
     handleCloseSnackbar = () =>{
       this.setState({open_snackbar:false})
+    }
+
+    handleCloseSnackbarPeak = () => {
+      this.setState({open_snackbar_peak: false})
     }
 
     handleOpenDialogFullHistory = () => {
@@ -1156,7 +1164,7 @@ class Home extends Component{
               name: 'cm/s',
               nameTextStyle: echart_options.yAxis.nameTextStyle,
               splitLine: echart_options.yAxis.splitLine,
-              max: 100,
+              max: 150,
               min: 0,
               boundaryGap: echart_options.yAxis.boundaryGap,
               axisLabel:echart_options.yAxis.axisLabel,
@@ -1195,7 +1203,7 @@ class Home extends Component{
           name: 'cm/s',
           nameTextStyle:echart_options.yAxis.nameTextStyle,
           splitLine: echart_options.yAxis.splitLine,
-          max: 100,
+          max: 150,
           min: 0,
           boundaryGap: echart_options.yAxis.boundaryGap,
           axisLabel: echart_options.yAxis.axisLabel,
@@ -1340,6 +1348,54 @@ class Home extends Component{
       })
     }
 
+    updateOptionsVFSD(hb){
+      this.refs.echarts_react_1.getEchartsInstance().setOption({
+        title: {
+          text:'VFSD',
+          subtext:'Latidos detectados: ' + hb,
+          x:'center',
+          align:'right',
+          textStyle:echart_options.textStyle,
+          subtextStyle:echart_options.subtextStyle
+        },
+        xAxis:[{data:this.state.x_points_vfs}],
+        legend: {show:false},
+        series:this.state.serie_vfsd
+      })
+    }
+
+    updateOptionsVFSI(hb){
+      this.refs.echarts_react_2.getEchartsInstance().setOption({
+        title: {
+          text:'VFSI',
+          subtext:'Latidos detectados: ' + hb,
+          x:'center',
+          align:'right',
+          textStyle:echart_options.textStyle,
+          subtextStyle:echart_options.subtextStyle
+        },
+        xAxis:[{data:this.state.x_points_vfs}],
+        legend: {show:false},
+        series:this.state.serie_vfsi
+      })
+    }
+
+    updateOptionsPSA(hb){
+      this.refs.echarts_react_3.getEchartsInstance().setOption({
+        title: {
+          text:'PSA',
+          subtext:'Latidos detectados: ' + hb,
+          x:'center',
+          align:'right',
+          textStyle:echart_options.textStyle,
+          subtextStyle:echart_options.subtextStyle
+        },
+        xAxis:[{data:this.state.x_points_vfs}],
+        legend: {show:false},
+        series:this.state.serie_psa
+      })
+    }
+
     updateOptionsPar(hb1,hb2,hb3,hb4){
       this.refs.echarts_react_1.getEchartsInstance().setOption({
         title: {
@@ -1440,7 +1496,9 @@ class Home extends Component{
 
     onMouseDown = (param,echarts) => {
       console.log('Down')
-      console.log(param)  
+      console.log(param)
+      //if(this.state.is_heart_beat_detected)  
+      this.setState({message_snackbar: 'Ha seleccionado el punto ' + param.dataIndex,open_snackbar_peak:true})
       /*this.refs.echarts_react_1.getEchartsInstance().dispatchAction({
         type: 'takeGlobalCursor',
         key: 'brush',
@@ -1451,8 +1509,91 @@ class Home extends Component{
     });*/
     }
 
-    choosePeak = (param,echarts) => {
+    onMouseClick = (param, echarts) =>{
+      this.setState({message_snackbar:'Ha seleccionado el punto ' + param.dataIndex,open_snackbar_peak: true})
+    }
 
+    onChangePeak = (param,echarts) => {
+      console.log(param)
+      if(this.state.is_heart_beat_detected){
+        if(this.state.cnt_click_peak === 0 && param.componentType === 'markPoint'){
+          this.setState({message_snackbar:'Ha seleccionado el peak ' + param.data.coord[1] + '. Haga click en el punto nuevo punto máximo/mínimo.',open_snackbar_peak: true,cnt_click_peak:1,peak_selected:param})
+          console.log(this.state.heart_beats_detected[0][2])
+        }
+        else if(this.state.cnt_click_peak === 1 ){
+          var point_selected = this.state.peak_selected.data.index
+          var point_to_change = param.dataIndex
+          var heartbeats = this.state.heart_beats_detected
+          if(this.state.peak_selected.data.name === 'peak_vfsd'){
+            var temp = heartbeats[point_to_change][2]
+            var vfsd = this.state.serie_vfsd
+            heartbeats[point_to_change][2] = 3
+            heartbeats[point_selected][2] = temp
+            vfsd[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'peak_vfsd', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],vfsd[0].data[point_to_change]],itemStyle:{color:echart_colors.peak}}
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsd:vfsd,heart_beats_detected:heartbeats}, ()=>{
+              this.updateOptionsVFSD('debe recalcular')
+              console.log(this.state.heart_beats_detected)
+            })
+          }
+          else if(this.state.peak_selected.data.name === 'inicio_vfsd'){
+            var temp = heartbeats[point_to_change][2]
+            var vfsd = this.state.serie_vfsd
+            heartbeats[point_to_change][2] = 1
+            heartbeats[point_selected][2] = temp
+            vfsd[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'inicio_vfsd', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],vfsd[0].data[point_to_change]],itemStyle:{color:echart_colors.start_heartbeatpeak}}
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsd:vfsd,heart_beats_detected:heartbeats}, ()=>{
+              this.updateOptionsVFSD('debe recalcular')
+              console.log(this.state.heart_beats_detected)
+            })
+          }
+          else if(this.state.peak_selected.data.name === 'peak_vfsi'){
+            var temp = heartbeats[point_to_change][4]
+            var vfsi = this.state.serie_vfsi
+            heartbeats[point_to_change][4] = 3
+            heartbeats[point_selected][4] = temp
+            vfsi[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'peak_vfsi', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],vfsi[0].data[point_to_change]],itemStyle:{color:echart_colors.peak}}
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsi:vfsi,heart_beats_detected:heartbeats}, ()=>{
+              this.updateOptionsVFSI('debe recalcular')
+              console.log(this.state.heart_beats_detected)
+            })
+          }
+          else if(this.state.peak_selected.data.name === 'inicio_vfsi'){
+            var temp = heartbeats[point_to_change][4]
+            var vfsi = this.state.serie_vfsi
+            heartbeats[point_to_change][4] = 1
+            heartbeats[point_selected][4] = temp
+            vfsi[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'inicio_vfsi', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],vfsi[0].data[point_to_change]],itemStyle:{color:echart_colors.start_heartbeatpeak}}
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsi:vfsi,heart_beats_detected:heartbeats}, ()=>{
+              this.updateOptionsVFSI('debe recalcular')
+              console.log(this.state.heart_beats_detected)
+            })
+          }
+          else if(this.state.peak_selected.data.name === 'peak_psa'){
+            var temp = heartbeats[point_to_change][6]
+            var psa = this.state.serie_psa
+            heartbeats[point_to_change][6] = 3
+            heartbeats[point_selected][6] = temp
+            psa[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'peak_psa', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],psa[0].data[point_to_change]],itemStyle:{color:echart_colors.peak}}
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_psa:psa,heart_beats_detected:heartbeats}, ()=>{
+              this.updateOptionsPSA('debe recalcular')
+              console.log(this.state.heart_beats_detected)
+            })
+          }
+          else if(this.state.peak_selected.data.name === 'inicio_psa'){
+            var temp = heartbeats[point_to_change][6]
+            var psa = this.state.serie_psa
+            heartbeats[point_to_change][6] = 1
+            heartbeats[point_selected][6] = temp
+            psa[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'inicio_psa', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],psa[0].data[point_to_change]],itemStyle:{color:echart_colors.start_heartbeatpeak}}
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_psa:psa,heart_beats_detected:heartbeats}, ()=>{
+              this.updateOptionsPSA('debe recalcular','','')
+              console.log(this.state.heart_beats_detected)
+            })
+          }
+        }
+        //else control de error
+      }
+      
     }
 
     changePeak = (param,echarts) =>{
@@ -1634,23 +1775,23 @@ class Home extends Component{
       var psa_beat_start = []
       for(var i = 0; i < array.length; i++){
         if(array[i][2] === 1)
-          vfsd_beat_start.push({name: 'inicio', coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+          vfsd_beat_start.push({name: 'inicio_vfsd', index:i,coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.start_heartbeat}})
         else if(array[i][2] === 3)
-          vfsd_beat_start.push({name: 'upstroke', coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.upstroke}})
+          vfsd_beat_start.push({name: 'upstroke_vfsd', index:i,coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.upstroke}})
         else if(array[i][2] === 4)
-        vfsd_beat_start.push({name: 'peak', coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.peak}})
+          vfsd_beat_start.push({name: 'peak_vfsd', index:i,coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.peak}})
         if(array[i][4] === 1)
-          vfsi_beat_start.push({name: 'inicio',coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+          vfsi_beat_start.push({name: 'inicio_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.start_heartbeat}})
         else if(array[i][4] === 3)
-          vfsi_beat_start.push({name: 'upstroke',coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.upstroke}})
+          vfsi_beat_start.push({name: 'upstroke_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.upstroke}})
         else if(array[i][4] === 4)
-          vfsi_beat_start.push({name: 'peak',coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.peak}})
+          vfsi_beat_start.push({name: 'peak_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.peak}})
         if(array[i][6] === 1)
-          psa_beat_start.push({name: 'inicio',coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+          psa_beat_start.push({name: 'inicio_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.start_heartbeat}})
         else if(array[i][6] === 3)
-          psa_beat_start.push({name: 'upstroke',coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.upstroke}})
+          psa_beat_start.push({name: 'upstroke_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.upstroke}})
         else if(array[i][6] === 4)
-          psa_beat_start.push({name: 'peak',coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.peak}})
+          psa_beat_start.push({name: 'peak_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.peak}})
       }
       var vfsd_beat = {symbol:'circle',symbolSize:5,data:vfsd_beat_start}
       var vfsi_beat = {symbol:'circle',symbolSize:5,data:vfsi_beat_start}
@@ -1687,6 +1828,7 @@ class Home extends Component{
         data: obj
       })
       .then(res => {
+        
         beats_detected = this.getStartBeat(res.data,vfsd,vfsi,psa)
         var vfsd_beats = beats_detected[0]
         var vfsi_beats = beats_detected[1]
@@ -1919,10 +2061,10 @@ class Home extends Component{
     renderSignal(){
         const { classes } = this.props
         let onEvents = {
-          'mouseup':this.onMouseUp,
-          'mousedown':this.onMouseDown,
-          'brushselected':this.onSelectPoints
-          
+          //'mouseup':this.onMouseUp,
+          //'mousedown':this.onMouseDown,
+          'brushselected':this.onSelectPoints,
+          'click': this.onChangePeak
         };
         return(
           <div style = {{flexGrow:1}}>
@@ -2053,6 +2195,7 @@ class Home extends Component{
                   {!this.state.isReadySignal ? this.renderMissingSignal() : this.renderSignal()}
               </Grid>
               
+              <SnackbarPeak open_snackbar_peak = {this.state.open_snackbar_peak} message_snackbar = {this.state.message_snackbar} handleCloseSnackbarPeak = {this.handleCloseSnackbarPeak}/>
               <SnackbarWarning open_snackbar = {this.state.open_snackbar} message_snackbar = {this.state.message_snackbar} handleCloseSnackbar = {this.handleCloseSnackbar}/>
               
               {/* Dialog para seleccionar señal */}
