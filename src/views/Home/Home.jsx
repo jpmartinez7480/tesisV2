@@ -249,6 +249,13 @@ const styles = theme => ({
       },
       input:{
         margin:'10px'
+      },
+      btn_peaks:{
+        color: '#fff',
+        backgroundColor: '#3358F4',
+        float:'right',
+        marginRight:'10px',
+        marginBottom: '10px',
       }
   })
 
@@ -370,7 +377,8 @@ class Home extends Component{
             sync_data:[],
             line: true,
             cnt_click_peak: 0,
-            peak_selected: {}
+            peak_selected: {},
+            peak_modify_by_signal:0
 
         }
         this.onChange = this.onChange.bind(this)
@@ -1358,6 +1366,7 @@ class Home extends Component{
           textStyle:echart_options.textStyle,
           subtextStyle:echart_options.subtextStyle
         },
+        
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {show:false},
         series:this.state.serie_vfsd
@@ -1434,10 +1443,6 @@ class Home extends Component{
         },
         legend: {show:false},
         xAxis:[{data:this.state.x_points_vfs}],
-        legend: {
-          data:this.state.data_filter_PSA,
-          x:'left'
-        },
         series:this.state.serie_psa
       })
     }
@@ -1513,86 +1518,136 @@ class Home extends Component{
       this.setState({message_snackbar:'Ha seleccionado el punto ' + param.dataIndex,open_snackbar_peak: true})
     }
 
+    searchMarkPoint(markpoint,position){
+      var pos = 0;
+      for(var i = 0; i < markpoint.length; i++){
+        if(markpoint[i].index == position){
+          return i
+        }
+      }
+      return -1
+    }
+
     onChangePeak = (param,echarts) => {
       console.log(param)
       if(this.state.is_heart_beat_detected){
-        if(this.state.cnt_click_peak === 0 && param.componentType === 'markPoint'){
+        if(this.state.cnt_click_peak === 0 && param.componentType === 'markPoint' && !(param.data.name === 'upstroke_vfsd' || param.data.name === 'upstroke_vfsi' || param.data.name === 'upstroke_psa')){
           this.setState({message_snackbar:'Ha seleccionado el peak ' + param.data.coord[1] + '. Haga click en el punto nuevo punto máximo/mínimo.',open_snackbar_peak: true,cnt_click_peak:1,peak_selected:param})
-          console.log(this.state.heart_beats_detected[0][2])
         }
-        else if(this.state.cnt_click_peak === 1 ){
+        else if(this.state.cnt_click_peak === 1 && param.componentType != 'markPoint'){
           var point_selected = this.state.peak_selected.data.index
           var point_to_change = param.dataIndex
+          
           var heartbeats = this.state.heart_beats_detected
           if(this.state.peak_selected.data.name === 'peak_vfsd'){
-            var temp = heartbeats[point_to_change][2]
-            var vfsd = this.state.serie_vfsd
-            heartbeats[point_to_change][2] = 3
-            heartbeats[point_selected][2] = temp
-            vfsd[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'peak_vfsd', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],vfsd[0].data[point_to_change]],itemStyle:{color:echart_colors.peak}}
-            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsd:vfsd,heart_beats_detected:heartbeats}, ()=>{
+            var vfsd = this.state.serie_vfsd[0]
+            heartbeats[point_to_change][2] = 4
+            heartbeats[point_selected][2] = 2
+            var markpoints = vfsd.markPoint.data
+            var position_index_markpoint = this.searchMarkPoint(markpoints,point_selected)
+            var new_markpoint = {name: 'peak_vfsd', index:point_to_change,coord:[this.state.x_points_vfs[point_to_change],vfsd.data[point_to_change]],itemStyle:{color:echart_colors.peak}}
+            markpoints[position_index_markpoint] = new_markpoint
+            var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
+            var vfsd_serie = [{ name:'VFSD',type:'line',data:vfsd.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'},markPoint:markpoints_modify}]              
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsd:vfsd_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
               this.updateOptionsVFSD('debe recalcular')
-              console.log(this.state.heart_beats_detected)
             })
           }
           else if(this.state.peak_selected.data.name === 'inicio_vfsd'){
-            var temp = heartbeats[point_to_change][2]
-            var vfsd = this.state.serie_vfsd
+            var vfsd = this.state.serie_vfsd[0]
             heartbeats[point_to_change][2] = 1
-            heartbeats[point_selected][2] = temp
-            vfsd[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'inicio_vfsd', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],vfsd[0].data[point_to_change]],itemStyle:{color:echart_colors.start_heartbeatpeak}}
-            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsd:vfsd,heart_beats_detected:heartbeats}, ()=>{
+            heartbeats[point_selected][2] = 6
+            var markpoints = vfsd.markPoint.data
+            var position_index_markpoint = this.searchMarkPoint(markpoints,point_selected)
+            var new_markpoint = {name: 'inicio_vfsd', index:point_to_change,coord:[this.state.x_points_vfs[point_to_change],vfsd.data[point_to_change]],itemStyle:{color:echart_colors.start_heartbeat}}
+            markpoints[position_index_markpoint] = new_markpoint
+            var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
+            var vfsd_serie = [{ name:'VFSD',type:'line',data:vfsd.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'},markPoint:markpoints_modify}]              
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsd:vfsd_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
               this.updateOptionsVFSD('debe recalcular')
               console.log(this.state.heart_beats_detected)
             })
           }
           else if(this.state.peak_selected.data.name === 'peak_vfsi'){
             var temp = heartbeats[point_to_change][4]
-            var vfsi = this.state.serie_vfsi
-            heartbeats[point_to_change][4] = 3
-            heartbeats[point_selected][4] = temp
-            vfsi[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'peak_vfsi', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],vfsi[0].data[point_to_change]],itemStyle:{color:echart_colors.peak}}
-            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsi:vfsi,heart_beats_detected:heartbeats}, ()=>{
+            var vfsi = this.state.serie_vfsi[0]
+            heartbeats[point_to_change][4] = 4
+            heartbeats[point_selected][4] = 2
+            var markpoints = vfsi.markPoint.data
+            var position_index_markpoint = this.searchMarkPoint(markpoints,point_selected)
+            var new_markpoint = {name: 'peak_vfsi', index:point_to_change,coord:[this.state.x_points_vfs[point_to_change],vfsi.data[point_to_change]],itemStyle:{color:echart_colors.peak}}
+            markpoints[position_index_markpoint] = new_markpoint
+            var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
+            var vfsi_serie = [{ name:'VFSI',type:'line',data:vfsi.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'},markPoint:markpoints_modify}]              
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsi:vfsi_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
               this.updateOptionsVFSI('debe recalcular')
-              console.log(this.state.heart_beats_detected)
             })
           }
           else if(this.state.peak_selected.data.name === 'inicio_vfsi'){
             var temp = heartbeats[point_to_change][4]
-            var vfsi = this.state.serie_vfsi
+            var vfsi = this.state.serie_vfsi[0]
             heartbeats[point_to_change][4] = 1
-            heartbeats[point_selected][4] = temp
-            vfsi[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'inicio_vfsi', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],vfsi[0].data[point_to_change]],itemStyle:{color:echart_colors.start_heartbeatpeak}}
-            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsi:vfsi,heart_beats_detected:heartbeats}, ()=>{
+            heartbeats[point_selected][4] = 6
+            var markpoints = vfsi.markPoint.data
+            var position_index_markpoint = this.searchMarkPoint(markpoints,point_selected)
+            var new_markpoint = {name: 'inicio_vfsi', index:point_to_change,coord:[this.state.x_points_vfs[point_to_change],vfsi.data[point_to_change]],itemStyle:{color:echart_colors.start_heartbeat}}
+            markpoints[position_index_markpoint] = new_markpoint
+            var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
+            var vfsi_serie = [{ name:'VFSI',type:'line',data:vfsi.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'},markPoint:markpoints_modify}]              
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsi:vfsi_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
               this.updateOptionsVFSI('debe recalcular')
               console.log(this.state.heart_beats_detected)
             })
           }
           else if(this.state.peak_selected.data.name === 'peak_psa'){
-            var temp = heartbeats[point_to_change][6]
-            var psa = this.state.serie_psa
-            heartbeats[point_to_change][6] = 3
-            heartbeats[point_selected][6] = temp
-            psa[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'peak_psa', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],psa[0].data[point_to_change]],itemStyle:{color:echart_colors.peak}}
-            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_psa:psa,heart_beats_detected:heartbeats}, ()=>{
+            var psa = this.state.serie_psa[0]
+            heartbeats[point_to_change][6] = 4
+            heartbeats[point_selected][6] = 2
+            var markpoints = psa.markPoint.data
+            var position_index_markpoint = this.searchMarkPoint(markpoints,point_selected)
+            var new_markpoint = {name: 'peak_psa', index:point_to_change,coord:[this.state.x_points_vfs[point_to_change],psa.data[point_to_change]],itemStyle:{color:echart_colors.peak}}
+            markpoints[position_index_markpoint] = new_markpoint
+            var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
+            var psa_serie = [{ name:'PSA',type:'line',data:psa.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'},markPoint:markpoints_modify}]              
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_psa:psa_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
               this.updateOptionsPSA('debe recalcular')
-              console.log(this.state.heart_beats_detected)
             })
           }
           else if(this.state.peak_selected.data.name === 'inicio_psa'){
-            var temp = heartbeats[point_to_change][6]
-            var psa = this.state.serie_psa
+            var psa = this.state.serie_psa[0]
             heartbeats[point_to_change][6] = 1
-            heartbeats[point_selected][6] = temp
-            psa[0].markPoint.data[this.state.peak_selected.dataIndex] = {name: 'inicio_psa', index:point_selected,coord:[this.state.x_points_vfs[point_to_change],psa[0].data[point_to_change]],itemStyle:{color:echart_colors.start_heartbeatpeak}}
-            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_psa:psa,heart_beats_detected:heartbeats}, ()=>{
-              this.updateOptionsPSA('debe recalcular','','')
-              console.log(this.state.heart_beats_detected)
+            heartbeats[point_selected][6] = 6
+            var markpoints = psa.markPoint.data
+            var position_index_markpoint = this.searchMarkPoint(markpoints,point_selected)
+            var new_markpoint = {name: 'inicio_psa', index:point_to_change,coord:[this.state.x_points_vfs[point_to_change],psa.data[point_to_change]],itemStyle:{color:echart_colors.start_heartbeat}}
+            markpoints[position_index_markpoint] = new_markpoint
+            var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
+            var psa_serie = [{ name:'PSA',type:'line',data:psa.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'},markPoint:markpoints_modify}]              
+            this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_psa:psa_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
+              this.updateOptionsPSA('debe recalcular')
             })
           }
         }
-        //else control de error
+        else if(param.data.name === 'upstroke_vfsd' || param.data.name === 'upstroke_vfsi' || param.data.name === 'upstroke_psa'){
+          this.setState({message_snackbar: 'no puede cambiar un peak por un punto de upstroke u otro peak',open_snackbar_peak: true,cnt_click_peak:0})
+        }
       }
+      
+    }
+
+    getUpstroke(op){
+      var obj = {
+        peaks: JSON.stringify(this.state.heart_beats_detected),
+        column: op
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost/ocpu/user/juanpablo/library/detection/R/detection_upstroke/json',
+        data: obj
+      })
+      .then((response) => {
+        console.log(response.data)
+      })
       
     }
 
@@ -2109,33 +2164,69 @@ class Home extends Component{
                   </Grid>
                   
                 </Grid>
-                
+                <Grid container>
+                <Grid item lg = {12} xl = {12} md = {12}>
                 <ReactEcharts ref='echarts_react_1'
                   option={this.getOption_VFSD()}
-                  style={{height: 300,marginBottom:'30px'}}
+                  style={{height: 300,marginBottom:'10px'}}
                   notMerge={true}
                   lazyUpdate={true}
                   showZoom={true}
                   onEvents={onEvents}
                   />
+                  {this.state.is_heart_beat_detected ?
+                  <Grid container>
+                    <Grid item lg = {3} xl = {3} md = {6}>
+                    <Button variant="contained" className={classes.btn_peaks} onClick = {()=>this.getUpstroke(2)}>Re-calcular upstroke</Button>
+                    </Grid>
+                  </Grid>
+                    
+                  :
+                    <div></div>
+                  }
+                  </Grid>
+                  <Grid item lg = {12} xl = {12} md = {12}>
                   <ReactEcharts ref='echarts_react_2'
                   option={this.getOption_VFSI()}
-                  style={{height: 300,marginBottom:'30px'}}
+                  style={{height: 300,marginBottom:'20px'}}
                   lazyUpdate={true}
                   //showLoading={true}
                   showZoom={true}
                   notMerge={true}
                   onEvents={onEvents}
                   />
+                  {this.state.is_heart_beat_detected ?
+                   <Grid container>
+                    <Grid item lg = {3} xl = {3} md = {6}>
+                      <Button variant="contained" className={classes.btn_peaks}>Re-calcular upstroke</Button>
+                    </Grid>
+                   </Grid>
+                    
+                  :
+                    <div></div>
+                  }
+                  </Grid>
+                  <Grid item lg = {12} xl = {12} md = {12}>
                   <ReactEcharts ref='echarts_react_3'
                   option={this.getOption_PSA()}
-                  style={{height: 300,marginBottom:'30px'}}
+                  style={{height: 300,marginBottom:'15px'}}
                   lazyUpdate={true}
                   //showLoading={true}
                   showZoom={true}
                   notMerge={true}
                   onEvents={onEvents}
                   />
+                  {this.state.is_heart_beat_detected ? 
+                    <Grid container>
+                      <Grid item lg = {3} xl = {3} md = {6}>
+                        <Button variant="contained" className={classes.btn_peaks}>Re-calcular upstroke</Button>
+                      </Grid>
+                    </Grid>
+                  :
+                    <div></div>
+                  }
+                  </Grid>
+                  <Grid item lg = {12} xl = {12} md = {12}>
                   <ReactEcharts ref='echarts_react_4'
                   option={this.getOption_CO2()}
                   style={{height: 300,marginBottom:'30px',display:this.state.etco2_echart}}
@@ -2144,6 +2235,8 @@ class Home extends Component{
                   showZoom={true}
                   onEvents={onEvents}
                   />
+                  </Grid>
+                  </Grid>
                   </Paper>
               </Grid>
               <Grid item lg = {2} xl = {2} md = {2}>
