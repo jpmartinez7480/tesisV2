@@ -340,8 +340,6 @@ class Home extends Component{
             open_sync_signals: false,
             open_sync_signals_wait: false,
             open_confirm_save: false,
-            open_pcc_rap: false,
-            open_wait_pccrap: false,
             open_upstroke_wait: false,
             message_snackbar:'',
             title_filter: '',
@@ -374,8 +372,6 @@ class Home extends Component{
             brushArea:{},
             headerFile:{},
             etco2_echart:'block',
-            RL:false,
-            RE:false,
             sync_data:[],
             line: true,
             cnt_click_peak: 0,
@@ -387,7 +383,6 @@ class Home extends Component{
         this.handleUploadSignal = this.handleUploadSignal.bind(this)
         this.handleSendFilter = this.handleSendFilter.bind(this)
         this.splitSignalTimes = this.splitSignalTimes.bind(this)
-        this.getPCCRAP = this.getPCCRAP.bind(this)
     }
 
     componentDidUpdate(){
@@ -443,14 +438,6 @@ class Home extends Component{
 
     handleOpenSyncSignalsWait = () => {
       this.setState({open_sync_signals_wait: true})
-    }
-
-    handleOpenPCCRAP = () => {
-      this.setState({open_pcc_rap:true})
-    }
-    
-    handleOpenWaitPCCRAP = () => {
-      this.setState({open_wait_pccrap: true})
     }
 
     handleOpenUpstrokeWait = () => {
@@ -519,14 +506,6 @@ class Home extends Component{
 
     handleCloseSyncSignalsWait = () => {
       this.setState({open_sync_signals_wait: false})
-    }
-
-    handleClosePCCRAP = () => {
-      this.setState({open_pcc_rap:false})
-    }
-
-    handleCloseWaitPCCRAP = () => {
-      this.setState({open_wait_pccrap: false})
     }
 
     handleCloseDialogDeleteSignal = () => {
@@ -2198,26 +2177,7 @@ class Home extends Component{
       return([sync_time,vfsd_sync,vfsi_sync,psa_sync,vfsd_beat_sync,vfsi_beat_sync,psa_beat_sync])
     }
 
-    getPCCRAP = (event) =>{
-      event.preventDefault()
-      this.handleOpenWaitPCCRAP()
-      this.handleClosePCCRAP()
-      
-      var obj = {
-        signal:JSON.stringify(this.state.sync_data),
-        times: JSON.stringify(this.state.x_points_vfs)
-      }
-      Axios({
-        method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/par/R/getParFile/json',
-        data: obj
-      })
-      .then(res => {
-        console.log(res.data)
-        this.handleCloseWaitPCCRAP()
-      })
-      .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false}, () => {this.handleCloseWaitPCCRAP()})})
-    }
+    
 
     renderMissingSignal(){
         const { classes } = this.props
@@ -2776,133 +2736,6 @@ class Home extends Component{
               </DialogContent>
             </Dialog>
             {/* Fin Dialog sync señales */}
-            {/* Dialog para pcc y rap */}
-            <Dialog
-                open={this.state.open_pcc_rap}
-                onClose={this.handleClosePCCRAP}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-              >
-              <DialogTitle id="alert-dialog-title">Detectar PCC y RAP</DialogTitle>
-              {this.state.is_signal_sync ? 
-                <form onSubmit={this.getPCCRAP.bind(this)}>
-                <DialogContent>
-                  <DialogContentText id="alert-dialog-description">
-                    Seleccione los métodos con los que desee calcular la PCC (presión cierre crítico) y RAP (resistencia área-producto).
-                  </DialogContentText>
-                  <Grid container >
-                    <Grid item lg = {12} xl = {12} md = {12}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={this.state.RL}
-                            onChange={this.handleChange('RL')}
-                            value="RL"
-                            inputProps={{
-                              'aria-label': 'primary checkbox',
-                            }}
-                        />
-                        }
-                        label= "Regresión Lineal"
-                      />
-                    </Grid>
-                    <Grid item lg = {12} xl = {12} md = {12}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={this.state.RE}
-                            onChange={this.handleChange('RE')}
-                            value="RE"
-                            inputProps={{
-                              'aria-label': 'primary checkbox',
-                            }}
-                        />
-                        }
-                        label= "Regresión Exponencial"
-                      />
-                    </Grid>
-                    <Grid item lg = {12} xl = {12} md = {12}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={this.state.RE}
-                            onChange={this.handleChange('PS')}
-                            value="RE"
-                            inputProps={{
-                              'aria-label': 'primary checkbox',
-                            }}
-                        />
-                        }
-                        label= "Puntos sistólicos y diastólicos"
-                      />
-                    </Grid>
-                    <Grid item lg = {12} xl = {12} md = {12}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={this.state.RE}
-                            onChange={this.handleChange('PM')}
-                            value="RE"
-                            inputProps={{
-                              'aria-label': 'primary checkbox',
-                            }}
-                        />
-                        }
-                        label= "Puntos medios y diastólicos"
-                      />
-                    </Grid>
-                    
-                  </Grid> 
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={this.handleClosePCCRAP} style = {{color: '#2196f3'}}>
-                    Cancelar
-                  </Button>
-                  <Button type = "submit"  style = {{color: '#2196f3'}} autoFocus>
-                    Aceptar
-                  </Button>
-                </DialogActions>
-                </form>
-                :
-                <div>
-                  <DialogContent>
-                      <DialogContentText id="alert-dialog-description">
-                        No ha cargado una señal o no ha realizado la sincronización entre las señales.
-                      </DialogContentText>
-                    </DialogContent>
-                    <DialogActions>
-                      <Button onClick={this.handleClosePCCRAP} style = {{color: '#2196f3'}}>
-                        Cerrar
-                      </Button>
-                    </DialogActions>
-                </div>
-              }
-
-              {/* Dialog espera calculo de pcc y rap */}
-            <Dialog
-              open={this.state.open_wait_pccrap}
-              onClose={this.handleCloseWaitPCCRAP}
-              aria-labelledby="alert-dialog-title"
-              aria-describedby="alert-dialog-description"
-              maxWidth="sm"
-              fullWidth={true}
-              disableBackdropClick={true}
-            >
-              <DialogTitle id="alert-dialog-title">Calculando PCC y RAP</DialogTitle>
-              <DialogContent>
-                <DialogContentText id="alert-dialog-description">
-                  Por favor espere ... 
-                </DialogContentText>
-                <br />
-                <LinearProgress classes={{
-                                        colorPrimary: classes.linearColorPrimary,
-                                        barColorPrimary: classes.linearBarColorPrimary}} />
-              </DialogContent>
-            </Dialog>
-            {/* Fin Dialog espera calculo pcc y rap */}
-              
-              </Dialog>     
-              {/* Fin Dialog para pcc y rap*/}
 
               {/* Dialog para Hermite */}
               <Dialog
