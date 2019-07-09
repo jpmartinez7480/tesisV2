@@ -8,6 +8,7 @@ const echart_colors =
     start_heartbeat:'#fff',
     upstroke: '#CF7304',
     peak:'#1AB918',
+    incisura: '#FFDD33'
 }
 
 export default echart_colors;

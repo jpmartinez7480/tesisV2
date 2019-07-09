@@ -118,7 +118,7 @@ const echart_options =
             symbolSize: '1',
         }
 
-
+    
 
     }
 

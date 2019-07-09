@@ -22,6 +22,7 @@ import blue from '@material-ui/core/colors/blue';
 import Paper from '@material-ui/core/Paper';
 import echart_options from '../../config/echart_configs';
 import echart_colors from '../../config/echart_colors';
+import echart_animation from '../../config/echart_animation';
 import ListItem from '@material-ui/core/ListItem';
 import List from '@material-ui/core/List';
 import Drawer from '@material-ui/core/Drawer';
@@ -341,6 +342,7 @@ class Home extends Component{
             open_confirm_save: false,
             open_pcc_rap: false,
             open_wait_pccrap: false,
+            open_upstroke_wait: false,
             message_snackbar:'',
             title_filter: '',
             text_filter:'',
@@ -451,6 +453,10 @@ class Home extends Component{
       this.setState({open_wait_pccrap: true})
     }
 
+    handleOpenUpstrokeWait = () => {
+      this.setState({open_upstroke_wait: true})
+    }
+
     handleOpenSave = () => {
       this.setState({open_confirm_save:true})
     }
@@ -501,6 +507,10 @@ class Home extends Component{
 
     handleCloseSyncSignals = () => {
       this.setState({open_sync_signals: false})
+    }
+
+    handleCloseUpstrokeWait = () => {
+      this.setState({open_upstroke_wait: false})
     }
 
     handleCloseConfirmSave = () => {
@@ -1075,15 +1085,53 @@ class Home extends Component{
         aux_name = this.state.filename.name.substring(0,10)+'...'+this.state.filename.name.substring(this.state.filename.name.length-5,this.state.filename.name.length)
       else aux_name = this.state.filename.name
       this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time, headerFile:[{header:header}]})
-      this.state.serie_vfsd.push({name:'VFSD',type:'line',data:vsfd,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
-      this.state.serie_vfsi.push({name:'VFSI',type:'line',data:vsfi,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'}})
-      this.state.serie_psa.push({name: 'PSA', type:'line',data: psa,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'}})
-      this.state.serie_co2.push({name:'EtCO2',type:'line',data:co2,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#288c6c'}})
+      this.state.serie_vfsd.push({
+        name:'VFSD',
+        type:'line',
+        data:vsfd,
+        symbol:echart_options.series.symbol,
+        symbolSize: echart_options.series.symbolSize,
+        itemStyle:{color:'#d22824'},
+        animationDelay: function (idx) {
+          return idx * 10;
+        },
+        animationThreshold:this.state.x_points_vfs.length    
+      })
+      this.state.serie_vfsi.push({
+        name:'VFSI',
+        type:'line',
+        data:vsfi,
+        symbol:echart_options.series.symbol,
+        symbolSize: echart_options.series.symbolSize,
+        itemStyle:{color:'#d22824'}, 
+        animationDelay: function (idx) {
+          return idx * 10;
+        }
+      })
+      this.state.serie_psa.push({
+        name: 'PSA', 
+        type:'line',
+        data: psa,symbol:echart_options.series.symbol,
+        symbolSize: echart_options.series.symbolSize,
+        itemStyle:{color:'#029eb1'}, 
+        animationDelay: function (idx) {
+          return idx * 10;
+        }
+      })
+      this.state.serie_co2.push({
+        name:'EtCO2',
+        type:'line',
+        data:co2,
+        symbol:echart_options.series.symbol,
+        symbolSize: echart_options.series.symbolSize,
+        itemStyle:{color:'#288c6c'},
+        animationDelay: function (idx) {
+          return idx * 10;
+        }
+      })
       this.setState({isReadySignal:true,name_signal:aux_name}, () => {
         this.handleClose()
         this.updateOptions()
-        
-        
       })
     }
 
@@ -1179,7 +1227,11 @@ class Home extends Component{
               axisLine:echart_options.yAxis.axisLine,
             }
           ],
-          series: this.state.serie_vfsd
+          series: this.state.serie_vfsd,
+          //animationEasing: 'elasticOut',
+          //animationDelayUpdate: function (idx) {
+          //return idx * 5;
+        //}
           
     });
     getOption_VFSI = () => ({
@@ -1539,7 +1591,7 @@ class Home extends Component{
           var point_to_change = param.dataIndex
           
           var heartbeats = this.state.heart_beats_detected
-          if(this.state.peak_selected.data.name === 'peak_vfsd'){
+          if(this.state.peak_selected.data.name === 'peak_vfsd' && param.seriesName === 'VFSD'){
             var vfsd = this.state.serie_vfsd[0]
             heartbeats[point_to_change][2] = 4
             heartbeats[point_selected][2] = 2
@@ -1553,7 +1605,7 @@ class Home extends Component{
               this.updateOptionsVFSD('debe recalcular')
             })
           }
-          else if(this.state.peak_selected.data.name === 'inicio_vfsd'){
+          else if(this.state.peak_selected.data.name === 'inicio_vfsd' && param.seriesName === 'VFSD'){
             var vfsd = this.state.serie_vfsd[0]
             heartbeats[point_to_change][2] = 1
             heartbeats[point_selected][2] = 6
@@ -1568,7 +1620,7 @@ class Home extends Component{
               console.log(this.state.heart_beats_detected)
             })
           }
-          else if(this.state.peak_selected.data.name === 'peak_vfsi'){
+          else if(this.state.peak_selected.data.name === 'peak_vfsi' && param.seriesName === 'VFSI'){
             var temp = heartbeats[point_to_change][4]
             var vfsi = this.state.serie_vfsi[0]
             heartbeats[point_to_change][4] = 4
@@ -1583,7 +1635,7 @@ class Home extends Component{
               this.updateOptionsVFSI('debe recalcular')
             })
           }
-          else if(this.state.peak_selected.data.name === 'inicio_vfsi'){
+          else if(this.state.peak_selected.data.name === 'inicio_vfsi' && param.seriesName === 'VFSI'){
             var temp = heartbeats[point_to_change][4]
             var vfsi = this.state.serie_vfsi[0]
             heartbeats[point_to_change][4] = 1
@@ -1599,7 +1651,7 @@ class Home extends Component{
               console.log(this.state.heart_beats_detected)
             })
           }
-          else if(this.state.peak_selected.data.name === 'peak_psa'){
+          else if(this.state.peak_selected.data.name === 'peak_psa' && param.seriesName === 'PSA'){
             var psa = this.state.serie_psa[0]
             heartbeats[point_to_change][6] = 4
             heartbeats[point_selected][6] = 2
@@ -1613,7 +1665,7 @@ class Home extends Component{
               this.updateOptionsPSA('debe recalcular')
             })
           }
-          else if(this.state.peak_selected.data.name === 'inicio_psa'){
+          else if(this.state.peak_selected.data.name === 'inicio_psa' && param.seriesName === 'PSA'){
             var psa = this.state.serie_psa[0]
             heartbeats[point_to_change][6] = 1
             heartbeats[point_selected][6] = 6
@@ -1627,15 +1679,24 @@ class Home extends Component{
               this.updateOptionsPSA('debe recalcular')
             })
           }
+          else if(
+            (this.state.peak_selected.data.name === 'peak_vfsd' && param.seriesName != 'VFSD' || (this.state.peak_selected.data.name === 'inicio_vfsd' && param.seriesName != 'VFSD')) ||
+            (this.state.peak_selected.data.name === 'peak_vfsi' && param.seriesName != 'VFSI' || (this.state.peak_selected.data.name === 'inicio_vfsi' && param.seriesName != 'VFSI')) ||
+            (this.state.peak_selected.data.name === 'peak_psa' && param.seriesName != 'PSA' || (this.state.peak_selected.data.name === 'inicio_psa' && param.seriesName != 'PSA'))){
+            this.setState({message_snackbar: 'No puede cambiar puntos entre señales',open_snackbar_peak: true,cnt_click_peak:0})
+          }
         }
-        else if(param.data.name === 'upstroke_vfsd' || param.data.name === 'upstroke_vfsi' || param.data.name === 'upstroke_psa'){
+        else if(param.data.name === 'upstroke_vfsd' || param.data.name === 'upstroke_vfsi' || param.data.name === 'upstroke_psa'
+          || param.data.name === 'incisura_vfsd' || param.data.name === 'incisura_vfsi' || param.data.name === 'incisura_psa'){
           this.setState({message_snackbar: 'no puede cambiar un peak por un punto de upstroke u otro peak',open_snackbar_peak: true,cnt_click_peak:0})
         }
+        
       }
       
     }
 
     getUpstroke(op){
+      this.handleOpenUpstrokeWait()
       var obj = {
         peaks: JSON.stringify(this.state.heart_beats_detected),
         column: op
@@ -1646,10 +1707,11 @@ class Home extends Component{
         data: obj
       })
       .then((response) => {
-        console.log(response.data)
+        this.updateUpstrokeSignalOnGraph(response.data,op)
       })
-      
     }
+
+   
 
     changePeak = (param,echarts) =>{
 
@@ -1824,6 +1886,85 @@ class Home extends Component{
       
     }
 
+    updateUpstrokeSignalOnGraph(json,op){
+      console.log(json)
+      console.log(json.length)
+      var new_upstroke = []
+      if(op == 2){
+        var vfsd = this.state.serie_vfsd[0].data
+        for(var i = 0; i < json.length; i++){
+          if(json[i][2] === 1)
+            new_upstroke.push({name: 'inicio_vfsd', index:i,coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+          else if(json[i][2] === 3)
+            new_upstroke.push({name: 'upstroke_vfsd', index:i,coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.upstroke}})
+          else if(json[i][2] === 4)
+            new_upstroke.push({name: 'peak_vfsd', index:i,coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.peak}})
+          else if(json[i][2] === 5)
+            new_upstroke.push({name: 'incisura_vfsd', index:i,coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.incisura}})
+        }
+        var vfsd_beat = {symbol:'circle',symbolSize:5,data:new_upstroke}
+        var vfsd_serie = [{
+            name:'VFSD',type:'line',data:vfsd,
+            symbol:echart_options.series.symbol,
+            symbolSize: echart_options.series.symbolSize,
+            itemStyle:{color:'#d22824'},
+            markPoint:vfsd_beat
+        }]
+        this.setState({serie_vfsd:vfsd_serie}, ()=>{
+          this.updateOptionsVFSD(vfsd_beat.data.length/4)
+          this.handleCloseUpstrokeWait()
+        })
+      }
+      else if(op == 4){
+        var vfsi = this.state.serie_vfsi[0].data
+        for(var i = 0; i < json.length; i++){
+          if(json[i][4] === 1)
+            new_upstroke.push({name: 'inicio_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+          else if(json[i][4] === 3)
+            new_upstroke.push({name: 'upstroke_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.upstroke}})
+          else if(json[i][4] === 4)
+            new_upstroke.push({name: 'peak_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.peak}})
+          else if(json[i][4] === 5)
+            new_upstroke.push({name: 'incisura_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.peak}})
+        }
+        var vfsi_beat = {symbol:'circle',symbolSize:5,data:new_upstroke}
+        var vfsi_serie = [{
+          name:'VFSI',type:'line',data:vfsi,
+          symbol:echart_options.series.symbol,
+          symbolSize: echart_options.series.symbolSize,
+          itemStyle:{color:'#d22824'},
+          markPoint:vfsi_beat
+        }]
+        this.setState({serie_vfsi:vfsi_serie}, ()=>{
+          this.updateOptionsVFSI(vfsi_beat.data.length/4)
+          this.handleCloseUpstrokeWait()
+        })
+      }
+      else if(op == 6){
+        var psa = this.state.serie_psa[0].data
+        for(var i = 0; i < json.length; i++){
+          if(json[i][6] === 1)
+            new_upstroke.push({name: 'inicio_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.start_heartbeat}})
+          else if(json[i][6] === 3)
+            new_upstroke.push({name: 'upstroke_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.upstroke}})
+          else if(json[i][6] === 4)
+            new_upstroke.push({name: 'peak_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.peak}})
+        }
+        var psa_beat = {symbol:'circle',symbolSize:5,data:new_upstroke}
+        var psa_serie = [{
+          name:'PSA',type:'line',data:psa,
+          symbol:echart_options.series.symbol,
+          symbolSize: echart_options.series.symbolSize,
+          itemStyle:{color:'#029eb1'},
+          markPoint:psa_beat 
+        }]
+        this.setState({serie_psa:psa_serie}, ()=>{
+          this.updateOptionsPSA(psa_beat.data.length/4)
+          this.handleCloseUpstrokeWait()
+        })
+      }
+    }
+
     getStartBeat(array,vfsd,vfsi,psa){
       var vfsd_beat_start = []
       var vfsi_beat_start = []
@@ -1835,18 +1976,24 @@ class Home extends Component{
           vfsd_beat_start.push({name: 'upstroke_vfsd', index:i,coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.upstroke}})
         else if(array[i][2] === 4)
           vfsd_beat_start.push({name: 'peak_vfsd', index:i,coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.peak}})
+        else if(array[i][2] === 5)
+          vfsd_beat_start.push({name: 'incisura_vfsd', index:i,coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.incisura}})
         if(array[i][4] === 1)
           vfsi_beat_start.push({name: 'inicio_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.start_heartbeat}})
         else if(array[i][4] === 3)
           vfsi_beat_start.push({name: 'upstroke_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.upstroke}})
         else if(array[i][4] === 4)
           vfsi_beat_start.push({name: 'peak_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.peak}})
+        else if(array[i][4] === 5)
+          vfsi_beat_start.push({name: 'incisura_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.incisura}})
         if(array[i][6] === 1)
           psa_beat_start.push({name: 'inicio_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.start_heartbeat}})
         else if(array[i][6] === 3)
           psa_beat_start.push({name: 'upstroke_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.upstroke}})
         else if(array[i][6] === 4)
           psa_beat_start.push({name: 'peak_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.peak}})
+        else if(array[i][6] === 5)
+          psa_beat_start.push({name: 'peak_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.incisura}})
       }
       var vfsd_beat = {symbol:'circle',symbolSize:5,data:vfsd_beat_start}
       var vfsi_beat = {symbol:'circle',symbolSize:5,data:vfsi_beat_start}
@@ -1919,7 +2066,7 @@ class Home extends Component{
               markPoint: psa_beats
             }]
           },()=>{
-            this.updateOptionsPar(vfsd_beats.data.length/3,vfsi_beats.data.length/3,psa_beats.data.length/3)
+            this.updateOptionsPar(vfsd_beats.data.length/4,vfsi_beats.data.length/4,psa_beats.data.length/4)
             this.handleCloseBeat()
           })
       })
@@ -2198,7 +2345,7 @@ class Home extends Component{
                   {this.state.is_heart_beat_detected ?
                    <Grid container>
                     <Grid item lg = {3} xl = {3} md = {6}>
-                      <Button variant="contained" className={classes.btn_peaks}>Re-calcular upstroke</Button>
+                      <Button variant="contained" className={classes.btn_peaks} onClick = {()=>this.getUpstroke(4)}>Re-calcular upstroke</Button>
                     </Grid>
                    </Grid>
                     
@@ -2219,7 +2366,7 @@ class Home extends Component{
                   {this.state.is_heart_beat_detected ? 
                     <Grid container>
                       <Grid item lg = {3} xl = {3} md = {6}>
-                        <Button variant="contained" className={classes.btn_peaks}>Re-calcular upstroke</Button>
+                        <Button variant="contained" className={classes.btn_peaks} onClick = {()=>this.getUpstroke(6)}>Re-calcular upstroke</Button>
                       </Grid>
                     </Grid>
                   :
@@ -2272,10 +2419,6 @@ class Home extends Component{
                   <ListItem button className={classes.itemAction} title = "Sincronizar señales">
                     <ListItemIcon className = {classes.myIcon}><img src = {syncHeartBeatIcon} alt="" width="24" height="24" onClick = {this.handleOpenSyncSignals} /></ListItemIcon>
                   </ListItem>
-                  <ListItem button className={classes.itemAction} title = "Calcular PCC y RAP">
-                    <ListItemIcon className = {classes.myIcon}><FavoriteOutlined onClick = {this.handleOpenPCCRAP} /></ListItemIcon>
-                  </ListItem>
-                  
                 </List>
               </Drawer>
               <Grid container style = {{marginTop:'10px',height:'40px'}}>
@@ -2589,7 +2732,28 @@ class Home extends Component{
                   
               </Dialog>
               {/* Fin Dialog para confirmar la sync de señales */}
-
+            {/* Dialog upstroke señales */}
+            <Dialog
+              open={this.state.open_upstroke_wait}
+              onClose={this.handleCloseUpstrokeWait}
+              aria-labelledby="alert-dialog-title"
+              aria-describedby="alert-dialog-description"
+              maxWidth="sm"
+              disableBackdropClick={true}
+              fullWidth={true}
+            >
+              <DialogTitle id="alert-dialog-title">Recalculando Upstroke</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  Por favor espere ... 
+                </DialogContentText>
+                <br />
+                <LinearProgress classes={{
+                                        colorPrimary: classes.linearColorPrimary,
+                                        barColorPrimary: classes.linearBarColorPrimary}} />
+              </DialogContent>
+            </Dialog>
+            {/* Fin Dialog upstroke señales */}
             {/* Dialog sync señales */}
             <Dialog
               open={this.state.open_sync_signals_wait}
