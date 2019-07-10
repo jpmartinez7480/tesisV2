@@ -124,7 +124,7 @@ const styles = theme => ({
         fontWeight: 300,
         lineHeight: 1.4,
         letterSpacing: '1.4px !important',
-        color: '#d6d6d6'
+        color: '#9a9a9a'
     },
     selectSignal:{
         textAlign:'center',
@@ -2381,12 +2381,12 @@ class Home extends Component{
                   </ListItem>
                 </List>
               </Drawer>
-              <Grid container style = {{marginTop:'10px',height:'40px'}}>
+              {/*<Grid container style = {{marginTop:'10px',height:'40px'}}>
                 <Grid item xl = {12} lg={12} md={12} style = {{backgroundColor:'#27293D',boxShadow:'0 1px 20px 0 rgba(0,0,0,.1)'}}>
-                  {/*<Typography style = {{marginTop:'8px',color:'#9a9a9a',fontStyle:'italic',marginLeft:'10px'}}>{this.state.helper_text}</Typography>*/}
+                  <Typography style = {{marginTop:'8px',color:'#9a9a9a',fontStyle:'italic',marginLeft:'10px'}}>{this.state.helper_text}</Typography>
                   
                 </Grid>
-              </Grid>
+              </Grid>*/}
               <Grid container spacing={40} className ={classes.myGrid}>
                   {!this.state.isReadySignal ? this.renderMissingSignal() : this.renderSignal()}
               </Grid>

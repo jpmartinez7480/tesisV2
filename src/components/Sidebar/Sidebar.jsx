@@ -7,8 +7,11 @@ import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Grid from '@material-ui/core/Grid';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logo2.png';
+import logo_biomedica from '../../assets/logo_biomedica.png';
 import blue from '@material-ui/core/colors/blue';
+
+import { Route, Switch, Redirect, NavLink,Link } from "react-router-dom";
 
 const drawerWidth = 240;
 
@@ -27,62 +30,12 @@ const styles = theme => ({
       duration: theme.transitions.duration.leavingScreen,
     }),
   },
-  appBarShift: {
-    marginLeft: drawerWidth,
-    width: `calc(100% - ${drawerWidth}px)`,
-    boxShadow:null,
-    transition: theme.transitions.create(['width', 'margin'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  },
-  menuButton: {
-    marginLeft: 12,
-    marginRight: 36,
-  },
-  hide: {
-    display: 'none',
-  },
-  drawer: {
-    width: drawerWidth,
-    flexShrink: 0,
-    whiteSpace: 'nowrap',
-    //backgroundColor: '#1a2035'
-    //backgroundColor: '#002F6C'
-    backgroundColor: 'white',
-  },
-  drawerOpen: {
-    width: drawerWidth,
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
-  },
-  drawerClose: {
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen,
-    }),
-    overflowX: 'hidden',
-    width: theme.spacing.unit * 7 + 1,
-    backgroundColor: 'white',
-    height:'auto',
-    top:'200px',
-    borderRadius:'10px',
-    [theme.breakpoints.up('sm')]: {
-      width: theme.spacing.unit * 7 + 1,
-      backgroundColor: '#27293D',
-      boxShadow:'0 1px 20px 0 rgba(0,0,0,.1)'
-    },
-  },
+  
   toolbar: {
     display: 'flex',
-    /*alignItems: 'center',
-    justifyContent: 'flex-end',*/
     padding: '0 8px',
-    
-    
-    ...theme.mixins.toolbar,
+    marginTop:'10px',
+    marginRight:'15px'
   },
   content: {
     flexGrow: 1,
@@ -103,8 +56,8 @@ const styles = theme => ({
       flexGrow:1
   },
   title: {
-      marginLeft:'60px',
-      marginTop: '15px',
+      marginLeft:'64px',
+      marginTop: '25px',
       fontWeight: 300,
       letterSpacing: '1.4px',
       //color: '#002F6C'
@@ -125,8 +78,14 @@ const styles = theme => ({
     fontSize:'12px',
   },
   logo:{
-    width:'auto',
-    height:'64px',
+    width:'10%',
+    height:'40px',
+    margin:'12px'
+  },
+  logoBiomedica:{
+    width:'5%',
+    height:'46px',
+    margin:'15px'
   },
   avatar: {
     color:'#fff',
@@ -140,18 +99,30 @@ const styles = theme => ({
     fontWeight: 300,
     color: '#9a9a9a',
     "&:hover":{
-      borderBottom: '1px solid #1e88e5'
+      borderBottom: '1px solid #ED7602'
     },
     cursor:'pointer',
     textAlign:'center',
     padding:'5px'
+  },
+  link:{
+    textDecoration:'none',
+    color: '#9a9a9a', 
+  },
+  itemGrid:{
+    marginRight:'10px',
+    
   }
 
 });
-
+const dudUrl = 'javascript:;';
 class MiniDrawer extends React.Component {
   state = {
   };
+
+  componentDidMount(){
+
+  }
 
   render() {
     const { classes} = this.props;
@@ -164,15 +135,20 @@ class MiniDrawer extends React.Component {
           className={classes.appBar}
         >
         <Toolbar className ={classes.toolbar}>
-            <img src={logo} alt = "logo" className={classes.logo}></img>
+            <img src={logo_biomedica} alt = "logo" className={classes.logoBiomedica}></img>
+            <p style = {{color:'#9a9a9a', fontWeight:300}}>Laboratorio Biomédica USACH</p>
             <Grid container justify='flex-end' className = {classes.myNavbar}>
-              <Grid item xs={2} style = {{marginRight:'10px'}}>
-                <Typography className={classes.linksNavbar}>Preprocesamiento</Typography>
+              <Grid item xs={2} className = {classes.itemGrid}>
+                <Typography className={classes.linksNavbar}>
+                  <NavLink to = "/home/signal" className = {classes.link} activeClassName="active" activeStyle={{color:'#ED7602'}}>Preprocesamiento</NavLink>
+                </Typography>
               </Grid>
-              <Grid item xs={2}>
-              <Typography className={classes.linksNavbar}>Repositorio señales</Typography>
+              <Grid item xs={2} className = {classes.itemGrid}>
+              <Typography className={classes.linksNavbar}>
+                <NavLink to = "/home/repository" className = {classes.link} activeStyle={{color:'#ED7602'}}>Señales</NavLink>
+              </Typography>
               </Grid>
-              <Grid item xs={2}>
+              <Grid item xs={2} className = {classes.itemGrid}>
                 <Typography className={classes.linksNavbar}>Ayuda</Typography>
               </Grid>
             </Grid>

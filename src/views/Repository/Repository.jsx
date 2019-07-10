@@ -61,7 +61,8 @@ const styles = theme => ({
       titlePaper:{
           color: '#9a9a9a',
           fontSize: '20px',
-          fontWeight: 300
+          fontWeight: 300,
+          
       },
       myIcon:{
           fontSize: '18px',
@@ -154,7 +155,7 @@ class Repository extends Component{
                     <Grid item lg = {11} xl = {11} md = {12}>
                         <Paper className = {classes.paper}>
                         <div className = {classes.title}>
-                            <Typography className = {classes.titlePaper}>Repositorio de señales biomédicas</Typography>
+                            <Typography className = {classes.titlePaper}>Repositorio Señales Biomédicas</Typography>
                         </div>
                             <Table className = {classes.myTable}>
                                 <TableHead>

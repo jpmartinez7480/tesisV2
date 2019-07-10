@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@material-ui/core/styles';
 import routes from "../routes/routes.js"
 
+
 const styles = theme => {}
 
 class layout extends Component{
@@ -12,6 +13,10 @@ class layout extends Component{
         super(props);
         this.state = {}
     }
+
+    /*componentDidMount(){
+        console.log(this.props.location.pathname)
+    }*/
 
     render(){
         const { classes } = this.props;
@@ -28,6 +33,7 @@ class layout extends Component{
                         );
                     })}
                 </Switch>
+                
             </div>
         );
     }
