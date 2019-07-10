@@ -4,9 +4,9 @@ import classNames from 'classnames';
 import { withStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
-
+import Typography from '@material-ui/core/Typography';
 import CssBaseline from '@material-ui/core/CssBaseline';
-
+import Grid from '@material-ui/core/Grid';
 import logo from '../../assets/logo.png';
 import blue from '@material-ui/core/colors/blue';
 
@@ -76,10 +76,11 @@ const styles = theme => ({
     },
   },
   toolbar: {
-    display: 'block',
+    display: 'flex',
     /*alignItems: 'center',
     justifyContent: 'flex-end',*/
     padding: '0 8px',
+    
     
     ...theme.mixins.toolbar,
   },
@@ -131,41 +132,29 @@ const styles = theme => ({
     color:'#fff',
     backgroundColor:blue[500]
   },
+  myNavbar:{
+    marginTop:'5px'
+  },
+  linksNavbar:{
+    fontSize: '16px',
+    fontWeight: 300,
+    color: '#9a9a9a',
+    "&:hover":{
+      borderBottom: '1px solid #1e88e5'
+    },
+    cursor:'pointer',
+    textAlign:'center',
+    padding:'5px'
+  }
 
 });
 
 class MiniDrawer extends React.Component {
   state = {
-    open: false,
-    auth: true,
-    anchorEl: null
   };
 
-  handleChange = event => {
-    this.setState({ auth: event.target.checked });
-  };
-
-  handleMenu = event => {
-    this.setState({ anchorEl: event.currentTarget });
-  };
-
-  handleClose = () => {
-    this.setState({ anchorEl: null });
-  };
-
-
-  handleDrawerOpen = () => {
-    this.setState({ open: false });
-  };
-
-  handleDrawerClose = () => {
-    this.setState({ open: false });
-  };
-  
   render() {
-    const { classes, theme } = this.props;
-    const { auth, anchorEl } = this.state;
-    const open = Boolean(anchorEl);
+    const { classes} = this.props;
 
     return (
       <div className={classes.root}>
@@ -176,6 +165,17 @@ class MiniDrawer extends React.Component {
         >
         <Toolbar className ={classes.toolbar}>
             <img src={logo} alt = "logo" className={classes.logo}></img>
+            <Grid container justify='flex-end' className = {classes.myNavbar}>
+              <Grid item xs={2} style = {{marginRight:'10px'}}>
+                <Typography className={classes.linksNavbar}>Preprocesamiento</Typography>
+              </Grid>
+              <Grid item xs={2}>
+              <Typography className={classes.linksNavbar}>Repositorio señales</Typography>
+              </Grid>
+              <Grid item xs={2}>
+                <Typography className={classes.linksNavbar}>Ayuda</Typography>
+              </Grid>
+            </Grid>
         </Toolbar>
         </AppBar>
       </div>
@@ -185,7 +185,6 @@ class MiniDrawer extends React.Component {
 
 MiniDrawer.propTypes = {
   classes: PropTypes.object.isRequired,
-  theme: PropTypes.object.isRequired,
 };
 
-export default withStyles(styles, { withTheme: true })(MiniDrawer);
+export default withStyles(styles)(MiniDrawer);

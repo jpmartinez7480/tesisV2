@@ -1,5 +1,5 @@
 import Home from "../views/Home/Home";
-import Par from "../views/Par/Par";
+import Repository from "../views/Repository/Repository";
 
 const routes = [
     {
@@ -8,10 +8,11 @@ const routes = [
         component: Home
     },
     {
-        path: '/home/par',
-        name: 'Par',
-        component: Par
-    },
+        path: '/home/repository',
+        name: 'Repository',
+        component: Repository
+    }
+    
 ];
 
 
