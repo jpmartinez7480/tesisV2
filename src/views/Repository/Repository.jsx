@@ -185,7 +185,7 @@ class Repository extends Component{
                                             </TableCell>
                                             <TableCell className = {classes.tablecell}>{row.type_signal}</TableCell>
                                             <TableCell className = {classes.tablecell}>{row.duration}</TableCell>
-                                            <TableCell className = {classes.tablecell}>{row.date_upload}</TableCell>
+                                            <TableCell className = {classes.tablecell}>{row.date_upload.split(' ')[0]}</TableCell>
                                             <TableCell className = {classes.tablecell}><GetApp className = {classes.myIcon}/><Info className = {classes.myIcon}/></TableCell>
                                         </TableRow>
                                     ))}

@@ -299,6 +299,7 @@ class Home extends Component{
         this.state = {
             filename: null,
             name_signal:'',
+            saved_name_signal:'',
             signal: [{"V1":"","V2":"","V3":"","V4":"","V5":"","V6":"","V7":"","V8":"","V9":"","V10":"","V11":"","V12":"",}],
             vsfi_signal:[{"V3":"1"}],
             vsfd_signal:[{"V2":"1"}],
@@ -312,6 +313,7 @@ class Home extends Component{
             index_key: 1,
             checked:[1],
             open: false,
+            open_new_file: false,
             isReadySignal: false,
             loadingGraph: false,
             filter: '',
@@ -1012,11 +1014,10 @@ class Home extends Component{
       let co2 = this.state.serie_co2[aux].data
       let times = this.state.x_points_vfs
       let header_file = this.state.headerFile
-      
+      let patient_name = this.state.headerFile[0].header[0].split(':')[1].split(' ')
       let history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
-      let filename = this.state.filename.name.split(".")[0]
       header_file[1] = {history:history}
-      
+      var filename = this.state.saved_name_signal
       let signal_to_filter = [vfsd,vfsi,psa,co2,times]
       var obj = {
         signals:JSON.stringify(signal_to_filter),
@@ -1043,10 +1044,12 @@ class Home extends Component{
       event.preventDefault()
       var today = new Date()
       var today = today.getFullYear()+'-'+String(today.getMonth()).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0')
+      var patient_name = this.state.headerFile[0].header[0].split(':')[1].split(' ')
+      var filename_signal = patient_name[0][0]+patient_name[0][3]+patient_name[1][0]+patient_name[1][3]+today.getFullYear().slice(2,4)+this.state.type_signal.substring(0,3)
       var obj = {
         email:this.state.email,
         password: this.state.password,
-        name_signal: this.state.name_signal,
+        name_signal: this.state.saved_name_signal,
         type_signal: this.state.type_signal,
         duration: this.state.signal_time,
         date_upload: today
@@ -1154,6 +1157,7 @@ class Home extends Component{
       var header = []
       for(var j = 0; j < 4; j++)
         header.push(json[j].V1)
+      
       header.push(json[4].V1 + "\t"+json[4].V2 + "\t"+json[4].V3 + "\t"+json[4].V4 + "\t"+json[4].V5 + "\t"+json[4].V6 + "\t"+json[4].V7 + "\t"+json[4].V8 + "\t")
       header.push(json[5].V1 + "\t"+json[5].V2 + "\t"+json[5].V3 + "\t"+json[5].V4 + "\t"+json[5].V5 + "\t"+json[5].V6 + "\t"+json[5].V7 + "\t"+json[5].V8 + "\t")
       if(this.state.filename.name.split(".")[1] === 'fil'){
@@ -1180,7 +1184,10 @@ class Home extends Component{
       if(this.state.filename.name.length > 15)
         aux_name = this.state.filename.name.substring(0,10)+'...'+this.state.filename.name.substring(this.state.filename.name.length-5,this.state.filename.name.length)
       else aux_name = this.state.filename.name
-      this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time, headerFile:[{header:header}]})
+      var today = new Date()
+      var patient_name = header[0].split(':')[1].split(' ')
+      var filename_signal = patient_name[0][0]+patient_name[0][3]+patient_name[1][0]+patient_name[1][3]+String(today.getFullYear()).substring(2,4)+this.state.type_signal.substring(0,3)
+      this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time, headerFile:[{header:header}], saved_name_signal:filename_signal.toUpperCase()})
       this.state.serie_vfsd.push({
         name:'VFSD',
         type:'line',
@@ -1226,6 +1233,7 @@ class Home extends Component{
         }
       })
       this.setState({isReadySignal:true,name_signal:aux_name, frecuency:f}, () => {
+        console.log(this.state.headerFile)
         this.handleClose()
         this.updateOptions()
       })
@@ -1265,8 +1273,14 @@ class Home extends Component{
     };
 
     handleChangeTypeSignal = name => event =>{
-
-      this.setState({type_signal:event.target.value})
+      var aux = event.target.value
+      var aux2=''
+      if(aux === 'Sit-to_Stand')
+        aux2 = 'STS'
+      else 
+        aux2 = aux.substring(0,3)
+      var filename = this.state.saved_name_signal + aux2.toUpperCase()
+      this.setState({type_signal:event.target.value,saved_name_signal:filename})
     }
 
     handleSendFilter(event){
@@ -2332,18 +2346,29 @@ class Home extends Component{
                         aria-labelledby="max-width-dialog-title"
                     >
                         <DialogTitle id="max-width-dialog-title">Seleccione señal a preprocesar</DialogTitle>
-                        <FormControl className={classes.formControl}>
+                        
+                            
                             <form onSubmit={this.handleUploadSignal} className = {classes.form}>                                
-                                {!this.state.loadingGraph ? <Note className = {classes.iconFile}/> 
+                              <DialogContent>
+                              <Grid container justify = "center" alignItems = "center">
+                                <Grid item xs = {7}>
+                                  {!this.state.loadingGraph ? <Note className = {classes.iconFile}/> 
                                     : <LinearProgress classes={{
                                         colorPrimary: classes.linearColorPrimary,
                                         barColorPrimary: classes.linearBarColorPrimary}}
                                 />}
-                                <input type = "file" onChange={this.onChange} />
-                                <Button type = "submit" variant="contained" className = {classes.myPrimaryColor}>Cargar</Button>
+                                </Grid>
+                                
+                                <Grid item xs = {7} style = {{textAlign:'center'}}>
+                                  <input type = "file" onChange={this.onChange} />
+                                </Grid>
+                                <Grid item xs = {7} style = {{textAlign:'center'}}>
+                                  <Button type = "submit" variant="contained" style = {{width:'80%'}} className = {classes.myPrimaryColor}>Cargar</Button>
+                                </Grid>
+                                
+                              </Grid>
+                              </DialogContent>
                             </form>
-                        </FormControl>
-                        
                     </Dialog>
                     
                 </div>
@@ -2532,7 +2557,7 @@ class Home extends Component{
               <Dialog 
                 maxWidth="sm"
                 fullWidth={true}
-                open={this.state.open}
+                open={this.state.open_new_file}
                 onClose={this.handleClose}
                 aria-labelledby="max-width-dialog-title"
               >
@@ -3135,46 +3160,45 @@ class Home extends Component{
                       <Grid item lg = {2} xl = {2} md = {3}>
                         <p style = {{color:'rgba(0,0,0,.7)'}}>Señal</p>
                       </Grid>
-                      <Grid item lg = {10} xl = {10} md = {3}>
-                        <TextField required value = {this.state.name_signal} disabled className = {classes.input} /> 
+                      <Grid item lg = {10} xl = {10} md = {9}>
+                        <TextField required value = {this.state.saved_name_signal} disabled className = {classes.input} /> 
                       </Grid>
                       <Grid item lg = {2} xl = {2} md = {3}>
                         <p style = {{color:'rgba(0,0,0,.7)'}}>Duración</p>
                       </Grid>
-                      <Grid item lg = {10} xl = {10} md = {3}>
+                      <Grid item lg = {10} xl = {10} md = {9}>
                         <TextField required value = {this.state.signal_time} disabled className = {classes.input} />
                       </Grid>
                       <Grid item lg = {2} xl = {2} md = {3}>
                         <p style = {{color:'rgba(0,0,0,.7)'}}>Muestreo</p>
                       </Grid>
-                      <Grid item lg = {10} xl = {10} md = {3}>
+                      <Grid item lg = {10} xl = {10} md = {9}>
                         <TextField required value = {this.state.frecuency} disabled className = {classes.input}  />
                       </Grid>
                       <Grid item lg = {2} xl = {2} md = {3}>
-                        <p style = {{color:'rgba(0,0,0,.7)'}}>Tipo señal</p>
+                        <p style = {{color:'rgba(0,0,0,.7)'}}>Maniobra</p>
                       </Grid>
-                      <Grid item lg = {10} xl = {10} md = {3}>
-                        <FormControl  className={classes.formControl} style = {{marginBottom:0}}>
-                        <Select
+                      <Grid item lg = {10} xl = {10} md = {9}>
+                        <FormControl>
+                          <Select
                             name = "type_signal"
                             className={classes.textField}
                             value={this.state.type_signal}
                             onChange={this.handleChangeTypeSignal('type_signal')}
                             displayEmpty
                             autoWidth
-                            required
-                        >
-                          <MenuItem value="" disabled>
+                            required>
+                            <MenuItem value="" disabled>
                               -- Seleccione --
                             </MenuItem>
-                          {this.state.types_signal.map(option => (
-                            <MenuItem key={option.value} value={option.value}>
-                              {option.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
+                            {this.state.types_signal.map(option => (
+                              <MenuItem key={option.value} value={option.value}>
+                                {option.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
                         </FormControl>
-                      </Grid>
+                      </Grid> 
                     </Grid>
                     
                     <Grid container style = {{marginBottom:'10px'}}>
