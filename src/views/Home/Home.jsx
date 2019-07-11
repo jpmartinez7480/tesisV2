@@ -293,6 +293,7 @@ class Home extends Component{
             isReadySignal: false,
             loadingGraph: false,
             filter: '',
+            type_signal:'',
             value_order_hermite: 1,
             value_window_hampel: 10,
             value_thresold_hampel:1.6,
@@ -301,6 +302,9 @@ class Home extends Component{
             value_order_median: 5,
             v1:'',
             v2:'',
+            email:'',
+            password:'',
+            password_c: '',
             signal_time:0,
             indexSignal:0,
             indexSignalToDelete:0,
@@ -341,6 +345,9 @@ class Home extends Component{
             open_sync_signals_wait: false,
             open_confirm_save: false,
             open_upstroke_wait: false,
+            open_dialog_share_signal: false,
+            open_dialog_login_for_signal: false,
+            open_dialog_register: false,
             message_snackbar:'',
             title_filter: '',
             text_filter:'',
@@ -369,6 +376,16 @@ class Home extends Component{
               },
               
             ],
+            types_signal:[
+              {
+                value:'Baseline',
+                label:'Baseline'
+              },
+              {
+                value:'Sit-to-Stand',
+                label: 'Sit-to-Stand'
+              }
+            ],
             brushArea:{},
             headerFile:{},
             etco2_echart:'block',
@@ -383,6 +400,8 @@ class Home extends Component{
         this.handleUploadSignal = this.handleUploadSignal.bind(this)
         this.handleSendFilter = this.handleSendFilter.bind(this)
         this.splitSignalTimes = this.splitSignalTimes.bind(this)
+        this.handleValidateUser = this.handleValidateUser.bind(this)
+        this.handleRegisterUser = this.handleRegisterUser.bind(this)
     }
 
     componentDidUpdate(){
@@ -460,6 +479,18 @@ class Home extends Component{
       this.setState({open_dialog_cut_times:true})
     }
 
+    handleOpenDialogShareSignal = () => {
+      this.setState({open_dialog_share_signal: true})
+    }
+
+    handleOpenDialogLogin = () => {
+      this.setState({open_dialog_login_for_signal: true})
+    }
+
+    handleOpenDialogRegister = () => {
+      this.setState({open_dialog_register: true})
+    }
+
     handleCloseHermite = () => {
       this.setState({open_hermite: false})
     }
@@ -534,6 +565,18 @@ class Home extends Component{
 
     handleCloseDialogFullHistory = () => {
       this.setState({openDialogFullHistory:false})
+    }
+
+    handleCloseDialogShareSignal = () => {
+      this.setState({open_dialog_share_signal: false})
+    }
+
+    handleCloseDialogLogin = () => {
+      this.setState({open_dialog_login_for_signal: false,open_dialog_share_signal: false})
+    }
+
+    handleCloseDialogRegiter = () => {
+      this.setState({open_dialog_register: false})
     }
 
     handleChange = (event, value) => {
@@ -965,6 +1008,43 @@ class Home extends Component{
       })
     }
 
+    handleValidateUser(){
+      var obj = {
+        email:this.state.email,
+        password_login: this.state.password,
+        name_signal: this.state.name_signal,
+        type_signal: this.state.type_signal,
+        duration: this.state.signal_time
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost:8100/web/post_signal.php',
+        data: obj
+      })
+      .then(res => {
+        this.setState({message_snackbar:'Muchas Gracias!!, la señal fue añadida al respositorio.',open_snackbar:true})
+      })
+      .catch((error)=>{this.setState({message_snackbar:'Hubo un error al subir la señal.'+error.message,open_snackbar:true})})
+    }
+
+    handleRegisterUser(){
+      var obj = {
+        email: this.state.email,
+        password_login: this.state.password,
+        password_cypher: this.state.password_c
+      }
+      Axios({
+        method: 'POST',
+        url: 'http://localhost:8100/web/post_user.php',
+        data: obj
+      })
+      .then(res => {
+        this.setState({message_snackbar:'Muchas Gracias!! Se le ha enviado un email.',open_snackbar:true})
+      })
+      .catch((error)=>{this.setState({message_snackbar:'Ocurrió un error al registrar su usuario. Intente más tarde'+error.message,open_snackbar:true})})
+    }
+
+
     exportSignal = () =>{
       let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
       let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
@@ -1146,6 +1226,11 @@ class Home extends Component{
         this.setState({ filter: event.target.value, title_filter: title_automatic, text_filter: text_automatic}, () => this.handleOpenAutomatic());
       
     };
+
+    handleChangeTypeSignal = name => event =>{
+
+      this.setState({type_signal:event.target.value})
+    }
 
     handleSendFilter(event){
       event.preventDefault()
@@ -2961,6 +3046,103 @@ class Home extends Component{
               </DialogActions>
               </Dialog>
               {/* Fin Dialog para mostrar historial completo de la señal seleccionada */}
+              {/*inicio Dialog para compartir señal*/}
+              <Dialog
+                open={this.state.open_dialog_share_signal}
+                onClose={this.handleCloseDialogShareSignal}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+              <DialogTitle id="alert-dialog-title">Compartir señal</DialogTitle>
+              <DialogContent>
+                <DialogContentText id="alert-dialog-description">
+                  ¿Desea compartir la señal resultante en el repositorio público?
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.handleCloseDialogShareSignal} style = {{color: '#2196f3'}}>
+                  No
+                </Button>
+                <Button onClick={this.handleOpenDialogLogin} style = {{color: '#2196f3'}} autoFocus>
+                  Si
+                </Button>
+              </DialogActions>
+              </Dialog>
+              {/*fin Dialog para compartir señal*/}
+              {/* Dialog login para compartir señal*/}
+              <Dialog
+                open={this.state.open_dialog_login_for_signal}
+                onClose={this.handleCloseDialogLogin}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+              <DialogTitle id="alert-dialog-title">Datos Usuario</DialogTitle>
+                <form onSubmit={this.handleValidateUser.bind(this)}>
+                  <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                      Ingrese sus datos de usuario para guardar la señal
+                    </DialogContentText>
+                    <TextField required value = {this.state.email} placeholder="email@email.com" className = {classes.input}  onChange={this.handleChangeInput('email')} />
+                    <TextField required value = {this.state.password} placeholder="Ingrese su contraseña" className = {classes.input}  onChange={this.handleChangeInput('password')} />
+                    <FormControl  className={classes.formControl} style = {{marginBottom:0}}>
+                      <Select
+                          name = "type_signal"
+                          className={classes.textField}
+                          value={this.state.type_signal}
+                          onChange={this.handleChangeTypeSignal('type_signal')}
+                          displayEmpty
+                          autoWidth
+                      >
+                        <MenuItem value="" disabled>
+                            -- Tipo Señal --
+                          </MenuItem>
+                        {this.state.types_signal.map(option => (
+                          <MenuItem key={option.value} value={option.value}>
+                            {option.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={this.handleCloseDialogLogin} style = {{color: '#2196f3'}}>
+                      Cancelar
+                    </Button>
+                    <Button type = "submit" style = {{color: '#2196f3'}} autoFocus>
+                      Aceptar
+                    </Button>
+                  </DialogActions>
+                </form>
+              </Dialog>
+              {/* Fin Dialog para login*/}
+              {/*inicio Dialog registro*/}
+              <Dialog
+                open={this.state.open_dialog_register}
+                onClose={this.handleCloseDialogRegiter}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+              >
+              <DialogTitle id="alert-dialog-title">Datos Usuario</DialogTitle>
+                <form onSubmit={this.handleRegisterUser.bind(this)}>
+                  <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                      Ingrese sus datos para registro
+                    </DialogContentText>
+                    <TextField required value = {this.state.email} placeholder="email@email.com" className = {classes.input}  onChange={this.handleChangeInput('email')} />
+                    <TextField required value = {this.state.password} placeholder="Ingrese su contraseña login" className = {classes.input}  onChange={this.handleChangeInput('password')} />
+                    <TextField required value = {this.state.password_c} placeholder="Ingrese su contraseña para encriptar" className = {classes.input}  onChange={this.handleChangeInput('password_c')} />
+                  </DialogContent>
+                  <DialogActions>
+                    <Button onClick={this.handleCloseDialogRegister} style = {{color: '#2196f3'}}>
+                      Cancelar
+                    </Button>
+                    <Button type = "submit" style = {{color: '#2196f3'}} autoFocus>
+                      Aceptar
+                    </Button>
+                  </DialogActions>
+                </form>
+              </Dialog>
+              {/*fin Dialog registro*/}
             </div>
             
         )

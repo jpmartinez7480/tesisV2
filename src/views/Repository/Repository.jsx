@@ -21,7 +21,7 @@ import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import TablePaginationActions from "@material-ui/core/TablePagination/TablePaginationActions";
-
+import Axios from 'axios';
 const styles = theme => ({
     root: {
         flexGrow: 1,
@@ -131,12 +131,22 @@ class Repository extends Component{
     constructor(props){
         super(props)
         this.state = {
-            signals_repository:[],
+            signals_repository:[{name_signal:'',type_signal:'',duration:'',date_upload:''}],
             page: 0,
             rowsPerPage: 5
         }
 
 
+    }
+
+    componentDidMount(){
+        Axios({
+            method: 'GET',
+            url: 'http://localhost:8100/web/get_signals.php',
+          })
+          .then(res => {
+              this.setState({signals_repository:res.data.data})
+          })
     }
 
     handleChangePage = (event,newPage) =>{
@@ -168,12 +178,12 @@ class Repository extends Component{
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {signals.slice(this.state.page*this.state.rowsPerPage,this.state.page*this.state.rowsPerPage+this.state.rowsPerPage).map(row => (
-                                        <TableRow key={row.signal}>
+                                    {this.state.signals_repository.slice(this.state.page*this.state.rowsPerPage,this.state.page*this.state.rowsPerPage+this.state.rowsPerPage).map(row => (
+                                        <TableRow key={row.name_signal}>
                                             <TableCell component = "th" scope = "row" className = {classes.tablecell}>
-                                                {row.signal}
+                                                {row.name_signal}
                                             </TableCell>
-                                            <TableCell className = {classes.tablecell}>{row.type}</TableCell>
+                                            <TableCell className = {classes.tablecell}>{row.type_signal}</TableCell>
                                             <TableCell className = {classes.tablecell}>{row.duration}</TableCell>
                                             <TableCell className = {classes.tablecell}>{row.date_upload}</TableCell>
                                             <TableCell className = {classes.tablecell}><GetApp className = {classes.myIcon}/><Info className = {classes.myIcon}/></TableCell>

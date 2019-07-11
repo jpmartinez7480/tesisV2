@@ -84,7 +84,7 @@ const styles = theme => ({
   },
   logoBiomedica:{
     width:'5%',
-    height:'46px',
+    height:'50px',
     margin:'15px'
   },
   avatar: {
