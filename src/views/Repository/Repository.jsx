@@ -197,7 +197,7 @@ class Repository extends Component{
                                             rowsPerPageOptions={[5, 10, 20]}
                                             labelRowsPerPage='Señales por paǵina:'
                                             colSpan={8}
-                                            count={signals.length}
+                                            count={this.state.signals_repository.length}
                                             rowsPerPage={this.state.rowsPerPage}
                                             page={this.state.page}
                                             SelectProps={{

@@ -32,6 +32,7 @@ import CropFree from '@material-ui/icons/CropFree';
 import NoteAdd from '@material-ui/icons/NoteAdd';
 import Visibility from '@material-ui/icons/Visibility';
 import Save from '@material-ui/icons/Save';
+import PersonAdd from '@material-ui/icons/PersonAdd';
 import FavoriteOutlined from '@material-ui/icons/FavoriteOutlined'
 import Input from '@material-ui/core/Input';
 import Select from '@material-ui/core/Select';
@@ -44,6 +45,7 @@ import { connect } from 'react-redux'
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import Tooltip from '@material-ui/core/Tooltip';
+import Fab from '@material-ui/core/Fab';
 import Signal from '../../components/Card/Signal'
 import History from '../../components/Card/History'
 import { loadSignal }  from '../../actions/actions.signal'
@@ -54,6 +56,9 @@ import { setSignalCO2 } from '../../actions/actions.co2'
 
 import detectHeartbeatIcon from '../../assets/icons/detect_heartbeat2.png'
 import syncHeartBeatIcon from '../../assets/icons/sync_heartbeat2.png'
+import logo_biomedica from '../../assets/logo_biomedica.png';
+import logo_usach from '../../assets/logo.png'
+
 const styles = theme => ({
     root: {
       flexGrow: 1,
@@ -257,7 +262,24 @@ const styles = theme => ({
         float:'right',
         marginRight:'10px',
         marginBottom: '10px',
-      }
+      },
+      fab:{
+        position:'fixed',
+        bottom:'top',
+        marginBottom:'10px'
+      },
+      register:{
+        color:'rgba(255,255,255,0.54)',
+        fontSize: '13px',
+        "&:hover":{
+          color:'#3358F4'
+        }
+      },
+      logos:{
+        width:'20%',
+        height:'40px',
+        margin:'5px'
+      },
   })
 
 const text_hampel = 'Debe ingresar valor de ventana y thresold para usar este filtro. Para rapidez los valores por defecto se muestran'
@@ -393,7 +415,9 @@ class Home extends Component{
             line: true,
             cnt_click_peak: 0,
             peak_selected: {},
-            peak_modify_by_signal:0
+            peak_modify_by_signal:0,
+            frecuency:'',
+            fab_state: true
 
         }
         this.onChange = this.onChange.bind(this)
@@ -417,6 +441,10 @@ class Home extends Component{
             //echarts.connect('group1');
         }
         
+    }
+
+    handleHideRegister = () => {
+      this.setState({fab_state: true})
     }
 
     handleOpenHermite = () => {
@@ -575,7 +603,7 @@ class Home extends Component{
       this.setState({open_dialog_login_for_signal: false,open_dialog_share_signal: false})
     }
 
-    handleCloseDialogRegiter = () => {
+    handleCloseDialogRegister = () => {
       this.setState({open_dialog_register: false})
     }
 
@@ -627,7 +655,10 @@ class Home extends Component{
     }
 
     ConfirmSave=index=>{
-      this.setState({indexSignalToDelete:index},()=>{this.handleOpenSave()})
+      if(!this.state.is_signal_sync)
+        this.setState({indexSignalToDelete:index},()=>{this.handleOpenDialogShareSignal()})
+      else
+        this.setState({indexSignalToDelete:index},()=>{this.handleOpenSave()})
     }
 
     deleteSignal = () =>{
@@ -1008,18 +1039,22 @@ class Home extends Component{
       })
     }
 
-    handleValidateUser(){
+    handleValidateUser(event){
+      event.preventDefault()
+      var today = new Date()
+      var today = today.getFullYear()+'-'+String(today.getMonth()).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0')
       var obj = {
         email:this.state.email,
-        password_login: this.state.password,
+        password: this.state.password,
         name_signal: this.state.name_signal,
         type_signal: this.state.type_signal,
-        duration: this.state.signal_time
+        duration: this.state.signal_time,
+        date_upload: today
       }
       Axios({
         method: 'POST',
         url: 'http://localhost:8100/web/post_signal.php',
-        data: obj
+        data: JSON.stringify(obj)
       })
       .then(res => {
         this.setState({message_snackbar:'Muchas Gracias!!, la señal fue añadida al respositorio.',open_snackbar:true})
@@ -1027,19 +1062,20 @@ class Home extends Component{
       .catch((error)=>{this.setState({message_snackbar:'Hubo un error al subir la señal.'+error.message,open_snackbar:true})})
     }
 
-    handleRegisterUser(){
+    handleRegisterUser(event){
+      event.preventDefault()
       var obj = {
         email: this.state.email,
         password_login: this.state.password,
-        password_cypher: this.state.password_c
+        password_crypth: this.state.password_c
       }
       Axios({
         method: 'POST',
         url: 'http://localhost:8100/web/post_user.php',
-        data: obj
+        data: JSON.stringify(obj)
       })
       .then(res => {
-        this.setState({message_snackbar:'Muchas Gracias!! Se le ha enviado un email.',open_snackbar:true})
+        this.setState({message_snackbar:'Muchas Gracias!! Se le ha enviado un email.',open_snackbar:true},()=>{this.handleCloseDialogRegister()})
       })
       .catch((error)=>{this.setState({message_snackbar:'Ocurrió un error al registrar su usuario. Intente más tarde'+error.message,open_snackbar:true})})
     }
@@ -1140,6 +1176,7 @@ class Home extends Component{
       }
       let time = this.getSignalTime(vsfd.length)
       var aux_name = ''
+      var f = header[3].split(':')[1]
       if(this.state.filename.name.length > 15)
         aux_name = this.state.filename.name.substring(0,10)+'...'+this.state.filename.name.substring(this.state.filename.name.length-5,this.state.filename.name.length)
       else aux_name = this.state.filename.name
@@ -1188,7 +1225,7 @@ class Home extends Component{
           return idx * 10;
         }
       })
-      this.setState({isReadySignal:true,name_signal:aux_name}, () => {
+      this.setState({isReadySignal:true,name_signal:aux_name, frecuency:f}, () => {
         this.handleClose()
         this.updateOptions()
       })
@@ -2272,10 +2309,21 @@ class Home extends Component{
                 <Timeline className = {classes.myIcon2} />
                 <h1 className = {classes.selectTitle}>Para comenzar cargue una señal</h1>
                 <div className = {classes.nextStep}>
+                  <div>
                     <Button 
-                        variant = "contained" 
-                        className = {classes.myPrimaryColor}
-                        onClick = {this.handleClickOpen}>Seleccionar</Button>
+                      variant = "contained" 
+                      className = {classes.myPrimaryColor}
+                      onClick = {this.handleClickOpen}>Seleccionar
+                    </Button>
+                  </div>
+                  <div>
+                    <Button
+                        variant="text"
+                        className = {classes.register}
+                        onClick = {this.handleOpenDialogRegister}>¿Deseas ser miembro?
+                    </Button>
+                  </div>
+                    
                     <Dialog 
                         maxWidth="sm"
                         fullWidth={true}
@@ -2434,6 +2482,7 @@ class Home extends Component{
               <Grid item lg = {2} xl = {2} md = {2}>
                 <Signal key = {3} signalHistory = {this.state.signals_history} changeSelectedSignal = {this.changeSelectedSignal}/>
                 <History key = {this.state.index_key+1} history = {this.state.history} chooseSignalToDelete = {this.chooseSignalToDelete} FullHistory = {this.FullHistory} ConfirmSave = {this.ConfirmSave}/>
+                
               </Grid>
             </Grid>
           </div>
@@ -3076,33 +3125,69 @@ class Home extends Component{
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
               >
-              <DialogTitle id="alert-dialog-title">Datos Usuario</DialogTitle>
+              <DialogTitle id="alert-dialog-title">Datos</DialogTitle>
+                <DialogContentText id="alert-dialog-description">
+                  Para compartir ingrese sus datos
+                </DialogContentText>
                 <form onSubmit={this.handleValidateUser.bind(this)}>
                   <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                      Ingrese sus datos de usuario para guardar la señal
-                    </DialogContentText>
-                    <TextField required value = {this.state.email} placeholder="email@email.com" className = {classes.input}  onChange={this.handleChangeInput('email')} />
-                    <TextField required value = {this.state.password} placeholder="Ingrese su contraseña" className = {classes.input}  onChange={this.handleChangeInput('password')} />
-                    <FormControl  className={classes.formControl} style = {{marginBottom:0}}>
-                      <Select
-                          name = "type_signal"
-                          className={classes.textField}
-                          value={this.state.type_signal}
-                          onChange={this.handleChangeTypeSignal('type_signal')}
-                          displayEmpty
-                          autoWidth
-                      >
-                        <MenuItem value="" disabled>
-                            -- Tipo Señal --
-                          </MenuItem>
-                        {this.state.types_signal.map(option => (
-                          <MenuItem key={option.value} value={option.value}>
-                            {option.label}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                    <Grid container style = {{marginBottom:'10px'}}>
+                      <Grid item lg = {2} xl = {2} md = {3}>
+                        <p style = {{color:'rgba(0,0,0,.7)'}}>Señal</p>
+                      </Grid>
+                      <Grid item lg = {10} xl = {10} md = {3}>
+                        <TextField required value = {this.state.name_signal} disabled className = {classes.input} /> 
+                      </Grid>
+                      <Grid item lg = {2} xl = {2} md = {3}>
+                        <p style = {{color:'rgba(0,0,0,.7)'}}>Duración</p>
+                      </Grid>
+                      <Grid item lg = {10} xl = {10} md = {3}>
+                        <TextField required value = {this.state.signal_time} disabled className = {classes.input} />
+                      </Grid>
+                      <Grid item lg = {2} xl = {2} md = {3}>
+                        <p style = {{color:'rgba(0,0,0,.7)'}}>Muestreo</p>
+                      </Grid>
+                      <Grid item lg = {10} xl = {10} md = {3}>
+                        <TextField required value = {this.state.frecuency} disabled className = {classes.input}  />
+                      </Grid>
+                      <Grid item lg = {2} xl = {2} md = {3}>
+                        <p style = {{color:'rgba(0,0,0,.7)'}}>Tipo señal</p>
+                      </Grid>
+                      <Grid item lg = {10} xl = {10} md = {3}>
+                        <FormControl  className={classes.formControl} style = {{marginBottom:0}}>
+                        <Select
+                            name = "type_signal"
+                            className={classes.textField}
+                            value={this.state.type_signal}
+                            onChange={this.handleChangeTypeSignal('type_signal')}
+                            displayEmpty
+                            autoWidth
+                            required
+                        >
+                          <MenuItem value="" disabled>
+                              -- Seleccione --
+                            </MenuItem>
+                          {this.state.types_signal.map(option => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                    
+                    <Grid container style = {{marginBottom:'10px'}}>
+                      <Grid item lg = {2} xl = {2} md = {3}>
+                        <p style = {{color:'rgba(0,0,0,.7)'}}>Usuario</p>
+                      </Grid>
+                      <Grid item lg = {10} xl = {10} md = {3}>
+                        <TextField required value = {this.state.email} type="email" placeholder="email@email.com" className = {classes.input}  onChange={this.handleChangeInput('email')} />
+                        <TextField required value = {this.state.password} type="password" placeholder="Ingrese su contraseña" className = {classes.input}  onChange={this.handleChangeInput('password')} />
+                      </Grid>
+                    </Grid>
+                    
+                    
                   </DialogContent>
                   <DialogActions>
                     <Button onClick={this.handleCloseDialogLogin} style = {{color: '#2196f3'}}>
@@ -3122,15 +3207,22 @@ class Home extends Component{
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
               >
-              <DialogTitle id="alert-dialog-title">Datos Usuario</DialogTitle>
+              <DialogTitle id="alert-dialog-title">Registro</DialogTitle>
                 <form onSubmit={this.handleRegisterUser.bind(this)}>
                   <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                      Ingrese sus datos para registro
-                    </DialogContentText>
-                    <TextField required value = {this.state.email} placeholder="email@email.com" className = {classes.input}  onChange={this.handleChangeInput('email')} />
-                    <TextField required value = {this.state.password} placeholder="Ingrese su contraseña login" className = {classes.input}  onChange={this.handleChangeInput('password')} />
-                    <TextField required value = {this.state.password_c} placeholder="Ingrese su contraseña para encriptar" className = {classes.input}  onChange={this.handleChangeInput('password_c')} />
+                    <Grid container>
+                      <Grid item lg = {6} xl = {6} md = {6} style = {{borderRight:'1px solid rgba(154,154,154,0.54)'}}>
+                        <p style = {{marginTop:'10px', color:'rgba(0,0,0,.7)', fontSize:'14px'}}>Como usuario registrado podrá compartir las señales que ha preprocesado con el fin de que cualquier investigador pueda hacer uso de ellas.</p>
+                        <p style = {{color:'rgba(0,0,0,.7)', fontSize:'14px'}}>Datos como nombre y fecha de nacimiento del voluntario al que le fueron tomadas las señales biomédicas serán encriptadas, haciendo uso de un algoritmo de encriptación asimétrico.</p>
+                        <img src={logo_usach} alt = "logo" className={classes.logos}></img>
+                        <img src={logo_biomedica} alt = "logo" className={classes.logos}></img>
+                      </Grid>
+                      <Grid item lg = {5} xl = {5} md = {5} style ={{marginLeft:'10px'}} >
+                        <TextField variant="outlined" margin = "dense" required value = {this.state.email} placeholder="email@email.com" className = {classes.input}  onChange={this.handleChangeInput('email')} />
+                        <TextField variant="outlined" margin = "dense" required value = {this.state.password} type = 'password' placeholder="Clave login" className = {classes.input}  onChange={this.handleChangeInput('password')} />
+                        <TextField variant="outlined" margin = "dense" required value = {this.state.password_c} type = 'password' placeholder="Clave cifrado" className = {classes.input}  onChange={this.handleChangeInput('password_c')} />
+                      </Grid>
+                    </Grid>
                   </DialogContent>
                   <DialogActions>
                     <Button onClick={this.handleCloseDialogRegister} style = {{color: '#2196f3'}}>

@@ -83,7 +83,7 @@ const styles = theme => ({
     margin:'12px'
   },
   logoBiomedica:{
-    width:'5%',
+    width:'4%',
     height:'50px',
     margin:'15px'
   },
@@ -110,7 +110,7 @@ const styles = theme => ({
     color: '#9a9a9a', 
   },
   itemGrid:{
-    marginRight:'10px',
+    
     
   }
 
