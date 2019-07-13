@@ -6,9 +6,9 @@ const echart_colors =
     butterworth:'rgb(21, 56, 214)',
     automatic:'rgb(247, 213, 0)',
     start_heartbeat:'#fff',
-    upstroke: '#CF7304',
+    upstroke: '#FFDD33',
     peak:'#1AB918',
-    incisura: '#FFDD33'
+    incisura: '#CF7304'
 }
 
 export default echart_colors;

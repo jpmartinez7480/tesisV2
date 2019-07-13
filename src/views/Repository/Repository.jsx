@@ -67,6 +67,7 @@ const styles = theme => ({
       myIcon:{
           fontSize: '18px',
           marginLeft:'12px',
+          textAlign:'center',
           "&:hover":{
             color: blue[600]
           },
@@ -145,8 +146,51 @@ class Repository extends Component{
             url: 'http://localhost:8100/web/get_signals.php',
           })
           .then(res => {
+            if(res.data.data.length > 0)
               this.setState({signals_repository:res.data.data})
-          })
+          })          
+    }
+
+    handleDownloadFile = (name) => {
+        
+        Axios({
+            method:'GET',
+            url: 'http://localhost:8100/web/download.php?file='+name+'.zip',
+            responseType: 'arraybuffer'
+        })
+        .then((response) => {
+            console.log(response)
+            
+            const link = document.createElement('a')
+            link.href = response.request.responseURL  
+            
+            link.setAttribute('download',name+'.zip')
+            document.body.appendChild(link)
+            link.click()
+        })
+    }
+
+
+    handleDownloadFile2 = (name) => {
+        
+        Axios({
+            headers:{
+            
+            },
+            method:'GET',
+            url: 'http://localhost:8100/repository/'+name+'.zip',
+            responseType: 'arraybuffer'
+        })
+        .then((response) => {
+            console.log(response)
+            
+            const link = document.createElement('a')
+            link.href = response.request.responseURL  
+            
+            link.setAttribute('download',name+'.zip')
+            document.body.appendChild(link)
+            link.click()
+        })
     }
 
     handleChangePage = (event,newPage) =>{
@@ -173,6 +217,7 @@ class Repository extends Component{
                                         <TableCell className = {classes.tablecellTitle}>Señal</TableCell>
                                         <TableCell className = {classes.tablecellTitle}>Tipo</TableCell>
                                         <TableCell className = {classes.tablecellTitle}>Duración</TableCell>
+                                        <TableCell className = {classes.tablecellTitle}>Muestreo</TableCell>
                                         <TableCell className = {classes.tablecellTitle}>Subido</TableCell>
                                         <TableCell className = {classes.tablecellTitle}>Acciones</TableCell>
                                     </TableRow>
@@ -185,8 +230,9 @@ class Repository extends Component{
                                             </TableCell>
                                             <TableCell className = {classes.tablecell}>{row.type_signal}</TableCell>
                                             <TableCell className = {classes.tablecell}>{row.duration}</TableCell>
+                                            <TableCell className = {classes.tablecell}>{row.frecuency}</TableCell>
                                             <TableCell className = {classes.tablecell}>{row.date_upload.split(' ')[0]}</TableCell>
-                                            <TableCell className = {classes.tablecell}><GetApp className = {classes.myIcon}/><Info className = {classes.myIcon}/></TableCell>
+                                            <TableCell className = {classes.tablecell}><GetApp className = {classes.myIcon} onClick = {()=>{this.handleDownloadFile(row.name_signal)}}/></TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>

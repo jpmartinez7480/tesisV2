@@ -40,6 +40,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import SnackbarWarning from '../../components/Dialogs/snackbar'
 import SnackbarPeak from '../../components/Dialogs/snackbar_peak'
+import SnackBarSuccess from '../../components/Dialogs/snackbar_sucess'
 import TextField from '@material-ui/core/TextField';
 import { connect } from 'react-redux'
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -57,7 +58,7 @@ import { setSignalCO2 } from '../../actions/actions.co2'
 import detectHeartbeatIcon from '../../assets/icons/detect_heartbeat2.png'
 import syncHeartBeatIcon from '../../assets/icons/sync_heartbeat2.png'
 import logo_biomedica from '../../assets/logo_biomedica.png';
-import logo_usach from '../../assets/logo.png'
+import logo_usach from '../../assets/logo_usach.png'
 
 const styles = theme => ({
     root: {
@@ -280,6 +281,11 @@ const styles = theme => ({
         height:'40px',
         margin:'5px'
       },
+      logo_usach:{
+        width:'17%',
+        height:'47px',
+        margin:'5px'
+      }
   })
 
 const text_hampel = 'Debe ingresar valor de ventana y thresold para usar este filtro. Para rapidez los valores por defecto se muestran'
@@ -419,7 +425,8 @@ class Home extends Component{
             peak_selected: {},
             peak_modify_by_signal:0,
             frecuency:'',
-            fab_state: true
+            fab_state: true,
+            open_snackbar_success: false
 
         }
         this.onChange = this.onChange.bind(this)
@@ -589,6 +596,10 @@ class Home extends Component{
       this.setState({open_snackbar_peak: false})
     }
 
+    handleCloseSnackbarSuccess = () => {
+      this.setState({open_snackbar_success: false})
+    }
+
     handleOpenDialogFullHistory = () => {
       this.setState({openDialogFullHistory: true})
     }
@@ -598,7 +609,7 @@ class Home extends Component{
     }
 
     handleCloseDialogShareSignal = () => {
-      this.setState({open_dialog_share_signal: false})
+      this.setState({open_dialog_share_signal: false}, () => {this.exportSyncSignal(0)})
     }
 
     handleCloseDialogLogin = () => {
@@ -657,7 +668,7 @@ class Home extends Component{
     }
 
     ConfirmSave=index=>{
-      if(!this.state.is_signal_sync)
+      if(this.state.is_signal_sync)
         this.setState({indexSignalToDelete:index},()=>{this.handleOpenDialogShareSignal()})
       else
         this.setState({indexSignalToDelete:index},()=>{this.handleOpenSave()})
@@ -818,7 +829,7 @@ class Home extends Component{
             h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_hermite,dialog:h[this.state.indexSignal].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite})
           else
             h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'Ord: '+this.state.value_order_hermite,dialog:'orden Hermite: '+this.state.value_order_hermite+'%'})
-          this.setState({signals_history:sh,history:h},()=>{console.log(this.state.history)})
+          this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
         else {
@@ -1006,53 +1017,110 @@ class Home extends Component{
         //this.props.setSignalHistory(this.state.signals_history))
     }
 
-    exportSignal2(){
+    exportSyncSignal(num){
       var aux = this.state.is_signal_cut ? this.state.indexSignalToDelete : this.state.indexSignalToDelete+1
-      let vfsd = this.state.serie_vfsd[aux].data
-      let vfsi = this.state.serie_vfsi[aux].data
-      let psa = this.state.serie_psa[aux].data
-      let co2 = this.state.serie_co2[aux].data
-      let times = this.state.x_points_vfs
-      let header_file = this.state.headerFile
-      let patient_name = this.state.headerFile[0].header[0].split(':')[1].split(' ')
-      let history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
+      var history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
+      var header_file = this.state.headerFile
       header_file[1] = {history:history}
       var filename = this.state.saved_name_signal
-      let signal_to_filter = [vfsd,vfsi,psa,co2,times]
       var obj = {
-        signals:JSON.stringify(signal_to_filter),
+        signals: JSON.stringify(this.state.sync_data),
         header: JSON.stringify(header_file),
-        filename: filename
+        filename: filename,
+        option: num
       }
       Axios({
         method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/exportSignal/R/exportSignal/json',
+        url: 'http://localhost/ocpu/user/juanpablo/library/exportSignal/R/exportSyncSignal/json',
         data: obj
       })
       .then((response) => {
         console.log(response)
         const link = document.createElement('a')
-        link.href = response.headers.location+'files/'+filename+'_fil.zip'
-        link.setAttribute('download',filename+'_fil.zip')
+        link.href = response.headers.location+'files/'+filename+'.zip'
+        link.setAttribute('download',filename+'.zip')
         document.body.appendChild(link)
         link.click()
         this.handleCloseConfirmSave()
       })
     }
 
+    exportSignal2(){
+      if(this.state.is_heart_beat_detected){
+        var aux = this.state.is_signal_cut ? this.state.indexSignalToDelete : this.state.indexSignalToDelete+1
+        var history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
+        var header_file = this.state.headerFile
+        header_file[1] = {history:history}
+        var filename = this.state.saved_name_signal
+        var obj = {
+          signals: JSON.stringify(this.state.heart_beats_detected),
+          times: JSON.stringify(this.state.x_points_vfs),
+          header: JSON.stringify(header_file),
+          filename: filename,
+        }
+        Axios({
+          method: 'POST',
+          url: 'http://localhost/ocpu/user/juanpablo/library/exportSignal/R/exportBeatSignal/json',
+          data: obj
+        })
+        .then((response) => {
+          console.log(response)
+          const link = document.createElement('a')
+          link.href = response.headers.location+'files/'+filename+'.zip'
+          link.setAttribute('download',filename+'.zip')
+          document.body.appendChild(link)
+          link.click()
+          this.handleCloseConfirmSave()
+        })
+      }
+      else{
+        var aux = this.state.is_signal_cut ? this.state.indexSignalToDelete : this.state.indexSignalToDelete+1
+        let vfsd = this.state.serie_vfsd[aux].data
+        let vfsi = this.state.serie_vfsi[aux].data
+        let psa = this.state.serie_psa[aux].data
+        let co2 = this.state.serie_co2[aux].data
+        let times = this.state.x_points_vfs
+        let header_file = this.state.headerFile
+        let history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
+        header_file[1] = {history:history}
+        var filename = this.state.saved_name_signal
+        let signal_to_filter = [vfsd,vfsi,psa,co2,times]
+        var obj = {
+          signals:JSON.stringify(signal_to_filter),
+          header: JSON.stringify(header_file),
+          filename: filename,
+        }
+        Axios({
+          method: 'POST',
+          url: 'http://localhost/ocpu/user/juanpablo/library/exportSignal/R/exportSignal/json',
+          data: obj
+        })
+        .then((response) => {
+          console.log(response)
+          const link = document.createElement('a')
+          link.href = response.headers.location+'files/'+filename+'.zip'
+          link.setAttribute('download',filename+'.zip')
+          document.body.appendChild(link)
+          link.click()
+          this.handleCloseConfirmSave()
+        })
+      }
+      
+    }
+
     handleValidateUser(event){
       event.preventDefault()
       var today = new Date()
       var today = today.getFullYear()+'-'+String(today.getMonth()).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0')
-      var patient_name = this.state.headerFile[0].header[0].split(':')[1].split(' ')
-      var filename_signal = patient_name[0][0]+patient_name[0][3]+patient_name[1][0]+patient_name[1][3]+today.getFullYear().slice(2,4)+this.state.type_signal.substring(0,3)
+      const formData = new FormData()
       var obj = {
         email:this.state.email,
         password: this.state.password,
         name_signal: this.state.saved_name_signal,
         type_signal: this.state.type_signal,
         duration: this.state.signal_time,
-        date_upload: today
+        date_upload: today,
+        frecuency: this.state.frecuency
       }
       Axios({
         method: 'POST',
@@ -1060,9 +1128,25 @@ class Home extends Component{
         data: JSON.stringify(obj)
       })
       .then(res => {
-        this.setState({message_snackbar:'Muchas Gracias!!, la señal fue añadida al respositorio.',open_snackbar:true})
+        if(res.data.status === 1)
+          this.setState({message_snackbar:'Muchas Gracias!!, la señal está siendo añadida al respositorio.',open_snackbar_success:true,email:'',password:'',type_signal:''}, () => {
+            this.handleCloseDialogLogin()
+            this.exportSyncSignal(1)
+          })
+        else
+          this.setState({message_snackbar:'Ocurrió un error al subir la señal al repositorio.',open_snackbar:true}, () => {this.exportSyncSignal(0)})
       })
-      .catch((error)=>{this.setState({message_snackbar:'Hubo un error al subir la señal.'+error.message,open_snackbar:true})})
+      .catch((error)=>{this.setState({message_snackbar:'Ocurrió un error al subir la señal al repositorio.'+error.message,open_snackbar:true})})
+    }
+
+    handleUploadFile = (file) =>{
+      const formData = new FormData()
+      formData.append('signal',file)
+      Axios.post('http://localhost:8100/web/upload_file.php',formData,{
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
     }
 
     handleRegisterUser(event){
@@ -1134,7 +1218,7 @@ class Home extends Component{
 
     handleCleanData = () =>{
       if(this.state.serie_vfsd.length > 0 || this.state.serie_vfsi.length > 0 || this.state.serie_psa.length > 0 || this.state.serie_co2.length > 0){
-        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'EtCO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0,indexSignal:0,name_signal:'',signal_is_cut:false,signal_history_backup:[],is_heart_beat_detected:false,},
+        this.setState({serie_vfsd:[],serie_vfsi:[],serie_psa:[],serie_co2:[],x_points_vfs:[],history:[],signals_history:[],data_filter_VFS:[{name:'VFSD',textStyle:echart_options.textStyle}],data_filter_VFSI:[{name:'VFSI',textStyle:echart_options.textStyle}],data_filter_PSA:[{name:'PSA',textStyle:echart_options.textStyle}],data_filter_CO2:[{name:'EtCO2',textStyle:echart_options.textStyle}],filter:'',signal_time:0,indexSignal:0,name_signal:'',signal_is_cut:false,signal_history_backup:[],is_heart_beat_detected:false},
         () => {
           //this.props.setSignalHistory(this.state.signals_history)
           this.refs.echarts_react_1.getEchartsInstance().dispose()
@@ -1186,7 +1270,7 @@ class Home extends Component{
       else aux_name = this.state.filename.name
       var today = new Date()
       var patient_name = header[0].split(':')[1].split(' ')
-      var filename_signal = patient_name[0][0]+patient_name[0][3]+patient_name[1][0]+patient_name[1][3]+String(today.getFullYear()).substring(2,4)+this.state.type_signal.substring(0,3)
+      var filename_signal = patient_name[0][0]+patient_name[0][3]+patient_name[1][0]+patient_name[1][3]+String(today.getFullYear()).substring(2,4)+String(today.getMonth()+1)+this.state.type_signal.substring(0,3)
       this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time, headerFile:[{header:header}], saved_name_signal:filename_signal.toUpperCase()})
       this.state.serie_vfsd.push({
         name:'VFSD',
@@ -1233,7 +1317,7 @@ class Home extends Component{
         }
       })
       this.setState({isReadySignal:true,name_signal:aux_name, frecuency:f}, () => {
-        console.log(this.state.headerFile)
+        //console.log(this.state.headerFile)
         this.handleClose()
         this.updateOptions()
       })
@@ -1244,7 +1328,6 @@ class Home extends Component{
         this.setState({loadingGraph:true})
         const filename = this.state.filename
         const formData = new FormData(event.target)
-        
         formData.append('filename',filename)
         this.props.loadSignal(formData).then(() => this.fetchVFS(this.props.signal_global))
         
@@ -2026,7 +2109,7 @@ class Home extends Component{
             markPoint:vfsd_beat
         }]
         this.setState({serie_vfsd:vfsd_serie}, ()=>{
-          this.updateOptionsVFSD(vfsd_beat.data.length/4)
+          this.updateOptionsVFSD(Math.ceil(vfsd_beat.data.length/4))
           this.handleCloseUpstrokeWait()
         })
       }
@@ -2040,7 +2123,7 @@ class Home extends Component{
           else if(json[i][4] === 4)
             new_upstroke.push({name: 'peak_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.peak}})
           else if(json[i][4] === 5)
-            new_upstroke.push({name: 'incisura_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.peak}})
+            new_upstroke.push({name: 'incisura_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.incisura}})
         }
         var vfsi_beat = {symbol:'circle',symbolSize:5,data:new_upstroke}
         var vfsi_serie = [{
@@ -2051,7 +2134,7 @@ class Home extends Component{
           markPoint:vfsi_beat
         }]
         this.setState({serie_vfsi:vfsi_serie}, ()=>{
-          this.updateOptionsVFSI(vfsi_beat.data.length/4)
+          this.updateOptionsVFSI(Math.ceil(vfsi_beat.data.length/4))
           this.handleCloseUpstrokeWait()
         })
       }
@@ -2064,6 +2147,8 @@ class Home extends Component{
             new_upstroke.push({name: 'upstroke_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.upstroke}})
           else if(json[i][6] === 4)
             new_upstroke.push({name: 'peak_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.peak}})
+          else if(json[i][6] === 5)
+            new_upstroke.push({name: 'incisura_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.incisura}})
         }
         var psa_beat = {symbol:'circle',symbolSize:5,data:new_upstroke}
         var psa_serie = [{
@@ -2074,7 +2159,7 @@ class Home extends Component{
           markPoint:psa_beat 
         }]
         this.setState({serie_psa:psa_serie}, ()=>{
-          this.updateOptionsPSA(psa_beat.data.length/4)
+          this.updateOptionsPSA(Math.ceil(psa_beat.data.length/4))
           this.handleCloseUpstrokeWait()
         })
       }
@@ -2191,7 +2276,6 @@ class Home extends Component{
     }
 
     sync_heartbeat(){
-    
       this.handleOpenSyncSignalsWait()
       this.handleCloseSyncSignals()
       //var signals = [{filter:this.state.signals_history[this.state.indexSignal].filter}]
@@ -2222,6 +2306,7 @@ class Home extends Component{
         this.setState({
           //signals_history: signals,
           is_signal_sync: true,
+          is_heart_beat_detected: false,
           history: history,
           sync_data:res.data,
           //is_heart_beat_detected:true,
@@ -2351,7 +2436,7 @@ class Home extends Component{
                             <form onSubmit={this.handleUploadSignal} className = {classes.form}>                                
                               <DialogContent>
                               <Grid container justify = "center" alignItems = "center">
-                                <Grid item xs = {7}>
+                                <Grid item xs = {7} >
                                   {!this.state.loadingGraph ? <Note className = {classes.iconFile}/> 
                                     : <LinearProgress classes={{
                                         colorPrimary: classes.linearColorPrimary,
@@ -2360,10 +2445,29 @@ class Home extends Component{
                                 </Grid>
                                 
                                 <Grid item xs = {7} style = {{textAlign:'center'}}>
+                                  <Select
+                                    name = "maniobra"
+                                    className={classes.textField}
+                                    value={this.state.type_signal}
+                                    onChange={this.handleChangeTypeSignal('type_signal')}
+                                    displayEmpty
+                                    autoWidth
+                                  >
+                                  <MenuItem value="" disabled>
+                                    -- Seleccione Maniobra--
+                                  </MenuItem>
+                                    {this.state.types_signal.map(option => (
+                                      <MenuItem key={option.value} value={option.value}>
+                                        {option.label}
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+                                </Grid>
+                                <Grid item xs = {7} style = {{textAlign:'center',marginTop:'10px'}}>
                                   <input type = "file" onChange={this.onChange} />
                                 </Grid>
                                 <Grid item xs = {7} style = {{textAlign:'center'}}>
-                                  <Button type = "submit" variant="contained" style = {{width:'80%'}} className = {classes.myPrimaryColor}>Cargar</Button>
+                                  <Button type = "submit" variant="contained" style = {{width:'83%'}} className = {classes.myPrimaryColor}>Cargar</Button>
                                 </Grid>
                                 
                               </Grid>
@@ -2552,7 +2656,7 @@ class Home extends Component{
               
               <SnackbarPeak open_snackbar_peak = {this.state.open_snackbar_peak} message_snackbar = {this.state.message_snackbar} handleCloseSnackbarPeak = {this.handleCloseSnackbarPeak}/>
               <SnackbarWarning open_snackbar = {this.state.open_snackbar} message_snackbar = {this.state.message_snackbar} handleCloseSnackbar = {this.handleCloseSnackbar}/>
-              
+              <SnackbarWarning open_snackbar = {this.state.open_snackbar_success} message_snackbar = {this.state.message_snackbar} handleCloseSnackbar = {this.handleCloseSnackbarSuccess}/>
               {/* Dialog para seleccionar señal */}
               <Dialog 
                 maxWidth="sm"
@@ -2918,7 +3022,6 @@ class Home extends Component{
                   helperText = "Ingrese porcentaje (ej:1)"
                   value={this.state.value_order_hermite}
                   onChange={this.handleChangeInput('value_order_hermite')}
-                  endAdornment={<InputAdornment position="end">%</InputAdornment>} 
                 />
               </DialogContent>
               <DialogActions>
@@ -3151,7 +3254,7 @@ class Home extends Component{
                 aria-describedby="alert-dialog-description"
               >
               <DialogTitle id="alert-dialog-title">Datos</DialogTitle>
-                <DialogContentText id="alert-dialog-description">
+                <DialogContentText id="alert-dialog-description" style = {{paddingLeft:'24px',marginBottom:'0px'}}>
                   Para compartir ingrese sus datos
                 </DialogContentText>
                 <form onSubmit={this.handleValidateUser.bind(this)}>
@@ -3179,25 +3282,7 @@ class Home extends Component{
                         <p style = {{color:'rgba(0,0,0,.7)'}}>Maniobra</p>
                       </Grid>
                       <Grid item lg = {10} xl = {10} md = {9}>
-                        <FormControl>
-                          <Select
-                            name = "type_signal"
-                            className={classes.textField}
-                            value={this.state.type_signal}
-                            onChange={this.handleChangeTypeSignal('type_signal')}
-                            displayEmpty
-                            autoWidth
-                            required>
-                            <MenuItem value="" disabled>
-                              -- Seleccione --
-                            </MenuItem>
-                            {this.state.types_signal.map(option => (
-                              <MenuItem key={option.value} value={option.value}>
-                                {option.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
+                        <TextField required value = {this.state.type_signal} disabled className = {classes.input}  />
                       </Grid> 
                     </Grid>
                     
@@ -3210,8 +3295,6 @@ class Home extends Component{
                         <TextField required value = {this.state.password} type="password" placeholder="Ingrese su contraseña" className = {classes.input}  onChange={this.handleChangeInput('password')} />
                       </Grid>
                     </Grid>
-                    
-                    
                   </DialogContent>
                   <DialogActions>
                     <Button onClick={this.handleCloseDialogLogin} style = {{color: '#2196f3'}}>
@@ -3238,8 +3321,11 @@ class Home extends Component{
                       <Grid item lg = {6} xl = {6} md = {6} style = {{borderRight:'1px solid rgba(154,154,154,0.54)'}}>
                         <p style = {{marginTop:'10px', color:'rgba(0,0,0,.7)', fontSize:'14px'}}>Como usuario registrado podrá compartir las señales que ha preprocesado con el fin de que cualquier investigador pueda hacer uso de ellas.</p>
                         <p style = {{color:'rgba(0,0,0,.7)', fontSize:'14px'}}>Datos como nombre y fecha de nacimiento del voluntario al que le fueron tomadas las señales biomédicas serán encriptadas, haciendo uso de un algoritmo de encriptación asimétrico.</p>
-                        <img src={logo_usach} alt = "logo" className={classes.logos}></img>
-                        <img src={logo_biomedica} alt = "logo" className={classes.logos}></img>
+                        <div style = {{textAlign:'center'}}>
+                          <img src={logo_usach} alt = "logo" className={classes.logo_usach}></img>
+                          <img src={logo_biomedica} alt = "logo" className={classes.logos}></img>
+                        </div>
+                        
                       </Grid>
                       <Grid item lg = {5} xl = {5} md = {5} style ={{marginLeft:'10px'}} >
                         <TextField variant="outlined" margin = "dense" required value = {this.state.email} placeholder="email@email.com" className = {classes.input}  onChange={this.handleChangeInput('email')} />
