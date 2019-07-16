@@ -1689,6 +1689,48 @@ class Home extends Component{
           textStyle:echart_options.textStyle,
           subtextStyle:echart_options.subtextStyle
         },
+        dataZoom:[{
+          show: true,
+          start: prev_datazoom[0].start,
+          end: prev_datazoom[0].end,
+          startValue: prev_datazoom[0].startValue,
+          endValue: prev_datazoom[0].endValue,
+          type: 'slider',
+          backgroundColor:'rgba(12,134,202,0.7)',
+          borderColor: 'rgba(154,154,154,0.54)',
+          dataBackground:{
+          lineStyle:{
+              color:'#fff'
+          }
+          },
+          xAxisIndex:[0]
+      },
+      {
+          show: true,
+          start: 0,
+          end: 150,
+          type: 'slider',
+          backgroundColor:'rgba(12,134,202,0.7)',
+          borderColor: 'rgba(154,154,154,0.54)',
+          dataBackground:{
+          lineStyle:{
+              color:'#fff'
+          }
+          },
+          yAxisIndex:[0]
+      },
+      {
+          type: 'inside',
+          xAxisIndex: [0],
+          start: 0,
+          end: 35
+      },
+      {
+          type: 'inside',
+          yAxisIndex: [0],
+          start: 0,
+          end: 50
+      }],
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {show:false},
         series:this.state.serie_vfsi
@@ -1705,6 +1747,48 @@ class Home extends Component{
           textStyle:echart_options.textStyle,
           subtextStyle:echart_options.subtextStyle
         },
+        dataZoom:[{
+          show: true,
+          start: prev_datazoom[0].start,
+          end: prev_datazoom[0].end,
+          startValue: prev_datazoom[0].startValue,
+          endValue: prev_datazoom[0].endValue,
+          type: 'slider',
+          backgroundColor:'rgba(12,134,202,0.7)',
+          borderColor: 'rgba(154,154,154,0.54)',
+          dataBackground:{
+          lineStyle:{
+              color:'#fff'
+          }
+          },
+          xAxisIndex:[0]
+      },
+      {
+          show: true,
+          start: 0,
+          end: 150,
+          type: 'slider',
+          backgroundColor:'rgba(12,134,202,0.7)',
+          borderColor: 'rgba(154,154,154,0.54)',
+          dataBackground:{
+          lineStyle:{
+              color:'#fff'
+          }
+          },
+          yAxisIndex:[0]
+      },
+      {
+          type: 'inside',
+          xAxisIndex: [0],
+          start: 0,
+          end: 35
+      },
+      {
+          type: 'inside',
+          yAxisIndex: [0],
+          start: 0,
+          end: 50
+      }],
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {show:false},
         series:this.state.serie_psa
