@@ -1679,7 +1679,7 @@ class Home extends Component{
       })
     }
 
-    updateOptionsVFSI(hb){
+    updateOptionsVFSI(hb, prev_datazoom){
       this.refs.echarts_react_2.getEchartsInstance().setOption({
         title: {
           text:'VFSI',
@@ -1737,7 +1737,7 @@ class Home extends Component{
       })
     }
 
-    updateOptionsPSA(hb){
+    updateOptionsPSA(hb,prev_datazoom){
       this.refs.echarts_react_3.getEchartsInstance().setOption({
         title: {
           text:'PSA',
