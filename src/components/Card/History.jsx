@@ -146,7 +146,7 @@ class History extends Component{
                     <ListItemIcon style = {{marginRight:'5px'}}>
                       <Save className = {classes.mySaveIcon} onClick={()=>{this.chooseSignalToSave(index)}}/>
                     </ListItemIcon>
-                    <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ fontSize:'12px',color: 'rgba(154,154,154,0.54)' }}>Ant: {h.prev}</Typography>}  />
+                    <ListItemText style = {{padding:'0 5px'}} primary ={<Typography style={{ color: '#9a9a9a' }}>{h.name}</Typography>} secondary = {<Typography style={{ fontSize:'12px',color: 'rgba(154,154,154,0.54)' }}>Ant: {h.prev.length > 10 ? h.prev.substring(0,8) : h.prev}</Typography>}  />
                     <div style = {{marginTop:'10px'}}>
                       <ListItemIcon style = {{marginRight:'5px'}}>
                         <Info onClick = {() => {this.handleOpenDialogFullHistory(index)}} className = {classes.actionIcon}/>

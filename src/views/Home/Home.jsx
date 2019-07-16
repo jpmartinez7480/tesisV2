@@ -296,7 +296,7 @@ const title_hermite = "Hermite's Spline Interpolation"
 const text_hermite = "Debe ingresar el porcentaje de puntos altos y bajos a filtrar de la señal. Se recomienda un valor de 1%"
 const title_median = "Filtro Mediana"
 const text_median = "Debe ingresar el orden de mediana para este filtro, para una señal de 100 Hz se recomienda orden 5."
-const title_automatic = "Filtro Automatic"
+const title_automatic = "Filtro Cascada"
 const text_automatic = "Debe ingresar los valores de los 3 filtros que serán usados (Hermite-Hampel-Butterworth). Los valores mostrados son los recomendados."
 
 class Home extends Component{
@@ -323,7 +323,7 @@ class Home extends Component{
             isReadySignal: false,
             loadingGraph: false,
             filter: '',
-            type_signal:'',
+            type_signal:'Sin asignar',
             value_order_hermite: 1,
             value_window_hampel: 10,
             value_thresold_hampel:1.6,
@@ -386,7 +386,7 @@ class Home extends Component{
               
               {
                 value:'automatic',
-                label: 'Automatic'
+                label: 'Cascada'
               },
               {
                 value:'hermite',
@@ -408,6 +408,10 @@ class Home extends Component{
             ],
             types_signal:[
               {
+                value:'Sin asignar',
+                label:'Sin asignar'
+              },
+              {
                 value:'Baseline',
                 label:'Baseline'
               },
@@ -426,7 +430,8 @@ class Home extends Component{
             peak_modify_by_signal:0,
             frecuency:'',
             fab_state: true,
-            open_snackbar_success: false
+            open_snackbar_success: false,
+            open_export_signal_wait: false
 
         }
         this.onChange = this.onChange.bind(this)
@@ -526,6 +531,14 @@ class Home extends Component{
 
     handleOpenDialogRegister = () => {
       this.setState({open_dialog_register: true})
+    }
+
+    handleOpenExportSignalWait = () => {
+      this.setState({open_export_signal_wait: true})
+    }
+
+    handleCloseExportSignalWait = () => {
+      this.setState({open_export_signal_wait: false})
     }
 
     handleCloseHermite = () => {
@@ -753,7 +766,7 @@ class Home extends Component{
       })
       .then((res) => {
         if(res.status === 201){
-          let filter = 'Automatic'
+          let filter = 'Cascada'
           let aux = this.searchSignal(filter,this.state.signals_history) 
           
           filter = (aux).toString(10)+'-'+filter
@@ -765,7 +778,7 @@ class Home extends Component{
           this.state.serie_co2.push({name:filter,type:'line',data:res.data[3],symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:this.changeIntensityColor(echart_colors.automatic,aux)}})
           var sh = [...this.state.signals_history]
           var h = [...this.state.history]
-          sh.push({filter:this.searchSignal("Automatic",this.state.signals_history).toString(10)+"-Automatic"})
+          sh.push({filter:this.searchSignal("Cascada",this.state.signals_history).toString(10)+"-Cascada"})
           if(this.state.indexSignal >= 1  && !this.state.is_signal_cut)
             h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'pendiente',dialog:h[this.state.indexSignal-1].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite+' / '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.value_thresold_hampel+' / '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
           else if(this.state.indexSignal === 0 && this.state.is_signal_cut)
@@ -774,7 +787,7 @@ class Home extends Component{
             h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'pendiente',dialog:h[this.state.indexSignal].dialog+'\n'+'orden Hermite: '+this.state.value_order_hermite+' / '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.value_thresold_hampel+' / '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
           else
             h.push({name:filter,prev:sh[this.state.indexSignal].filter,data:'pendiente',dialog:'orden Hermite: '+this.state.value_order_hermite+'%'+' / '+'ventana Hampel: '+ this.state.value_window_hampel+';'+' umbral Hampel: '+this.state.value_thresold_hampel+' / '+'orden Butterworth: '+this.state.value_order_butter+';'+' corte Butterworth:'+this.state.value_slice_butter})
-          this.setState({signals_history:sh,history:h},()=>{console.log(this.state.history)})
+          this.setState({signals_history:sh,history:h})
           this.updateOptions()
         }
         else {
@@ -1018,6 +1031,7 @@ class Home extends Component{
     }
 
     exportSyncSignal(num){
+      this.handleOpenExportSignalWait()
       var aux = this.state.is_signal_cut ? this.state.indexSignalToDelete : this.state.indexSignalToDelete+1
       var history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
       var header_file = this.state.headerFile
@@ -1035,17 +1049,17 @@ class Home extends Component{
         data: obj
       })
       .then((response) => {
-        console.log(response)
         const link = document.createElement('a')
         link.href = response.headers.location+'files/'+filename+'.zip'
         link.setAttribute('download',filename+'.zip')
         document.body.appendChild(link)
         link.click()
-        this.handleCloseConfirmSave()
+        this.handleCloseExportSignalWait()
       })
     }
 
     exportSignal2(){
+      this.handleOpenExportSignalWait()
       if(this.state.is_heart_beat_detected){
         var aux = this.state.is_signal_cut ? this.state.indexSignalToDelete : this.state.indexSignalToDelete+1
         var history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
@@ -1071,6 +1085,7 @@ class Home extends Component{
           document.body.appendChild(link)
           link.click()
           this.handleCloseConfirmSave()
+          this.handleCloseExportSignalWait()
         })
       }
       else{
@@ -1103,7 +1118,7 @@ class Home extends Component{
           document.body.appendChild(link)
           link.click()
           this.handleCloseConfirmSave()
-        })
+        }, ()=>{this.handleCloseExportSignalWait()})
       }
       
     }
@@ -1111,7 +1126,7 @@ class Home extends Component{
     handleValidateUser(event){
       event.preventDefault()
       var today = new Date()
-      var today = today.getFullYear()+'-'+String(today.getMonth()).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0')
+      var today = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0')
       const formData = new FormData()
       var obj = {
         email:this.state.email,
@@ -1606,7 +1621,7 @@ class Home extends Component{
       })
     }
 
-    updateOptionsVFSD(hb){
+    updateOptionsVFSD(hb,prev_datazoom){
       this.refs.echarts_react_1.getEchartsInstance().setOption({
         title: {
           text:'VFSD',
@@ -1616,7 +1631,48 @@ class Home extends Component{
           textStyle:echart_options.textStyle,
           subtextStyle:echart_options.subtextStyle
         },
-        
+        dataZoom:[{
+          show: true,
+          start: prev_datazoom[0].start,
+          end: prev_datazoom[0].end,
+          startValue: prev_datazoom[0].startValue,
+          endValue: prev_datazoom[0].endValue,
+          type: 'slider',
+          backgroundColor:'rgba(12,134,202,0.7)',
+          borderColor: 'rgba(154,154,154,0.54)',
+          dataBackground:{
+          lineStyle:{
+              color:'#fff'
+          }
+          },
+          xAxisIndex:[0]
+      },
+      {
+          show: true,
+          start: 0,
+          end: 150,
+          type: 'slider',
+          backgroundColor:'rgba(12,134,202,0.7)',
+          borderColor: 'rgba(154,154,154,0.54)',
+          dataBackground:{
+          lineStyle:{
+              color:'#fff'
+          }
+          },
+          yAxisIndex:[0]
+      },
+      {
+          type: 'inside',
+          xAxisIndex: [0],
+          start: 0,
+          end: 35
+      },
+      {
+          type: 'inside',
+          yAxisIndex: [0],
+          start: 0,
+          end: 50
+      }],
         xAxis:[{data:this.state.x_points_vfs}],
         legend: {show:false},
         series:this.state.serie_vfsd
@@ -1780,6 +1836,7 @@ class Home extends Component{
 
     onChangePeak = (param,echarts) => {
       console.log(param)
+      console.log(this.refs.echarts_react_1.getEchartsInstance().getOption())
       if(this.state.is_heart_beat_detected){
         if(this.state.cnt_click_peak === 0 && param.componentType === 'markPoint' && !(param.data.name === 'upstroke_vfsd' || param.data.name === 'upstroke_vfsi' || param.data.name === 'upstroke_psa')){
           this.setState({message_snackbar:'Ha seleccionado el peak ' + param.data.coord[1] + '. Haga click en el punto nuevo punto máximo/mínimo.',open_snackbar_peak: true,cnt_click_peak:1,peak_selected:param})
@@ -1798,9 +1855,11 @@ class Home extends Component{
             var new_markpoint = {name: 'peak_vfsd', index:point_to_change,coord:[this.state.x_points_vfs[point_to_change],vfsd.data[point_to_change]],itemStyle:{color:echart_colors.peak}}
             markpoints[position_index_markpoint] = new_markpoint
             var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
-            var vfsd_serie = [{ name:'VFSD',type:'line',data:vfsd.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'},markPoint:markpoints_modify}]              
+            var markArea_modify = this.getPeaksBadDetected(markpoints,vfsd.data)
+            var prev_datazoom = this.refs.echarts_react_1.getEchartsInstance().getOption().dataZoom
+            var vfsd_serie = [{ name:'VFSD',type:'line',data:vfsd.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'},markPoint:markpoints_modify,markArea:{data:markArea_modify}}]              
             this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsd:vfsd_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
-              this.updateOptionsVFSD('debe recalcular')
+              this.updateOptionsVFSD('debe recalcular',prev_datazoom)
             })
           }
           else if(this.state.peak_selected.data.name === 'inicio_vfsd' && param.seriesName === 'VFSD'){
@@ -1812,10 +1871,11 @@ class Home extends Component{
             var new_markpoint = {name: 'inicio_vfsd', index:point_to_change,coord:[this.state.x_points_vfs[point_to_change],vfsd.data[point_to_change]],itemStyle:{color:echart_colors.start_heartbeat}}
             markpoints[position_index_markpoint] = new_markpoint
             var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
-            var vfsd_serie = [{ name:'VFSD',type:'line',data:vfsd.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'},markPoint:markpoints_modify}]              
+            var markArea_modify = this.getPeaksBadDetected(markpoints,vfsd.data)
+            var prev_datazoom = this.refs.echarts_react_1.getEchartsInstance().getOption().dataZoom
+            var vfsd_serie = [{ name:'VFSD',type:'line',data:vfsd.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'},markPoint:markpoints_modify,markArea:{data:markArea_modify}}]              
             this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsd:vfsd_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
-              this.updateOptionsVFSD('debe recalcular')
-              console.log(this.state.heart_beats_detected)
+              this.updateOptionsVFSD('debe recalcular',prev_datazoom)
             })
           }
           else if(this.state.peak_selected.data.name === 'peak_vfsi' && param.seriesName === 'VFSI'){
@@ -1829,8 +1889,9 @@ class Home extends Component{
             markpoints[position_index_markpoint] = new_markpoint
             var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
             var vfsi_serie = [{ name:'VFSI',type:'line',data:vfsi.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'},markPoint:markpoints_modify}]              
+            var prev_datazoom = this.refs.echarts_react_2.getEchartsInstance().getOption().dataZoom
             this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsi:vfsi_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
-              this.updateOptionsVFSI('debe recalcular')
+              this.updateOptionsVFSI('debe recalcular',prev_datazoom)
             })
           }
           else if(this.state.peak_selected.data.name === 'inicio_vfsi' && param.seriesName === 'VFSI'){
@@ -1844,9 +1905,9 @@ class Home extends Component{
             markpoints[position_index_markpoint] = new_markpoint
             var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
             var vfsi_serie = [{ name:'VFSI',type:'line',data:vfsi.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#d22824'},markPoint:markpoints_modify}]              
+            var prev_datazoom = this.refs.echarts_react_2.getEchartsInstance().getOption().dataZoom
             this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_vfsi:vfsi_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
-              this.updateOptionsVFSI('debe recalcular')
-              console.log(this.state.heart_beats_detected)
+              this.updateOptionsVFSI('debe recalcular',prev_datazoom)
             })
           }
           else if(this.state.peak_selected.data.name === 'peak_psa' && param.seriesName === 'PSA'){
@@ -1858,9 +1919,10 @@ class Home extends Component{
             var new_markpoint = {name: 'peak_psa', index:point_to_change,coord:[this.state.x_points_vfs[point_to_change],psa.data[point_to_change]],itemStyle:{color:echart_colors.peak}}
             markpoints[position_index_markpoint] = new_markpoint
             var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
+            var prev_datazoom = this.refs.echarts_react_3.getEchartsInstance().getOption().dataZoom
             var psa_serie = [{ name:'PSA',type:'line',data:psa.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'},markPoint:markpoints_modify}]              
             this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_psa:psa_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
-              this.updateOptionsPSA('debe recalcular')
+              this.updateOptionsPSA('debe recalcular',prev_datazoom)
             })
           }
           else if(this.state.peak_selected.data.name === 'inicio_psa' && param.seriesName === 'PSA'){
@@ -1872,9 +1934,10 @@ class Home extends Component{
             var new_markpoint = {name: 'inicio_psa', index:point_to_change,coord:[this.state.x_points_vfs[point_to_change],psa.data[point_to_change]],itemStyle:{color:echart_colors.start_heartbeat}}
             markpoints[position_index_markpoint] = new_markpoint
             var markpoints_modify = {symbol:'circle',symbolSize:5,data:markpoints}
+            var prev_datazoom = this.refs.echarts_react_3.getEchartsInstance().getOption().dataZoom
             var psa_serie = [{ name:'PSA',type:'line',data:psa.data,symbol:echart_options.series.symbol,symbolSize: echart_options.series.symbolSize,itemStyle:{color:'#029eb1'},markPoint:markpoints_modify}]              
             this.setState({message_snackbar:'Cambiando peak ' + this.state.peak_selected.data.coord[1] + ' por ' + param.data,cnt_click_peak:0,open_snackbar_peak: true,peak_selected:{},serie_psa:psa_serie,heart_beats_detected:heartbeats,peak_modify_by_signal:this.state.peak_modify_by_signal++}, ()=>{
-              this.updateOptionsPSA('debe recalcular')
+              this.updateOptionsPSA('debe recalcular',prev_datazoom)
             })
           }
           else if(
@@ -2085,8 +2148,6 @@ class Home extends Component{
     }
 
     updateUpstrokeSignalOnGraph(json,op){
-      console.log(json)
-      console.log(json.length)
       var new_upstroke = []
       if(op == 2){
         var vfsd = this.state.serie_vfsd[0].data
@@ -2101,15 +2162,17 @@ class Home extends Component{
             new_upstroke.push({name: 'incisura_vfsd', index:i,coord:[this.state.x_points_vfs[i],vfsd[i]],itemStyle:{color:echart_colors.incisura}})
         }
         var vfsd_beat = {symbol:'circle',symbolSize:5,data:new_upstroke}
+        var vfsd_markpoint = this.getPeaksBadDetected(vfsd_beat.data,vfsd)
         var vfsd_serie = [{
             name:'VFSD',type:'line',data:vfsd,
             symbol:echart_options.series.symbol,
             symbolSize: echart_options.series.symbolSize,
             itemStyle:{color:'#d22824'},
-            markPoint:vfsd_beat
+            markPoint:vfsd_beat,
+            markArea:{data:vfsd_markpoint}
         }]
         this.setState({serie_vfsd:vfsd_serie}, ()=>{
-          this.updateOptionsVFSD(Math.ceil(vfsd_beat.data.length/4))
+          this.updateOptionsVFSD(Math.ceil(vfsd_beat.data.length/4),this.refs.echarts_react_1.getEchartsInstance().getOption().dataZoom)
           this.handleCloseUpstrokeWait()
         })
       }
@@ -2126,15 +2189,17 @@ class Home extends Component{
             new_upstroke.push({name: 'incisura_vfsi',index:i,coord:[this.state.x_points_vfs[i],vfsi[i]],itemStyle:{color:echart_colors.incisura}})
         }
         var vfsi_beat = {symbol:'circle',symbolSize:5,data:new_upstroke}
+        var vfsi_markpoint = this.getPeaksBadDetected(vfsi_beat.data,vfsi)
         var vfsi_serie = [{
           name:'VFSI',type:'line',data:vfsi,
           symbol:echart_options.series.symbol,
           symbolSize: echart_options.series.symbolSize,
           itemStyle:{color:'#d22824'},
-          markPoint:vfsi_beat
+          markPoint:vfsi_beat,
+          markArea:{data:vfsi_markpoint}
         }]
         this.setState({serie_vfsi:vfsi_serie}, ()=>{
-          this.updateOptionsVFSI(Math.ceil(vfsi_beat.data.length/4))
+          this.updateOptionsVFSI(Math.ceil(vfsi_beat.data.length/4),this.refs.echarts_react_2.getEchartsInstance().getOption().dataZoom)
           this.handleCloseUpstrokeWait()
         })
       }
@@ -2151,15 +2216,17 @@ class Home extends Component{
             new_upstroke.push({name: 'incisura_psa',index:i,coord:[this.state.x_points_vfs[i],psa[i]],itemStyle:{color:echart_colors.incisura}})
         }
         var psa_beat = {symbol:'circle',symbolSize:5,data:new_upstroke}
+        var psa_markpoint = this.getPeaksBadDetected(psa_beat.data,psa)
         var psa_serie = [{
           name:'PSA',type:'line',data:psa,
           symbol:echart_options.series.symbol,
           symbolSize: echart_options.series.symbolSize,
           itemStyle:{color:'#029eb1'},
-          markPoint:psa_beat 
+          markPoint:psa_beat,
+          markArea:{data:psa_markpoint} 
         }]
         this.setState({serie_psa:psa_serie}, ()=>{
-          this.updateOptionsPSA(Math.ceil(psa_beat.data.length/4))
+          this.updateOptionsPSA(Math.ceil(psa_beat.data.length/4),this.refs.echarts_react_3.getEchartsInstance().getOption().dataZoom)
           this.handleCloseUpstrokeWait()
         })
       }
@@ -2201,6 +2268,39 @@ class Home extends Component{
       return[vfsd_beat,vfsi_beat,psa_beat]
     }
 
+    getPeaksBadDetected(markpoints,signal){
+      /* 
+      markArea:{
+          data: [ [{
+              name: 'revisar peak',
+              xAxis: '10:01:10:79'
+          }, {
+              xAxis: '10:01:11:00'
+          }]]
+      }
+      */
+      var data = []
+      for(var i = 0; i < markpoints.length-4; i+=4){
+        //upstroke mayor a valor maximo del latido actual
+        if((markpoints[i+1].coord[1] > markpoints[i+2].coord[1])){
+          data.push([{name:'',xAxis:markpoints[i+1].index-2},{xAxis:markpoints[i+1].index+2}])
+        }
+        //el minimo detectado no es el valor minimo
+        if(markpoints[i].coord[1] > signal[markpoints[i].index-1]){
+          data.push([{name:'',xAxis:markpoints[i].index-1},{xAxis:markpoints[i].index+1}])
+        }
+        //upstroke se encuentra después que el peak detectado
+        if(markpoints[i+1].index > markpoints[i+2].index){
+          data.push([{name:'',xAxis:markpoints[i+2].index-2},{xAxis:markpoints[i+2].index+2}])
+        }
+        //incisura se detectó antes de peak
+        if((markpoints[i+3].index > markpoints[i+2].index) && markpoints[i+2].name.substring(0,8)==='incisura'){
+          data.push([{name:'',xAxis:markpoints[i+2].index-2},{xAxis:markpoints[i+2].index+2}])
+        }
+      }
+      return data
+    }
+
     getDataToPar = () =>{
       this.handleOpenBeat()
       var vfsd = this.state.serie_vfsd[this.state.indexSignal].data
@@ -2235,6 +2335,9 @@ class Home extends Component{
         var vfsd_beats = beats_detected[0]
         var vfsi_beats = beats_detected[1]
         var psa_beats = beats_detected[2]
+        var vfsd_markArea = this.getPeaksBadDetected(vfsd_beats.data,vfsd)
+        var vfsi_markArea = this.getPeaksBadDetected(vfsi_beats.data,vfsi)
+        var psa_markArea = this.getPeaksBadDetected(psa_beats.data,psa)
         this.setState({
             heart_beats_detected:res.data,
             signals_history: signals,
@@ -2249,21 +2352,24 @@ class Home extends Component{
               symbol:echart_options.series.symbol,
               symbolSize: echart_options.series.symbolSize,
               itemStyle:{color:'#d22824'},
-              markPoint:vfsd_beats
+              markPoint:vfsd_beats,
+              markArea:{data:vfsd_markArea}
             }],
             serie_vfsi:[{
               name:'VFSI',type:'line',data:vfsi,
               symbol:echart_options.series.symbol,
               symbolSize: echart_options.series.symbolSize,
               itemStyle:{color:'#d22824'},
-              markPoint: vfsi_beats
+              markPoint: vfsi_beats,
+              markArea:{data:vfsi_markArea}
             }],
             serie_psa:[{
               name:'PSA',type:'line',data:psa,
               symbol:echart_options.series.symbol,
               symbolSize: echart_options.series.symbolSize,
               itemStyle:{color:'#029eb1'},
-              markPoint: psa_beats
+              markPoint: psa_beats,
+              markArea:{data:psa_markArea}
             }]
           },()=>{
             this.updateOptionsPar(vfsd_beats.data.length/4,vfsi_beats.data.length/4,psa_beats.data.length/4)
@@ -2303,6 +2409,9 @@ class Home extends Component{
       .then(res=>{
         console.log(res.data)
         var sync_data = this.getSyncHeartBeat(res.data)
+        var vfsd_markpoint = this.getPeaksBadDetected(sync_data[4].data,sync_data[1])
+        var vfsi_markpoint = this.getPeaksBadDetected(sync_data[5].data,sync_data[2])
+        var psa_markpoint = this.getPeaksBadDetected(sync_data[6].data, sync_data[3])
         this.setState({
           //signals_history: signals,
           is_signal_sync: true,
@@ -2320,21 +2429,24 @@ class Home extends Component{
             symbol:echart_options.series.symbol,
             symbolSize: echart_options.series.symbolSize,
             itemStyle:{color:'#d22824'},
-            markPoint:sync_data[4]
+            markPoint:sync_data[4],
+            markArea:{data:vfsd_markpoint}
           }],
           serie_vfsi:[{
             name:'VFSI',type:'line',data:sync_data[2],
             symbol:echart_options.series.symbol,
             symbolSize: echart_options.series.symbolSize,
             itemStyle:{color:'#d22824'},
-            markPoint: sync_data[5]
+            markPoint: sync_data[5],
+            markArea:{data:vfsi_markpoint}
           }],
           serie_psa:[{
             name:'PSA',type:'line',data:sync_data[3],
             symbol:echart_options.series.symbol,
             symbolSize: echart_options.series.symbolSize,
             itemStyle:{color:'#029eb1'},
-            markPoint: sync_data[6]
+            markPoint: sync_data[6],
+            markArea:{data:psa_markpoint}
           }]
         },()=>{
           
@@ -2348,7 +2460,6 @@ class Home extends Component{
     }
 
     getSyncHeartBeat(sync_json){
-      console.log(sync_json)
       var sync_time = []
       var vfsd_sync = []
       var vfsi_sync = []
@@ -2443,6 +2554,9 @@ class Home extends Component{
                                         barColorPrimary: classes.linearBarColorPrimary}}
                                 />}
                                 </Grid>
+                                <Grid item xs = {7} style = {{textAlign:'center',marginBottom:'10px'}}>
+                                  <input type = "file" onChange={this.onChange} />
+                                </Grid>
                                 
                                 <Grid item xs = {7} style = {{textAlign:'center'}}>
                                   <Select
@@ -2452,6 +2566,7 @@ class Home extends Component{
                                     onChange={this.handleChangeTypeSignal('type_signal')}
                                     displayEmpty
                                     autoWidth
+                                    required
                                   >
                                   <MenuItem value="" disabled>
                                     -- Seleccione Maniobra--
@@ -2463,9 +2578,7 @@ class Home extends Component{
                                     ))}
                                   </Select>
                                 </Grid>
-                                <Grid item xs = {7} style = {{textAlign:'center',marginTop:'10px'}}>
-                                  <input type = "file" onChange={this.onChange} />
-                                </Grid>
+                                
                                 <Grid item xs = {7} style = {{textAlign:'center'}}>
                                   <Button type = "submit" variant="contained" style = {{width:'83%'}} className = {classes.myPrimaryColor}>Cargar</Button>
                                 </Grid>
@@ -2656,7 +2769,7 @@ class Home extends Component{
               
               <SnackbarPeak open_snackbar_peak = {this.state.open_snackbar_peak} message_snackbar = {this.state.message_snackbar} handleCloseSnackbarPeak = {this.handleCloseSnackbarPeak}/>
               <SnackbarWarning open_snackbar = {this.state.open_snackbar} message_snackbar = {this.state.message_snackbar} handleCloseSnackbar = {this.handleCloseSnackbar}/>
-              <SnackbarWarning open_snackbar = {this.state.open_snackbar_success} message_snackbar = {this.state.message_snackbar} handleCloseSnackbar = {this.handleCloseSnackbarSuccess}/>
+              <SnackBarSuccess open_snackbar = {this.state.open_snackbar_success} message_snackbar = {this.state.message_snackbar} handleCloseSnackbar = {this.handleCloseSnackbarSuccess}/>
               {/* Dialog para seleccionar señal */}
               <Dialog 
                 maxWidth="sm"
@@ -3345,6 +3458,28 @@ class Home extends Component{
                 </form>
               </Dialog>
               {/*fin Dialog registro*/}
+              {/* Dialog sync señales */}
+                <Dialog
+                  open={this.state.open_export_signal_wait}
+                  onClose={this.handleCloseExportSignalWait}
+                  aria-labelledby="alert-dialog-title"
+                  aria-describedby="alert-dialog-description"
+                  maxWidth="sm"
+                  disableBackdropClick={true}
+                  fullWidth={true}
+                >
+                  <DialogTitle id="alert-dialog-title">Exportando señal</DialogTitle>
+                  <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                      Por favor espere ... 
+                    </DialogContentText>
+                    <br />
+                    <LinearProgress classes={{
+                                            colorPrimary: classes.linearColorPrimary,
+                                            barColorPrimary: classes.linearBarColorPrimary}} />
+                  </DialogContent>
+                </Dialog>
+            {/* Fin Dialog sync señales */}
             </div>
             
         )

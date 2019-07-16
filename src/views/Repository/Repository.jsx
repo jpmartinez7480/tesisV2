@@ -194,7 +194,7 @@ class Repository extends Component{
     }
 
     handleChangePage = (event,newPage) =>{
-        this.setState({page: newPage})
+        this.setState({page: newPage}, ()=>{console.log(this.state.page)})
     }
 
     handleChangeRowsPerPage = (event) =>{
@@ -251,6 +251,12 @@ class Repository extends Component{
                                             //native: true,
                                             }}
                                             onChangePage={this.handleChangePage}
+                                            backIconButtonProps={{
+                                                'aria-label': 'Previous Page',
+                                            }}
+                                            nextIconButtonProps={{
+                                                'aria-label': 'Next Page',
+                                            }}
                                             //onChangeRowsPerPage={this.handleChangeRowsPerPage}
                                             //nextIconButtonProps={this.handleNextPageButtonClick}
                                             

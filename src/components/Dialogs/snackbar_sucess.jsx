@@ -55,7 +55,7 @@ class SnackbarSucess extends Component{
                 >
                 <SnackbarContent
                   onClose={this.handleCloseSnackbar}
-                  className={classes.error}
+                  className={classes.sucess}
                   message={this.props.message_snackbar}
                   action={[
                     <IconButton
