@@ -1078,13 +1078,13 @@ class Home extends Component{
           data: obj
         })
         .then((response) => {
-          console.log(response)
+          this.handleCloseConfirmSave()
           const link = document.createElement('a')
           link.href = response.headers.location+'files/'+filename+'.zip'
           link.setAttribute('download',filename+'.zip')
           document.body.appendChild(link)
           link.click()
-          this.handleCloseConfirmSave()
+          
           this.handleCloseExportSignalWait()
         })
       }
@@ -1111,16 +1111,15 @@ class Home extends Component{
           data: obj
         })
         .then((response) => {
-          console.log(response)
+          this.handleCloseConfirmSave()
           const link = document.createElement('a')
           link.href = response.headers.location+'files/'+filename+'.zip'
           link.setAttribute('download',filename+'.zip')
           document.body.appendChild(link)
           link.click()
-          this.handleCloseConfirmSave()
-        }, ()=>{this.handleCloseExportSignalWait()})
+          this.handleCloseExportSignalWait()
+        })
       }
-      
     }
 
     handleValidateUser(event){
