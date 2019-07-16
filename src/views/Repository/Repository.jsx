@@ -194,7 +194,7 @@ class Repository extends Component{
     }
 
     handleChangePage = (event,newPage) =>{
-        this.setState({page: newPage}, ()=>{console.log(this.state.page)})
+        this.setState({page: newPage})
     }
 
     handleChangeRowsPerPage = (event) =>{
@@ -257,10 +257,7 @@ class Repository extends Component{
                                             nextIconButtonProps={{
                                                 'aria-label': 'Next Page',
                                             }}
-                                            //onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                                            //nextIconButtonProps={this.handleNextPageButtonClick}
-                                            
-                                            //ActionsComponent={TablePaginationActions}
+                                            onChangeRowsPerPage={this.handleChangeRowsPerPage}
                                         />
                                     </TableRow>
                                 </TableFooter>
