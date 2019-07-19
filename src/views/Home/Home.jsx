@@ -323,7 +323,7 @@ class Home extends Component{
             isReadySignal: false,
             loadingGraph: false,
             filter: '',
-            type_signal:'Sin asignar',
+            type_signal:'',
             value_order_hermite: 1,
             value_window_hampel: 10,
             value_thresold_hampel:1.6,
@@ -420,6 +420,20 @@ class Home extends Component{
                 label: 'Sit-to-Stand'
               }
             ],
+            frecuencies:[
+              {
+                value:'50Hz',
+                label:'50Hz'
+              },
+              {
+                value:'100Hz',
+                label:'100Hz'
+              },
+              {
+                value:'150Hz',
+                label:'150Hz'
+              },
+            ],
             brushArea:{},
             headerFile:{},
             etco2_echart:'block',
@@ -431,11 +445,22 @@ class Home extends Component{
             frecuency:'',
             fab_state: true,
             open_snackbar_success: false,
-            open_export_signal_wait: false
+            open_export_signal_wait: false,
+            open2: false,
+            filename_signal:null,
+            filename_header: null,
+            can_filter:true,
+            patient_name:'',
+            age_vol:'',
+            examination_day:'',
+            type_vol:'',
+            openWaitLoadSignal: false
 
         }
         this.onChange = this.onChange.bind(this)
+        this.onChange2 = this.onChange2.bind(this)
         this.handleUploadSignal = this.handleUploadSignal.bind(this)
+        this.handleReadFiles = this.handleReadFiles.bind(this)
         this.handleSendFilter = this.handleSendFilter.bind(this)
         this.splitSignalTimes = this.splitSignalTimes.bind(this)
         this.handleValidateUser = this.handleValidateUser.bind(this)
@@ -535,6 +560,14 @@ class Home extends Component{
 
     handleOpenExportSignalWait = () => {
       this.setState({open_export_signal_wait: true})
+    }
+
+    handleOpenWaitLoadSignal = () => {
+      this.setState({openWaitLoadSignal: true})
+    }
+
+    handleCloseWaitLoadSignal = () => {
+      this.setState({openWaitLoadSignal: false})
     }
 
     handleCloseExportSignalWait = () => {
@@ -658,15 +691,28 @@ class Home extends Component{
         this.setState({ loadingGraph:false,open_dialog_clean: false,open: true });
     };
     
+    handleClickOpen2 = () => {
+      this.setState({open2 : true})
+    }
+
+    handleCloseOpen2 = () => {
+      this.setState({open2: false})
+    }
+
     handleClose = () => {
         this.setState({ open: false });
     };
 
     onChange(e){
-      this.setState({filename:e.target.files[0]})
+        this.setState({filename:e.target.files[0]})       
     }
 
-   
+    onChange2(e){
+      if(e.target.files[0].name.split('.')[1] === 'fil' || e.target.files[0].name.split('.')[1] === 'sync')
+        this.setState({filename_signal:e.target.files[0],filename_header:e.target.files[1]})
+      else if(e.target.files[1].name.split('.')[1] === 'fil' || e.target.files[1].name.split('.')[1] === 'sync')
+        this.setState({filename_signal:e.target.files[1],filename_header:e.target.files[0]})
+    }
 
     changeSelectedSignal=index=>{
       this.setState({indexSignal:index})
@@ -705,7 +751,7 @@ class Home extends Component{
         else
           history_copy.splice(aux-1,1)
         signals_history_copy.splice(aux,1)
-        this.setState({indexSignalToDelete:0,indexSignal:0,serie_vfsd:serie_vfsd_copy,serie_vfsi:serie_vfsi_copy,serie_psa:serie_psa_copy,serie_co2:serie_co2_copy,history:history_copy,signals_history:signals_history_copy},()=>{
+        this.setState({indexSignalToDelete:0,indexSignal:0,serie_vfsd:serie_vfsd_copy,serie_vfsi:serie_vfsi_copy,serie_psa:serie_psa_copy,serie_co2:serie_co2_copy,history:history_copy,signals_history:signals_history_copy,can_filter:true},()=>{
           this.updateOptions()
           this.handleCloseDialogDeleteSignal()
         })
@@ -745,7 +791,8 @@ class Home extends Component{
       let psa = this.state.serie_psa[this.state.indexSignal].data
       let co2 = this.state.serie_co2[this.state.indexSignal].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
-      let rate_aux = this.state.headerFile[0].header[3].split(':')[1]
+      let rate_aux = this.state.frecuency
+      console.log(rate_aux)
       let rate = ''
       for(var i = 0; rate_aux[i] != 'H'; i++)
         rate+=rate_aux[i]
@@ -919,7 +966,7 @@ class Home extends Component{
       let psa = this.state.serie_psa[this.state.indexSignal].data
       let co2 = this.state.serie_co2[this.state.indexSignal].data
       let signal_to_filter = [vfsd,vfsi,psa,co2]
-      let rate_aux = this.state.headerFile[0].header[3].split(':')[1]
+      let rate_aux = this.state.frecuency
       let rate = ''
       var i = 0
       for(var i = 0; rate_aux[i] != 'H'; i++)
@@ -1049,6 +1096,7 @@ class Home extends Component{
         data: obj
       })
       .then((response) => {
+        console.log(response.data)
         const link = document.createElement('a')
         link.href = response.headers.location+'files/'+filename+'.zip'
         link.setAttribute('download',filename+'.zip')
@@ -1056,9 +1104,11 @@ class Home extends Component{
         link.click()
         this.handleCloseExportSignalWait()
       })
+      .catch((error)=>{this.setState({message_snackbar:'Ocurrió un error al subir la señal al exportar la señal.'+error.message,open_snackbar:true}, ()=>{this.handleCloseExportSignalWait()})})
     }
 
     exportSignal2(){
+      this.handleCloseConfirmSave()
       this.handleOpenExportSignalWait()
       if(this.state.is_heart_beat_detected){
         var aux = this.state.is_signal_cut ? this.state.indexSignalToDelete : this.state.indexSignalToDelete+1
@@ -1087,23 +1137,48 @@ class Home extends Component{
           
           this.handleCloseExportSignalWait()
         })
+        .catch((error)=>{this.setState({message_snackbar:'Ocurrió un error al subir la señal al exportar la señal.'+error.message,open_snackbar:true}, ()=>{
+          this.handleCloseExportSignalWait()
+          this.handleCloseConfirmSave()
+        })})
       }
       else{
         var aux = this.state.is_signal_cut ? this.state.indexSignalToDelete : this.state.indexSignalToDelete+1
-        let vfsd = this.state.serie_vfsd[aux].data
-        let vfsi = this.state.serie_vfsi[aux].data
-        let psa = this.state.serie_psa[aux].data
-        let co2 = this.state.serie_co2[aux].data
-        let times = this.state.x_points_vfs
-        let header_file = this.state.headerFile
-        let history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
-        header_file[1] = {history:history}
+        var vfsd = this.state.serie_vfsd[aux].data
+        var vfsi = this.state.serie_vfsi[aux].data
+        var psa = this.state.serie_psa[aux].data
+        var co2 = this.state.serie_co2[aux].data
+        var times = this.state.x_points_vfs
+        var volunteer_data = {
+          volunteer:this.state.patient_name,
+          examination_day:this.state.examination_day,
+          age:this.state.age_vol,
+          type_volunteer:this.state.type_vol,
+          maneuver:this.state.type_signal,
+          frecuency:this.state.frecuency,
+          duration:this.state.signal_time
+        }
+        if(this.state.filename_signal === null)
+          var history = {history:this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog}
+        else{
+          var history_prev = []
+          console.log(this.state.headerFile.length)
+          console.log(this.state.headerFile[8])
+          for(var i = 8; i < this.state.headerFile.length; i++){
+            history_prev.push(this.state.headerFile[i].V1)
+          }
+          history_prev.push(this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog) 
+          console.log(history_prev)
+          var history = {history:history_prev}
+        }
+          
         var filename = this.state.saved_name_signal
         let signal_to_filter = [vfsd,vfsi,psa,co2,times]
         var obj = {
           signals:JSON.stringify(signal_to_filter),
-          header: JSON.stringify(header_file),
-          filename: filename,
+          header: JSON.stringify(volunteer_data),
+          history:JSON.stringify(history),
+          filename: filename
         }
         Axios({
           method: 'POST',
@@ -1119,6 +1194,7 @@ class Home extends Component{
           link.click()
           this.handleCloseExportSignalWait()
         })
+        .catch((error)=>{this.setState({message_snackbar:'Ocurrió un error al subir la señal al exportar la señal.'+error.message,open_snackbar:true}, ()=>{this.handleCloseExportSignalWait()})})
       }
     }
 
@@ -1181,39 +1257,6 @@ class Home extends Component{
       .catch((error)=>{this.setState({message_snackbar:'Ocurrió un error al registrar su usuario. Intente más tarde'+error.message,open_snackbar:true})})
     }
 
-
-    exportSignal = () =>{
-      let vfsd = this.state.serie_vfsd[this.state.indexSignal].data
-      let vfsi = this.state.serie_vfsi[this.state.indexSignal].data
-      let psa = this.state.serie_psa[this.state.indexSignal].data
-      let co2 = this.state.serie_co2[this.state.indexSignal].data
-      let times = this.state.x_points_vfs
-      let header_file = this.state.headerFile
-      let history = this.state.history
-      header_file[1] = {history:history}
-      
-      let signal_to_filter = [vfsd,vfsi,psa,co2,times]
-      var obj = {
-        signals:JSON.stringify(signal_to_filter),
-        header: JSON.stringify(header_file),
-        filename: this.state.filename.name.split(".")[0]
-      }
-      Axios({
-        method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/exportSignal/R/exportSignal/json',
-        data: obj
-      })
-      .then((response) => {
-        console.log(response)
-        const link = document.createElement('a')
-        link.href = response.headers.location+'files/test.zip'
-        link.setAttribute('download','test1.zip')
-        document.body.appendChild(link)
-        link.click()
-      })
-    }
-
-
     updateDataFilter(filter){
       this.state.data_filter_VFS.push({name:filter,textStyle:echart_options.textStyle})
       this.state.data_filter_VFSI.push({name:filter,textStyle:echart_options.textStyle})
@@ -1246,7 +1289,178 @@ class Home extends Component{
         this.handleClickOpen()
     }
 
-    fetchVFS(json){  
+    fetchSignalHeader(signal_header){
+      var vfsi = []
+      var vfsd = []
+      var psa = []
+      var etco2 = []
+      var x_points = []
+      var header = signal_header.header;
+      var header_aux = []
+      var signals = signal_header.signal;
+      
+      var frecuency = header[4].V1.split(':')[1]
+      var f = this.state.filename_signal.name
+      var aux_name;
+      if(f.length > 15)
+        aux_name = f.substring(0,10)+'...'+f.substring(f.length-5,f.length)
+      else aux_name = f
+      var today = new Date()
+      var patient_name = header[0].V1.split(':')[1]
+      var age = header[1].V1.split(':')[1]
+      var type_volunteer = header[2].V1.split(':')[1]
+      var maneuver = header[3].V1.split(':')[1]
+      var examination_day = header[6].V1.split(':')[1]
+      
+      if(f.split('.')[1] === "fil"){
+        for(var i = 0; i < signals.length; i++){
+          vfsd.push(signals[i].V3)
+          vfsi.push(signals[i].V4)
+          psa.push(signals[i].V5)
+          etco2.push(signals[i].V6)
+          x_points.push(signals[i].V1)
+        }
+        let time = this.getSignalTime(vfsd.length)
+        var serie_vfsd = [{
+            name:'VFSD',
+            type:'line',
+            data:vfsd,
+            symbol:echart_options.series.symbol,
+            symbolSize: echart_options.series.symbolSize,
+            itemStyle:{color:'#d22824'},
+            animationDelay: function (idx) {
+              return idx * 10;
+            },
+            animationThreshold:this.state.x_points_vfs.length    
+        }]
+        var serie_vfsi = [{
+            name:'VFSI',
+            type:'line',
+            data:vfsi,
+            symbol:echart_options.series.symbol,
+            symbolSize: echart_options.series.symbolSize,
+            itemStyle:{color:'#d22824'}, 
+            animationDelay: function (idx) {
+              return idx * 10;
+            }
+        }]
+        var serie_psa = [{
+            name: 'PSA', 
+            type:'line',
+            data: psa,symbol:echart_options.series.symbol,
+            symbolSize: echart_options.series.symbolSize,
+            itemStyle:{color:'#029eb1'}, 
+            animationDelay: function (idx) {
+              return idx * 10;
+            }
+        }]
+        var serie_etco2 = [{
+            name:'EtCO2',
+            type:'line',
+            data:etco2,
+            symbol:echart_options.series.symbol,
+            symbolSize: echart_options.series.symbolSize,
+            itemStyle:{color:'#288c6c'},
+            animationDelay: function (idx) {
+              return idx * 10;
+            }
+        }]
+        this.setState({
+          x_points_vfs:x_points,
+          signals_history:[{filter:'Inicial'}],
+          signal_time:time, 
+          headerFile:header,
+          type_signal:maneuver, 
+          saved_name_signal:f.split('_')[0],
+          name_signal:aux_name, 
+          frecuency:frecuency,
+          serie_vfsd:serie_vfsd,
+          serie_vfsi: serie_vfsi,
+          serie_psa: serie_psa,
+          serie_co2: serie_etco2,
+          isReadySignal:true,
+          patient_name:patient_name,
+          age_vol:age,
+          type_vol:type_volunteer,
+          examination_day: examination_day
+        }, () => {
+          this.handleClose()
+          this.updateOptions()
+        })
+      }
+
+      else if(f.split(".")[1] === "sync"){
+        var vfsd_pos = []
+        var vfsd_lat = []
+        var vfsi_pos = []
+        var vfsi_lat = []
+        var psa_pos = []
+        var psa_lat = []
+        for(var i = 0; i < signals.length; i++){
+          vfsd.push(signals[i].V3)
+          vfsd_pos.push(signals[i].V4)
+          vfsd_lat.push(signals[i].V5)
+          vfsi.push(signals[i].V6)
+          vfsi_pos.push(signals[i].V7)
+          vfsi_lat.push(signals[i].V8)
+          psa.push(signals[i].V9)
+          psa_pos.push(signals[i].V10)
+          psa_lat.push(signals[i].V11)
+          x_points.push(signals[i].V1)
+        }
+        let time = this.getSignalTime(vfsd.length)
+        var sync_data = this.getSyncHeartBeat2(x_points,vfsd,vfsd_pos,vfsd_lat,vfsi,vfsi_pos,vfsi_lat,psa,psa_pos,psa_lat)
+        var vfsd_markpoint = this.getPeaksBadDetected(sync_data[0].data,vfsd)
+        var vfsi_markpoint = this.getPeaksBadDetected(sync_data[1].data,vfsi)
+        var psa_markpoint = this.getPeaksBadDetected(sync_data[2].data, psa)
+        this.setState({
+          is_signal_sync: true,
+          is_heart_beat_detected: false,
+          can_filter: false,
+          sync_data:sync_data,
+          type_signal:maneuver, 
+          indexSignal:0,
+          etco2_echart:'none',
+          x_points_vfs:x_points,isReadySignal:true,
+          signal_time:time, 
+          headerFile:header, 
+          saved_name_signal:f,
+          name_signal:aux_name, 
+          frecuency:frecuency,
+          serie_vfsd:[{
+            name:'VFSD',type:'line',data:vfsd,
+            symbol:echart_options.series.symbol,
+            symbolSize: echart_options.series.symbolSize,
+            itemStyle:{color:'#d22824'},
+            markPoint:sync_data[0],
+            markArea:{data:vfsd_markpoint}
+          }],
+          serie_vfsi:[{
+            name:'VFSI',type:'line',data:vfsi,
+            symbol:echart_options.series.symbol,
+            symbolSize: echart_options.series.symbolSize,
+            itemStyle:{color:'#d22824'},
+            markPoint: sync_data[1],
+            markArea:{data:vfsi_markpoint}
+          }],
+          serie_psa:[{
+            name:'PSA',type:'line',data:psa,
+            symbol:echart_options.series.symbol,
+            symbolSize: echart_options.series.symbolSize,
+            itemStyle:{color:'#029eb1'},
+            markPoint: sync_data[2],
+            markArea:{data:psa_markpoint}
+          }]
+        },()=>{
+          
+          this.updateOptionsSync(sync_data[0].data.length/3,sync_data[1].data.length/3,sync_data[2].data.length/3)
+          this.handleClose()
+        })
+      }
+      
+    }
+
+    /*fetchVFS(json){  
       var vsfi = []
       var vsfd = []
       var psa = []
@@ -1258,24 +1472,15 @@ class Home extends Component{
       
       header.push(json[4].V1 + "\t"+json[4].V2 + "\t"+json[4].V3 + "\t"+json[4].V4 + "\t"+json[4].V5 + "\t"+json[4].V6 + "\t"+json[4].V7 + "\t"+json[4].V8 + "\t")
       header.push(json[5].V1 + "\t"+json[5].V2 + "\t"+json[5].V3 + "\t"+json[5].V4 + "\t"+json[5].V5 + "\t"+json[5].V6 + "\t"+json[5].V7 + "\t"+json[5].V8 + "\t")
-      if(this.state.filename.name.split(".")[1] === 'fil'){
-        for(var i = 6; i < json.length; i++){
-          vsfd.push(Number(json[i].V3))
-          vsfi.push(Number(json[i].V4))
-          psa.push(Number(json[i].V5))
-          co2.push(Number(json[i].V6))
-          x_points.push(json[i].V1)      
-        }
+      
+      for(var i = 6; i < json.length; i++){
+        vsfd.push(Number(json[i].V3))
+        vsfi.push(Number(json[i].V4))
+        psa.push(Number(json[i].V5))
+        co2.push(Number(json[i].V7))
+        x_points.push(json[i].V1)      
       }
-      else{
-        for(var i = 6; i < json.length; i++){
-          vsfd.push(Number(json[i].V3))
-          vsfi.push(Number(json[i].V4))
-          psa.push(Number(json[i].V5))
-          co2.push(Number(json[i].V7))
-          x_points.push(json[i].V1)      
-        }
-      }
+      
       let time = this.getSignalTime(vsfd.length)
       var aux_name = ''
       var f = header[3].split(':')[1]
@@ -1335,22 +1540,132 @@ class Home extends Component{
         this.handleClose()
         this.updateOptions()
       })
+    }*/
+
+    fetchVFS(json){
+      var vsfi = []
+      var vsfd = []
+      var psa = []
+      var etco2 = []
+      var x_points = []
+      for(var i = 6; i < json.length; i++){
+        vsfd.push(Number(json[i].V2))
+        vsfi.push(Number(json[i].V3))
+        psa.push(Number(json[i].V4))
+        etco2.push(Number(json[i].V5))
+        x_points.push(json[i].V1)      
+      }
+      let time = this.getSignalTime(vsfd.length)
+      var aux_name = ''
+      if(this.state.filename.name.length > 15)
+        aux_name = this.state.filename.name.substring(0,10)+'...'+this.state.filename.name.substring(this.state.filename.name.length-5,this.state.filename.name.length)
+      else aux_name = this.state.filename.name
+      var today = new Date()
+      var patient_name = this.state.patient_name.split(" ")
+      var filename_signal = patient_name[0][0]+patient_name[0][3]+patient_name[1][0]+patient_name[1][3]+String(today.getFullYear()).substring(2,4)+String(today.getMonth()+1)
+      this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time, saved_name_signal:filename_signal.toUpperCase()})
+      this.state.serie_vfsd.push({
+        name:'VFSD',
+        type:'line',
+        data:vsfd,
+        symbol:echart_options.series.symbol,
+        symbolSize: echart_options.series.symbolSize,
+        itemStyle:{color:'#d22824'},
+        animationDelay: function (idx) {
+          return idx * 10;
+        },
+        animationThreshold:this.state.x_points_vfs.length    
+      })
+      this.state.serie_vfsi.push({
+        name:'VFSI',
+        type:'line',
+        data:vsfi,
+        symbol:echart_options.series.symbol,
+        symbolSize: echart_options.series.symbolSize,
+        itemStyle:{color:'#d22824'}, 
+        animationDelay: function (idx) {
+          return idx * 10;
+        }
+      })
+      this.state.serie_psa.push({
+        name: 'PSA', 
+        type:'line',
+        data: psa,symbol:echart_options.series.symbol,
+        symbolSize: echart_options.series.symbolSize,
+        itemStyle:{color:'#029eb1'}, 
+        animationDelay: function (idx) {
+          return idx * 10;
+        }
+      })
+      this.state.serie_co2.push({
+        name:'EtCO2',
+        type:'line',
+        data:etco2,
+        symbol:echart_options.series.symbol,
+        symbolSize: echart_options.series.symbolSize,
+        itemStyle:{color:'#288c6c'},
+        animationDelay: function (idx) {
+          return idx * 10;
+        }
+      })
+      this.setState({isReadySignal:true,name_signal:aux_name}, () => {
+        this.handleCloseWaitLoadSignal()
+        this.updateOptions()
+      })
     }
 
     handleUploadSignal(event){
         event.preventDefault()
-        this.setState({loadingGraph:true})
+        this.setState({loadingGraph:true}, ()=>{
+          this.handleClose()
+          this.handleOpenWaitLoadSignal()
+        })
         const filename = this.state.filename
-        const formData = new FormData(event.target)
+        const formData = new FormData()
         formData.append('filename',filename)
-        this.props.loadSignal(formData).then(() => this.fetchVFS(this.props.signal_global))
-        
+        Axios({
+          method:'POST',
+          url:'http://localhost/ocpu/user/juanpablo/library/readFile/R/read_signal_file/json',
+          data:formData
+        })
+        .then(res => {
+          this.fetchVFS(res.data)
+        })
+        .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false},()=>{this.handleCloseWaitLoadSignal()})})
+        /*this.props.loadSignal(formData).then(() => {
+          this.fetchVFS(this.props.signal_global)
+          this.handleClose()
+          this.handleOpenWaitLoadSignal()
+        })  */
     };
+
+    handleReadFiles(event){
+      event.preventDefault()
+      this.setState({loadingGraph:true})
+      const signal_filename = this.state.filename_signal
+      const header_filename = this.state.filename_header
+      const formData = new FormData(event.target)
+      formData.append('signal',signal_filename)
+      formData.append('headerfile',header_filename)
+      Axios({
+        method:'POST',
+        url: 'http://localhost/ocpu/user/juanpablo/library/readFile/R/read_signal_files/json',
+        data:formData
+      })
+      .then(res => {
+        this.fetchSignalHeader(res.data)
+      })
+      .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false}, () =>{this.handleClose()})})
+      //this.props.loadSignal(formData).then(() => this.fetchSignalHeader(this.props.signal_global))
+    }
 
     handleChange = name => event => {
       this.setState({ [name]: event.target.checked });
     };
 
+    handleChangeFrecuency = name => event => {
+      this.setState({frecuency:event.target.value})
+    }
 
 
     handleChangeFilter = name => event => {  
@@ -1372,10 +1687,7 @@ class Home extends Component{
     handleChangeTypeSignal = name => event =>{
       var aux = event.target.value
       var aux2=''
-      if(aux === 'Sit-to_Stand')
-        aux2 = 'STS'
-      else 
-        aux2 = aux.substring(0,3)
+      aux2 = aux.substring(0,3)
       var filename = this.state.saved_name_signal + aux2.toUpperCase()
       this.setState({type_signal:event.target.value,saved_name_signal:filename})
     }
@@ -1836,7 +2148,7 @@ class Home extends Component{
       })
     }
 
-    updateOptionsSync(hb1,hb2,hb3,hb4){
+    updateOptionsSync(hb1,hb2,hb3){
       this.refs.echarts_react_1.getEchartsInstance().setOption({
         title: {
           text:'VFSD Sync',
@@ -1918,8 +2230,6 @@ class Home extends Component{
     }
 
     onChangePeak = (param,echarts) => {
-      console.log(param)
-      console.log(this.refs.echarts_react_1.getEchartsInstance().getOption())
       if(this.state.is_heart_beat_detected){
         if(this.state.cnt_click_peak === 0 && param.componentType === 'markPoint' && !(param.data.name === 'upstroke_vfsd' || param.data.name === 'upstroke_vfsi' || param.data.name === 'upstroke_psa')){
           this.setState({message_snackbar:'Ha seleccionado el peak ' + param.data.coord[1] + '. Haga click en el punto nuevo punto máximo/mínimo.',open_snackbar_peak: true,cnt_click_peak:1,peak_selected:param})
@@ -2362,24 +2672,40 @@ class Home extends Component{
           }]]
       }
       */
+     console.log(markpoints)
       var data = []
+      var beats = []
+      var length_actual_beat = 0
       for(var i = 0; i < markpoints.length-4; i+=4){
+        //largo del latido
+        length_actual_beat = markpoints[i+4].index - markpoints[i].index - 1
+        
         //upstroke mayor a valor maximo del latido actual
         if((markpoints[i+1].coord[1] > markpoints[i+2].coord[1])){
-          data.push([{name:'',xAxis:markpoints[i+1].index-2},{xAxis:markpoints[i+1].index+2}])
+          data.push([{name:'',xAxis:markpoints[i].index},{xAxis:markpoints[i+4].index}])
         }
         //el minimo detectado no es el valor minimo
-        if(markpoints[i].coord[1] > signal[markpoints[i].index-1]){
-          data.push([{name:'',xAxis:markpoints[i].index-1},{xAxis:markpoints[i].index+1}])
-        }
+        //if(markpoints[i].coord[1] > signal[markpoints[i].index-1]){
+        //  data.push([{name:'',xAxis:markpoints[i].index-1},{xAxis:markpoints[i].index+1}])
+        //}
         //upstroke se encuentra después que el peak detectado
-        if(markpoints[i+1].index > markpoints[i+2].index){
-          data.push([{name:'',xAxis:markpoints[i+2].index-2},{xAxis:markpoints[i+2].index+2}])
+        else if(markpoints[i+1].index > markpoints[i+2].index){
+          data.push([{name:'',xAxis:markpoints[i].index},{xAxis:markpoints[i+4].index}])
         }
         //incisura se detectó antes de peak
-        if((markpoints[i+3].index > markpoints[i+2].index) && markpoints[i+2].name.substring(0,8)==='incisura'){
-          data.push([{name:'',xAxis:markpoints[i+2].index-2},{xAxis:markpoints[i+2].index+2}])
+        else if((markpoints[i+3].index > markpoints[i+2].index) && markpoints[i+2].name.substring(0,8)==='incisura'){
+          data.push([{name:'',xAxis:markpoints[i].index},{xAxis:markpoints[i+4].index}])
         }
+        if(beats.length === 0){
+          console.log(beats)
+          beats.push(length_actual_beat)
+        }
+        //latido irregular
+        else if(Math.abs((beats.reduce((a,b) => a+b,0)/beats.length) - length_actual_beat)  > 40 || (beats.reduce((a,b) => a+b,0)/beats.length) + 40 <  length_actual_beat){
+          data.push([{name:'latido irregular',xAxis:markpoints[i].index},{xAxis:markpoints[i+4].index}])
+        }
+        else
+          beats.push(length_actual_beat)
       }
       return data
     }
@@ -2426,6 +2752,7 @@ class Home extends Component{
             signals_history: signals,
             history: history,
             is_heart_beat_detected:true,
+            can_filter:false,
             serie_signals_history:signals_aux,
             signal_history_backup:signals_history_aux,
             indexSignal:0,
@@ -2470,7 +2797,7 @@ class Home extends Component{
       //var signals = [{filter:this.state.signals_history[this.state.indexSignal].filter}]
       var history = [...this.state.history]
       var signals_aux = [this.state.serie_vfsd,this.state.serie_vfsi,this.state.serie_psa,this.state.serie_co2]
-      let rate_aux = this.state.headerFile[0].header[3].split(':')[1]
+      let rate_aux = this.state.frecuency
       if(history.length > 0)
         history.push({name:'sync',prev:this.state.signals_history[this.state.indexSignal].filter,data:'señales sync',dialog:history[this.state.indexSignalToDelete].dialog + '\n' + 'señales sincronizadas'})
       else
@@ -2490,8 +2817,9 @@ class Home extends Component{
         data: obj
       })
       .then(res=>{
-        console.log(res.data)
+        
         var sync_data = this.getSyncHeartBeat(res.data)
+        var duration = this.getSignalTime(sync_data[0].length)
         var vfsd_markpoint = this.getPeaksBadDetected(sync_data[4].data,sync_data[1])
         var vfsi_markpoint = this.getPeaksBadDetected(sync_data[5].data,sync_data[2])
         var psa_markpoint = this.getPeaksBadDetected(sync_data[6].data, sync_data[3])
@@ -2501,6 +2829,7 @@ class Home extends Component{
           is_heart_beat_detected: false,
           history: history,
           sync_data:res.data,
+          signal_time:duration,
           //is_heart_beat_detected:true,
           //serie_signals_history:signals_aux,
           //signal_history_backup:signals_history_aux,
@@ -2540,6 +2869,50 @@ class Home extends Component{
     })
     .catch((error) => {this.setState({open_snackbar:true,message_snackbar:error.message,openWait:false}, ()=>{this.handleCloseSyncSignalsWait()})})
     
+    }
+
+    getSyncHeartBeat2(time,vfsd,vfsd_pos,vfsd_lat,vfsi,vfsi_pos,vfsi_lat,psa,psa_pos,psa_lat){
+      var count = time.length
+      var actual_vfsd = 0
+      var actual_vfsi = 0
+      var actual_psa = 0
+      var heartbeat_vfsd = []
+      var heartbeat_vfsi = []
+      var heartbeat_psa = []
+
+      for(var i = 0; i < count; i++){
+        if(vfsd_lat[i] > actual_vfsd){
+          actual_vfsd = vfsd_lat[i]
+          heartbeat_vfsd.push({coord:[time[i],vfsd[i]],itemStyle:{color:'#fff'}})
+        }
+        else if(vfsd_pos[i] === 3)
+          heartbeat_vfsd.push({coord:[time[i],vfsd[i]],itemStyle:{color:echart_colors.upstroke}})
+        else if(vfsd_pos[i] === 4)
+          heartbeat_vfsd.push({coord:[time[i],vfsd[i]],itemStyle:{color:echart_colors.peak}})
+        
+        if(vfsi_lat[i] > actual_vfsi){
+          actual_vfsi = vfsi_lat[i]
+          heartbeat_vfsi.push({coord:[time[i],vfsi[i]],itemStyle:{color:'#fff'}})
+        }
+        else if(vfsi_pos[i] === 3)
+          heartbeat_vfsi.push({coord:[time[i],vfsi[i]],itemStyle:{color:echart_colors.upstroke}})
+        else if(vfsi_pos[i] === 4)
+          heartbeat_vfsi.push({coord:[time[i],vfsi[i]],itemStyle:{color:echart_colors.peak}})
+
+        if(psa_lat[i] > actual_psa){
+          actual_psa = psa_lat[i]
+          heartbeat_psa.push({coord:[time[i],psa[i]],itemStyle:{color:'#fff'}})
+        }
+        else if(psa_pos[i] === 3)
+          heartbeat_psa.push({coord:[time[i],psa[i]],itemStyle:{color:echart_colors.upstroke}})
+        else if(psa_pos[i] === 4)
+          heartbeat_psa.push({coord:[time[i],psa[i]],itemStyle:{color:echart_colors.peak}})
+      }
+      var vfsd_beat_sync = {symbol:'circle',symbolSize:5,data:heartbeat_vfsd}
+      var vfsi_beat_sync = {symbol:'circle',symbolSize:5,data:heartbeat_vfsi}
+      var psa_beat_sync = {symbol:'circle',symbolSize:5,data:heartbeat_psa}
+      return([vfsd_beat_sync,vfsi_beat_sync,psa_beat_sync])
+
     }
 
     getSyncHeartBeat(sync_json){
@@ -2606,7 +2979,13 @@ class Home extends Component{
                     <Button 
                       variant = "contained" 
                       className = {classes.myPrimaryColor}
-                      onClick = {this.handleClickOpen}>Seleccionar
+                      onClick = {this.handleClickOpen}>Original
+                    </Button>
+                    <Button 
+                      variant = "contained" 
+                      className = {classes.myPrimaryColor}
+                      style = {{marginLeft:'15px'}}
+                      onClick = {this.handleClickOpen2}>Procesado
                     </Button>
                   </div>
                   <div>
@@ -2616,7 +2995,29 @@ class Home extends Component{
                         onClick = {this.handleOpenDialogRegister}>¿Deseas ser miembro?
                     </Button>
                   </div>
-                    
+                  {/* Dialog para seleccionar señal2*/}
+                  <Dialog 
+                    maxWidth="sm"
+                    fullWidth={true}
+                    open={this.state.open2}
+                    onClose={this.handleCloseOpen2}
+                    aria-labelledby="max-width-dialog-title"
+                  >
+                    <DialogTitle id="max-width-dialog-title">Seleccione archivo .hdr y (.fil, .sync)</DialogTitle>
+                    <FormControl className={classes.formControl}>
+                        <form onSubmit={this.handleReadFiles} className = {classes.form}>                                
+                            {!this.state.loadingGraph ? <Note className = {classes.iconFile}/> 
+                                : <LinearProgress classes={{
+                                    colorPrimary: classes.linearColorPrimary,
+                                    barColorPrimary: classes.linearBarColorPrimary}}
+                            />}
+                            <input required type = "file" onChange={this.onChange2} multiple/>
+                            <Button type = "submit" variant="contained" className = {classes.myPrimaryColor}>Cargar</Button>
+                        </form>
+                    </FormControl>
+                  </Dialog>
+                  {/* Fin Dialog para seleccionar señal2 */}
+
                     <Dialog 
                         maxWidth="sm"
                         fullWidth={true}
@@ -2624,27 +3025,50 @@ class Home extends Component{
                         onClose={this.handleClose}
                         aria-labelledby="max-width-dialog-title"
                     >
-                        <DialogTitle id="max-width-dialog-title">Seleccione señal a preprocesar</DialogTitle>
-                        
-                            
+                        <DialogTitle id="max-width-dialog-title">Ficha voluntario</DialogTitle>
                             <form onSubmit={this.handleUploadSignal} className = {classes.form}>                                
                               <DialogContent>
                               <Grid container justify = "center" alignItems = "center">
-                                <Grid item xs = {7} >
-                                  {!this.state.loadingGraph ? <Note className = {classes.iconFile}/> 
-                                    : <LinearProgress classes={{
-                                        colorPrimary: classes.linearColorPrimary,
-                                        barColorPrimary: classes.linearBarColorPrimary}}
-                                />}
+                                <Grid item xs = {7} style = {{textAlign:'center',marginBottom:'10px'}}>
+                                  <Input 
+                                    required
+                                    placeholder="Nombre del voluntario" 
+                                    className = {classes.input} 
+                                    value = {this.state.patient_name} 
+                                    onChange={this.handleChangeInput('patient_name')} 
+                                  />
                                 </Grid>
                                 <Grid item xs = {7} style = {{textAlign:'center',marginBottom:'10px'}}>
-                                  <input type = "file" onChange={this.onChange} />
+                                  <Input 
+                                      required
+                                      placeholder="Fecha Examinación" 
+                                      className = {classes.input} 
+                                      value = {this.state.examination_day} 
+                                      onChange={this.handleChangeInput('examination_day')} 
+                                  />
                                 </Grid>
-                                
-                                <Grid item xs = {7} style = {{textAlign:'center'}}>
+                                <Grid item xs = {7} style = {{textAlign:'center',marginBottom:'10px'}}>
+                                  <Input 
+                                      required
+                                      placeholder="Tipo voluntario" 
+                                      className = {classes.input} 
+                                      value = {this.state.type_vol} 
+                                      onChange={this.handleChangeInput('type_vol')} 
+                                  />
+                                </Grid>
+                                <Grid item xs = {7} style = {{textAlign:'center',marginBottom:'10px'}}>
+                                  <Input 
+                                      required
+                                      placeholder="Edad" 
+                                      className = {classes.input} 
+                                      value = {this.state.age_vol} 
+                                      onChange={this.handleChangeInput('age_vol')} 
+                                  />
+                                </Grid>
+                                <Grid item xs = {7} style = {{textAlign:'center',margin:'10px'}}>
                                   <Select
                                     name = "maniobra"
-                                    className={classes.textField}
+                                    style = {{color:'#9a9a9a',width:'201px'}}
                                     value={this.state.type_signal}
                                     onChange={this.handleChangeTypeSignal('type_signal')}
                                     displayEmpty
@@ -2652,7 +3076,7 @@ class Home extends Component{
                                     required
                                   >
                                   <MenuItem value="" disabled>
-                                    -- Seleccione Maniobra--
+                                    Maniobra
                                   </MenuItem>
                                     {this.state.types_signal.map(option => (
                                       <MenuItem key={option.value} value={option.value}>
@@ -2661,7 +3085,29 @@ class Home extends Component{
                                     ))}
                                   </Select>
                                 </Grid>
-                                
+                                <Grid item xs = {7} style = {{textAlign:'center',margin:'10px'}}>
+                                  <Select
+                                    name = "muestreo"
+                                    style = {{color:'#9a9a9a',width:'201px'}}
+                                    value={this.state.frecuency}
+                                    onChange={this.handleChangeFrecuency('frecuency')}
+                                    displayEmpty
+                                    autoWidth
+                                    required
+                                  >
+                                  <MenuItem value="" disabled>
+                                    Muestro 
+                                  </MenuItem>
+                                    {this.state.frecuencies.map(option => (
+                                      <MenuItem key={option.value} value={option.value}>
+                                        {option.label}
+                                      </MenuItem>
+                                    ))}
+                                  </Select>
+                                </Grid>
+                                <Grid item xs = {7} style = {{textAlign:'center',margin:'10px'}}>
+                                  <input type = "file" onChange={this.onChange} />
+                                </Grid>
                                 <Grid item xs = {7} style = {{textAlign:'center'}}>
                                   <Button type = "submit" variant="contained" style = {{width:'83%'}} className = {classes.myPrimaryColor}>Cargar</Button>
                                 </Grid>
@@ -2701,7 +3147,7 @@ class Home extends Component{
                     <p className={classes.describeSignal}>Duración señal: <span style = {{fontStyle:'italic'}}>{this.state.signal_time} </span></p>
                   </Grid>
                   <Grid item lg = {3} xl = {3} md = {3} style = {{marginTop:'18px'}}>
-                    <p className={classes.describeSignal}>Tasa muestreo: <span style = {{fontStyle:'italic'}}>{this.state.headerFile[0].header[3].split(':')[1]}</span></p>
+                    <p className={classes.describeSignal}>Tasa muestreo: <span style = {{fontStyle:'italic'}}>{this.state.frecuency}</span></p>
                   </Grid> 
                   <Grid item lg = {3} xl = {3} md = {3} >
                   <form style = {{display:'flex',flexWrap:'wrap',marginTop:'13px'}} autoComplete="off" >
@@ -2713,7 +3159,7 @@ class Home extends Component{
                           onChange={this.handleChangeFilter('filter')}
                           displayEmpty
                           autoWidth
-                          disabled={this.state.is_heart_beat_detected}
+                          disabled={!this.state.can_filter}
                       >
                         <MenuItem value="" disabled>
                             -- Filtros --
@@ -2853,6 +3299,30 @@ class Home extends Component{
               <SnackbarPeak open_snackbar_peak = {this.state.open_snackbar_peak} message_snackbar = {this.state.message_snackbar} handleCloseSnackbarPeak = {this.handleCloseSnackbarPeak}/>
               <SnackbarWarning open_snackbar = {this.state.open_snackbar} message_snackbar = {this.state.message_snackbar} handleCloseSnackbar = {this.handleCloseSnackbar}/>
               <SnackBarSuccess open_snackbar = {this.state.open_snackbar_success} message_snackbar = {this.state.message_snackbar} handleCloseSnackbar = {this.handleCloseSnackbarSuccess}/>
+              
+               {/* Dialog filtrando */}
+               <Dialog
+                open={this.state.openWaitLoadSignal}
+                onClose={this.handleCloseWaitLoadSignal}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+                maxWidth="sm"
+                fullWidth={true}
+                disableBackdropClick={true}
+              >
+                <DialogTitle id="alert-dialog-title">Cargando señal</DialogTitle>
+                <DialogContent>
+                  <DialogContentText id="alert-dialog-description">
+                    Por favor espere ... 
+                  </DialogContentText>
+                  <br />
+                  <LinearProgress classes={{
+                                          colorPrimary: classes.linearColorPrimary,
+                                          barColorPrimary: classes.linearBarColorPrimary}} />
+                </DialogContent>
+              </Dialog>
+              {/* Fin Dialog filtrando */}
+              
               {/* Dialog para seleccionar señal */}
               <Dialog 
                 maxWidth="sm"
