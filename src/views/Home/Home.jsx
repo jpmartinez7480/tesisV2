@@ -655,7 +655,7 @@ class Home extends Component{
     }
 
     handleCloseDialogShareSignal = () => {
-      this.setState({open_dialog_share_signal: false}, () => {this.exportSyncSignal(0)})
+      this.setState({open_dialog_share_signal: false}, () => {this.exportSyncSignal(0,{})})
     }
 
     handleCloseDialogLogin = () => {
@@ -808,7 +808,7 @@ class Home extends Component{
       
       Axios({
         method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/automaticFilter/R/automaticFilter/json',
+        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/automaticFilter/R/automaticFilter/json',
         data: obj
       })
       .then((res) => {
@@ -864,7 +864,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/hermiteSplineFilter/R/getHermiteSplineInterpolation/json',
+        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/hermiteSplineFilter/R/getHermiteSplineInterpolation/json',
         data: obj
       })
       .then(res => {
@@ -916,7 +916,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/HampelFilter/R/hampelFilter/json',
+        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/HampelFilter/R/hampelFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_hampel: res.data[0],vsfi_filter_hampel:res.data[1],psa_filter_hampel:res.data[2]}, () => this.updateDataFilterHampel())})
@@ -979,7 +979,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/butterworthFilter/R/butterworthFilter/json',
+        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/butterworthFilter/R/butterworthFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_butterworth: res.data[0],vsfi_filter_butterworth:res.data[1],psa_filter_butterworth:res.data[2]}, () => this.updateDataFilterButterworth())})
@@ -1033,7 +1033,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/medianFilter/R/MedianFilter/json',
+        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/medianFilter/R/MedianFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_median: res.data[0],vsfi_filter_median:res.data[1],psa_filter_median:res.data[2]}, () => this.updateDataFilterMedian())})
@@ -1077,22 +1077,48 @@ class Home extends Component{
         //this.props.setSignalHistory(this.state.signals_history))
     }
 
-    exportSyncSignal(num){
+    exportSyncSignal(num,user){
       this.handleOpenExportSignalWait()
       var aux = this.state.is_signal_cut ? this.state.indexSignalToDelete : this.state.indexSignalToDelete+1
-      var history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
-      var header_file = this.state.headerFile
-      header_file[1] = {history:history}
+      var history = {}
+      var examinator={}
+      history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
+      var volunteer_data = {
+        volunteer:this.state.patient_name,
+        examination_day:this.state.examination_day,
+        age:this.state.age_vol,
+        type_volunteer:this.state.type_vol,
+        maneuver:this.state.type_signal,
+        frecuency:this.state.frecuency,
+        duration:this.state.signal_time
+      }
+      if(this.state.filename_signal === null)
+          history = {history:history}
+        else{
+          var history_prev = []
+          for(var i = 8; i < this.state.headerFile.length; i++){
+            history_prev.push(this.state.headerFile[i].V1)
+          }
+          history_prev.push(this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog) 
+          history = {history:history_prev}
+        }
+      var date = new Date()
+      var aux_date = date.getFullYear()+'-'+String(date.getMonth()+1)+'-'+String(date.getDay())
+      if(!this.isEmpty(user))
+        examinator = {name:user.name,email:user.email,pass:user.pass,date_upload:aux_date}
+        
       var filename = this.state.saved_name_signal
       var obj = {
         signals: JSON.stringify(this.state.sync_data),
-        header: JSON.stringify(header_file),
+        header: JSON.stringify(volunteer_data),
+        history: JSON.stringify(history),
         filename: filename,
-        option: num
+        option: num,
+        examinator: JSON.stringify(examinator)
       }
       Axios({
         method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/exportSignal/R/exportSyncSignal/json',
+        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/exportSignal/R/exportSyncSignal/json',
         data: obj
       })
       .then((response) => {
@@ -1110,21 +1136,41 @@ class Home extends Component{
     exportSignal2(){
       this.handleCloseConfirmSave()
       this.handleOpenExportSignalWait()
+      var history = {}
+      var volunteer_data = {
+        volunteer:this.state.patient_name,
+        examination_day:this.state.examination_day,
+        age:this.state.age_vol,
+        type_volunteer:this.state.type_vol,
+        maneuver:this.state.type_signal,
+        frecuency:this.state.frecuency,
+        duration:this.state.signal_time
+      }
       if(this.state.is_heart_beat_detected){
         var aux = this.state.is_signal_cut ? this.state.indexSignalToDelete : this.state.indexSignalToDelete+1
-        var history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
-        var header_file = this.state.headerFile
-        header_file[1] = {history:history}
+        history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
+
+        if(this.state.filename_signal === null)
+          var history = {history:history}
+        else{
+          var history_prev = []
+          for(var i = 8; i < this.state.headerFile.length; i++){
+            history_prev.push(this.state.headerFile[i].V1)
+          }
+          history_prev.push(this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog) 
+          history = {history:history_prev}
+        }
         var filename = this.state.saved_name_signal
         var obj = {
           signals: JSON.stringify(this.state.heart_beats_detected),
           times: JSON.stringify(this.state.x_points_vfs),
-          header: JSON.stringify(header_file),
+          header: JSON.stringify(volunteer_data),
+          history: JSON.stringify(history),
           filename: filename,
         }
         Axios({
           method: 'POST',
-          url: 'http://localhost/ocpu/user/juanpablo/library/exportSignal/R/exportBeatSignal/json',
+          url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/exportSignal/R/exportBeatSignal/json',
           data: obj
         })
         .then((response) => {
@@ -1149,27 +1195,16 @@ class Home extends Component{
         var psa = this.state.serie_psa[aux].data
         var co2 = this.state.serie_co2[aux].data
         var times = this.state.x_points_vfs
-        var volunteer_data = {
-          volunteer:this.state.patient_name,
-          examination_day:this.state.examination_day,
-          age:this.state.age_vol,
-          type_volunteer:this.state.type_vol,
-          maneuver:this.state.type_signal,
-          frecuency:this.state.frecuency,
-          duration:this.state.signal_time
-        }
+        var history = {}
         if(this.state.filename_signal === null)
-          var history = {history:this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog}
+          history = {history:this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog}
         else{
           var history_prev = []
-          console.log(this.state.headerFile.length)
-          console.log(this.state.headerFile[8])
           for(var i = 8; i < this.state.headerFile.length; i++){
             history_prev.push(this.state.headerFile[i].V1)
           }
           history_prev.push(this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog) 
-          console.log(history_prev)
-          var history = {history:history_prev}
+          history = {history:history_prev}
         }
           
         var filename = this.state.saved_name_signal
@@ -1182,7 +1217,7 @@ class Home extends Component{
         }
         Axios({
           method: 'POST',
-          url: 'http://localhost/ocpu/user/juanpablo/library/exportSignal/R/exportSignal/json',
+          url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/exportSignal/R/exportSignal/json',
           data: obj
         })
         .then((response) => {
@@ -1214,14 +1249,14 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://localhost:8100/web/post_signal.php',
+        url: 'http://35.232.203.161:8100/web/post_signal.php',
         data: JSON.stringify(obj)
       })
       .then(res => {
         if(res.data.status === 1)
-          this.setState({message_snackbar:'Muchas Gracias!!, la señal está siendo añadida al respositorio.',open_snackbar_success:true,email:'',password:'',type_signal:''}, () => {
+          this.setState({message_snackbar:'Muchas Gracias!!, la señal está siendo añadida al respositorio.',open_snackbar_success:true,email:'',password:''}, () => {
             this.handleCloseDialogLogin()
-            this.exportSyncSignal(1)
+            this.exportSyncSignal(1,res.data.data)
           })
         else
           this.setState({message_snackbar:'Ocurrió un error al subir la señal al repositorio.',open_snackbar:true}, () => {this.exportSyncSignal(0)})
@@ -1232,7 +1267,7 @@ class Home extends Component{
     handleUploadFile = (file) =>{
       const formData = new FormData()
       formData.append('signal',file)
-      Axios.post('http://localhost:8100/web/upload_file.php',formData,{
+      Axios.post('http://35.232.203.161:8100/web/upload_file.php',formData,{
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -1248,7 +1283,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://localhost:8100/web/post_user.php',
+        url: 'http://35.232.203.161:8100/web/post_user.php',
         data: JSON.stringify(obj)
       })
       .then(res => {
@@ -1314,10 +1349,10 @@ class Home extends Component{
       
       if(f.split('.')[1] === "fil"){
         for(var i = 0; i < signals.length; i++){
-          vfsd.push(signals[i].V3)
-          vfsi.push(signals[i].V4)
-          psa.push(signals[i].V5)
-          etco2.push(signals[i].V6)
+          vfsd.push(signals[i].V2)
+          vfsi.push(signals[i].V3)
+          psa.push(signals[i].V4)
+          etco2.push(signals[i].V5)
           x_points.push(signals[i].V1)
         }
         let time = this.getSignalTime(vfsd.length)
@@ -1625,7 +1660,7 @@ class Home extends Component{
         formData.append('filename',filename)
         Axios({
           method:'POST',
-          url:'http://localhost/ocpu/user/juanpablo/library/readFile/R/read_signal_file/json',
+          url:'http://35.232.203.161/ocpu/user/jpmartinez7480/library/readFile/R/read_signal_file/json',
           data:formData
         })
         .then(res => {
@@ -1649,7 +1684,7 @@ class Home extends Component{
       formData.append('headerfile',header_filename)
       Axios({
         method:'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/readFile/R/read_signal_files/json',
+        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/readFile/R/read_signal_files/json',
         data:formData
       })
       .then(res => {
@@ -2357,7 +2392,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/detection/R/detection_upstroke/json',
+        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/detection/R/detection_upstroke/json',
         data: obj
       })
       .then((response) => {
@@ -2672,7 +2707,6 @@ class Home extends Component{
           }]]
       }
       */
-     console.log(markpoints)
       var data = []
       var beats = []
       var length_actual_beat = 0
@@ -2735,7 +2769,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/detection/R/detection/json',
+        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/detection/R/detection/json',
         data: obj
       })
       .then(res => {
@@ -2813,16 +2847,16 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://localhost/ocpu/user/juanpablo/library/sync/R/sync/json',
+        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/sync/R/sync/json',
         data: obj
       })
       .then(res=>{
         
         var sync_data = this.getSyncHeartBeat(res.data)
         var duration = this.getSignalTime(sync_data[0].length)
-        var vfsd_markpoint = this.getPeaksBadDetected(sync_data[4].data,sync_data[1])
-        var vfsi_markpoint = this.getPeaksBadDetected(sync_data[5].data,sync_data[2])
-        var psa_markpoint = this.getPeaksBadDetected(sync_data[6].data, sync_data[3])
+        //var vfsd_markpoint = this.getPeaksBadDetected(sync_data[4].data,sync_data[1])
+        //var vfsi_markpoint = this.getPeaksBadDetected(sync_data[5].data,sync_data[2])
+        //var psa_markpoint = this.getPeaksBadDetected(sync_data[6].data, sync_data[3])
         this.setState({
           //signals_history: signals,
           is_signal_sync: true,
@@ -2842,7 +2876,7 @@ class Home extends Component{
             symbolSize: echart_options.series.symbolSize,
             itemStyle:{color:'#d22824'},
             markPoint:sync_data[4],
-            markArea:{data:vfsd_markpoint}
+            //markArea:{data:vfsd_markpoint}
           }],
           serie_vfsi:[{
             name:'VFSI',type:'line',data:sync_data[2],
@@ -2850,7 +2884,7 @@ class Home extends Component{
             symbolSize: echart_options.series.symbolSize,
             itemStyle:{color:'#d22824'},
             markPoint: sync_data[5],
-            markArea:{data:vfsi_markpoint}
+            //markArea:{data:vfsi_markpoint}
           }],
           serie_psa:[{
             name:'PSA',type:'line',data:sync_data[3],
@@ -2858,7 +2892,7 @@ class Home extends Component{
             symbolSize: echart_options.series.symbolSize,
             itemStyle:{color:'#029eb1'},
             markPoint: sync_data[6],
-            markArea:{data:psa_markpoint}
+            //markArea:{data:psa_markpoint}
           }]
         },()=>{
           
