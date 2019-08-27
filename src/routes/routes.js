@@ -1,5 +1,6 @@
 import Home from "../views/Home/Home";
 import Repository from "../views/Repository/Repository";
+import Tutorial from "../views/Tutorial/Tutorial";
 
 const routes = [
     {
@@ -11,6 +12,12 @@ const routes = [
         path: '/home/repository',
         name: 'Repository',
         component: Repository
+    }
+    ,
+    {
+        path: '/home/help',
+        name: 'Tutorial',
+        component: Tutorial
     }
     
 ];

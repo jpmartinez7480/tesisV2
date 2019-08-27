@@ -149,7 +149,9 @@ class MiniDrawer extends React.Component {
               </Typography>
               </Grid>
               <Grid item xs={2} className = {classes.itemGrid}>
-                <Typography className={classes.linksNavbar}>Ayuda</Typography>
+              <Typography className={classes.linksNavbar}>
+                <NavLink to = "/home/help" className = {classes.link} activeStyle={{color:'#ED7602'}}>Ayuda</NavLink>
+              </Typography>
               </Grid>
             </Grid>
         </Toolbar>
