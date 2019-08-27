@@ -22,6 +22,9 @@ import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import TablePaginationActions from "@material-ui/core/TablePagination/TablePaginationActions";
 import Axios from 'axios';
+
+const ENDPOINT_REPO = process.env.REACT_APP_API_REPO
+
 const styles = theme => ({
     root: {
         flexGrow: 1,
@@ -76,6 +79,11 @@ const styles = theme => ({
       tablePagination:{
         marginTop:'20px',
         color: 'rgba(154,154,154,0.7)'
+      },
+      infoDb:{
+        color: '#757575',
+        fontWeight: 300,
+        padding: '30px'
       }
 
 })
@@ -134,7 +142,8 @@ class Repository extends Component{
         this.state = {
             signals_repository:[{name_signal:'',type_signal:'',duration:'',date_upload:''}],
             page: 0,
-            rowsPerPage: 5
+            rowsPerPage: 5,
+            isConnected: false
         }
 
 
@@ -143,11 +152,11 @@ class Repository extends Component{
     componentDidMount(){
         Axios({
             method: 'GET',
-            url: 'http://localhost:8100/web/get_signals.php',
+            url: ENDPOINT_REPO+'/web/get_signals.php',
           })
           .then(res => {
-            if(res.data.data.length > 0)
-              this.setState({signals_repository:res.data.data})
+            if(res.data.status !== 2)
+              this.setState({isConnected: true, signals_repository:res.data.data})
           })          
     }
 
@@ -155,7 +164,7 @@ class Repository extends Component{
         
         Axios({
             method:'GET',
-            url: 'http://localhost:8100/web/download.php?file='+name+'.zip',
+            url: ENDPOINT_REPO+'/web/download.php?file='+name+'.zip',
             responseType: 'arraybuffer'
         })
         .then((response) => {
@@ -178,7 +187,7 @@ class Repository extends Component{
             
             },
             method:'GET',
-            url: 'http://localhost:8100/repository/'+name+'.zip',
+            url: ENDPOINT_REPO+'/repository/'+name+'.zip',
             responseType: 'arraybuffer'
         })
         .then((response) => {
@@ -211,57 +220,62 @@ class Repository extends Component{
                         <div className = {classes.title}>
                             <Typography className = {classes.titlePaper}>Repositorio Señales Biomédicas</Typography>
                         </div>
-                            <Table className = {classes.myTable}>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell className = {classes.tablecellTitle}>Señal</TableCell>
-                                        <TableCell className = {classes.tablecellTitle}>Tipo</TableCell>
-                                        <TableCell className = {classes.tablecellTitle}>Duración</TableCell>
-                                        <TableCell className = {classes.tablecellTitle}>Muestreo</TableCell>
-                                        <TableCell className = {classes.tablecellTitle}>Subido</TableCell>
-                                        <TableCell className = {classes.tablecellTitle}>Acciones</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {this.state.signals_repository.slice(this.state.page*this.state.rowsPerPage,this.state.page*this.state.rowsPerPage+this.state.rowsPerPage).map(row => (
-                                        <TableRow key={row.name_signal}>
-                                            <TableCell component = "th" scope = "row" className = {classes.tablecell}>
-                                                {row.name_signal}
-                                            </TableCell>
-                                            <TableCell className = {classes.tablecell}>{row.type_signal}</TableCell>
-                                            <TableCell className = {classes.tablecell}>{row.duration}</TableCell>
-                                            <TableCell className = {classes.tablecell}>{row.frecuency}</TableCell>
-                                            <TableCell className = {classes.tablecell}>{row.date_upload.split(' ')[0]}</TableCell>
-                                            <TableCell className = {classes.tablecell}><GetApp className = {classes.myIcon} onClick = {()=>{this.handleDownloadFile(row.name_signal)}}/></TableCell>
+                            {this.state.isConnected ? 
+                                <Table className = {classes.myTable}>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell className = {classes.tablecellTitle}>Señal</TableCell>
+                                            <TableCell className = {classes.tablecellTitle}>Tipo</TableCell>
+                                            <TableCell className = {classes.tablecellTitle}>Duración</TableCell>
+                                            <TableCell className = {classes.tablecellTitle}>Muestreo</TableCell>
+                                            <TableCell className = {classes.tablecellTitle}>Subido</TableCell>
+                                            <TableCell className = {classes.tablecellTitle}>Acciones</TableCell>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                                <TableFooter>
-                                    <TableRow style = {{marginTop:'30px'}}>
-                                        <TablePagination
-                                            className = {classes.tablePagination}
-                                            rowsPerPageOptions={[5, 10, 20]}
-                                            labelRowsPerPage='Señales por paǵina:'
-                                            colSpan={8}
-                                            count={this.state.signals_repository.length}
-                                            rowsPerPage={this.state.rowsPerPage}
-                                            page={this.state.page}
-                                            SelectProps={{
-                                            inputProps: { 'aria-label': 'Señales por paǵina' },
-                                            //native: true,
-                                            }}
-                                            onChangePage={this.handleChangePage}
-                                            backIconButtonProps={{
-                                                'aria-label': 'Previous Page',
-                                            }}
-                                            nextIconButtonProps={{
-                                                'aria-label': 'Next Page',
-                                            }}
-                                            onChangeRowsPerPage={this.handleChangeRowsPerPage}
-                                        />
-                                    </TableRow>
-                                </TableFooter>
-                            </Table>
+                                    </TableHead>
+                                    <TableBody>
+                                        {this.state.signals_repository.slice(this.state.page*this.state.rowsPerPage,this.state.page*this.state.rowsPerPage+this.state.rowsPerPage).map(row => (
+                                            <TableRow key={row.name_signal}>
+                                                <TableCell component = "th" scope = "row" className = {classes.tablecell}>
+                                                    {row.name_signal}
+                                                </TableCell>
+                                                <TableCell className = {classes.tablecell}>{row.type_signal}</TableCell>
+                                                <TableCell className = {classes.tablecell}>{row.duration}</TableCell>
+                                                <TableCell className = {classes.tablecell}>{row.frecuency}</TableCell>
+                                                <TableCell className = {classes.tablecell}>{row.date_upload.split(' ')[0]}</TableCell>
+                                                <TableCell className = {classes.tablecell}><GetApp className = {classes.myIcon} onClick = {()=>{this.handleDownloadFile(row.name_signal)}}/></TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                    <TableFooter>
+                                        <TableRow style = {{marginTop:'30px'}}>
+                                            <TablePagination
+                                                className = {classes.tablePagination}
+                                                rowsPerPageOptions={[5, 10, 20]}
+                                                labelRowsPerPage='Señales por paǵina:'
+                                                colSpan={8}
+                                                count={this.state.signals_repository.length}
+                                                rowsPerPage={this.state.rowsPerPage}
+                                                page={this.state.page}
+                                                SelectProps={{
+                                                inputProps: { 'aria-label': 'Señales por paǵina' },
+                                                //native: true,
+                                                }}
+                                                onChangePage={this.handleChangePage}
+                                                backIconButtonProps={{
+                                                    'aria-label': 'Previous Page',
+                                                }}
+                                                nextIconButtonProps={{
+                                                    'aria-label': 'Next Page',
+                                                }}
+                                                onChangeRowsPerPage={this.handleChangeRowsPerPage}
+                                            />
+                                        </TableRow>
+                                    </TableFooter>
+                                </Table>
+                                :
+                                <Typography variant="h6" align="center" className ={classes.infoDb}>No hay señales en la base de datos.</Typography>
+                            }
+                            
                         </Paper>
                     </Grid>
                 </Grid>

@@ -1,0 +1,33 @@
+version: "3"
+services:
+  db:
+    build: 
+      context: images/db
+    networks:
+      - backend
+    hostname: usach-db
+    environment:
+        - MYSQL_DATABASE=REPO
+        - MYSQL_ROOT_PASSWORD=root
+        - MYSQL_USER=usach
+        - MYSQL_PASSWORD=usach        
+    #ports:
+    #    - "3307:3306"
+    stdin_open: true
+    tty: true
+
+  web:
+    build: './images/php/'
+    depends_on:
+      - db
+    networks:
+      - backend
+    volumes:
+      - ./src/web/php:/var/www/html/
+    ports:
+      - "8100:80"
+    stdin_open: true
+    tty: true
+
+networks:
+  backend:

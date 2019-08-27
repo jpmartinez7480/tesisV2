@@ -13,6 +13,8 @@ import allReducers from './reducers/index'
 import thunk from 'redux-thunk';
 const store = createStore(allReducers, applyMiddleware(thunk))
 
+console.log(process.env)
+
 ReactDOM.render(
     <Provider store = {store}>
         <HashRouter>

@@ -299,6 +299,10 @@ const text_median = "Debe ingresar el orden de mediana para este filtro, para un
 const title_automatic = "Filtro Cascada"
 const text_automatic = "Debe ingresar los valores de los 3 filtros que serán usados (Hermite-Hampel-Butterworth). Los valores mostrados son los recomendados."
 
+const ENDPOINT_FILTER = process.env.REACT_APP_API_OPENCPU
+const ENDPOINT_REPO = process.env.REACT_APP_API_REPO 
+
+
 class Home extends Component{
     constructor(props){
         super(props)
@@ -332,6 +336,7 @@ class Home extends Component{
             value_order_median: 5,
             v1:'',
             v2:'',
+            name_register:'',
             email:'',
             password:'',
             password_c: '',
@@ -808,7 +813,7 @@ class Home extends Component{
       
       Axios({
         method: 'POST',
-        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/automaticFilter/R/automaticFilter/json',
+        url: ENDPOINT_FILTER+'automaticFilter/R/automaticFilter/json',
         data: obj
       })
       .then((res) => {
@@ -864,7 +869,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/hermiteSplineFilter/R/getHermiteSplineInterpolation/json',
+        url: ENDPOINT_FILTER+'hermiteSplineFilter/R/getHermiteSplineInterpolation/json',
         data: obj
       })
       .then(res => {
@@ -916,7 +921,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/HampelFilter/R/hampelFilter/json',
+        url: ENDPOINT_FILTER+'HampelFilter/R/hampelFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_hampel: res.data[0],vsfi_filter_hampel:res.data[1],psa_filter_hampel:res.data[2]}, () => this.updateDataFilterHampel())})
@@ -979,7 +984,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/butterworthFilter/R/butterworthFilter/json',
+        url: ENDPOINT_FILTER+'butterworthFilter/R/butterworthFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_butterworth: res.data[0],vsfi_filter_butterworth:res.data[1],psa_filter_butterworth:res.data[2]}, () => this.updateDataFilterButterworth())})
@@ -1033,7 +1038,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/medianFilter/R/MedianFilter/json',
+        url: ENDPOINT_FILTER+'medianFilter/R/MedianFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_median: res.data[0],vsfi_filter_median:res.data[1],psa_filter_median:res.data[2]}, () => this.updateDataFilterMedian())})
@@ -1118,7 +1123,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/exportSignal/R/exportSyncSignal/json',
+        url: ENDPOINT_FILTER+'exportSignal/R/exportSyncSignal/json',
         data: obj
       })
       .then((response) => {
@@ -1170,7 +1175,7 @@ class Home extends Component{
         }
         Axios({
           method: 'POST',
-          url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/exportSignal/R/exportBeatSignal/json',
+          url: ENDPOINT_FILTER+'exportSignal/R/exportBeatSignal/json',
           data: obj
         })
         .then((response) => {
@@ -1217,7 +1222,7 @@ class Home extends Component{
         }
         Axios({
           method: 'POST',
-          url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/exportSignal/R/exportSignal/json',
+          url: ENDPOINT_FILTER+'exportSignal/R/exportSignal/json',
           data: obj
         })
         .then((response) => {
@@ -1249,7 +1254,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.232.203.161:8100/web/post_signal.php',
+        url: ENDPOINT_REPO+'/web/post_signal.php',
         data: JSON.stringify(obj)
       })
       .then(res => {
@@ -1267,7 +1272,7 @@ class Home extends Component{
     handleUploadFile = (file) =>{
       const formData = new FormData()
       formData.append('signal',file)
-      Axios.post('http://35.232.203.161:8100/web/upload_file.php',formData,{
+      Axios.post(ENDPOINT_REPO+'/web/upload_file.php',formData,{
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -1277,13 +1282,14 @@ class Home extends Component{
     handleRegisterUser(event){
       event.preventDefault()
       var obj = {
+        name: this.name_register,
         email: this.state.email,
         password_login: this.state.password,
         password_crypth: this.state.password_c
       }
       Axios({
         method: 'POST',
-        url: 'http://35.232.203.161:8100/web/post_user.php',
+        url: ENDPOINT_REPO+'/web/post_user.php',
         data: JSON.stringify(obj)
       })
       .then(res => {
@@ -1445,9 +1451,9 @@ class Home extends Component{
         }
         let time = this.getSignalTime(vfsd.length)
         var sync_data = this.getSyncHeartBeat2(x_points,vfsd,vfsd_pos,vfsd_lat,vfsi,vfsi_pos,vfsi_lat,psa,psa_pos,psa_lat)
-        var vfsd_markpoint = this.getPeaksBadDetected(sync_data[0].data,vfsd)
-        var vfsi_markpoint = this.getPeaksBadDetected(sync_data[1].data,vfsi)
-        var psa_markpoint = this.getPeaksBadDetected(sync_data[2].data, psa)
+        //var vfsd_markpoint = this.getPeaksBadDetected(sync_data[0].data,vfsd)
+        //var vfsi_markpoint = this.getPeaksBadDetected(sync_data[1].data,vfsi)
+        //var psa_markpoint = this.getPeaksBadDetected(sync_data[2].data, psa)
         this.setState({
           is_signal_sync: true,
           is_heart_beat_detected: false,
@@ -1468,7 +1474,7 @@ class Home extends Component{
             symbolSize: echart_options.series.symbolSize,
             itemStyle:{color:'#d22824'},
             markPoint:sync_data[0],
-            markArea:{data:vfsd_markpoint}
+            //markArea:{data:vfsd_markpoint}
           }],
           serie_vfsi:[{
             name:'VFSI',type:'line',data:vfsi,
@@ -1476,7 +1482,7 @@ class Home extends Component{
             symbolSize: echart_options.series.symbolSize,
             itemStyle:{color:'#d22824'},
             markPoint: sync_data[1],
-            markArea:{data:vfsi_markpoint}
+            //markArea:{data:vfsi_markpoint}
           }],
           serie_psa:[{
             name:'PSA',type:'line',data:psa,
@@ -1484,7 +1490,7 @@ class Home extends Component{
             symbolSize: echart_options.series.symbolSize,
             itemStyle:{color:'#029eb1'},
             markPoint: sync_data[2],
-            markArea:{data:psa_markpoint}
+            //markArea:{data:psa_markpoint}
           }]
         },()=>{
           
@@ -1660,7 +1666,7 @@ class Home extends Component{
         formData.append('filename',filename)
         Axios({
           method:'POST',
-          url:'http://35.232.203.161/ocpu/user/jpmartinez7480/library/readFile/R/read_signal_file/json',
+          url:ENDPOINT_FILTER+'readFile/R/read_signal_file/json',
           data:formData
         })
         .then(res => {
@@ -1684,7 +1690,7 @@ class Home extends Component{
       formData.append('headerfile',header_filename)
       Axios({
         method:'POST',
-        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/readFile/R/read_signal_files/json',
+        url: ENDPOINT_FILTER+'readFile/R/read_signal_files/json',
         data:formData
       })
       .then(res => {
@@ -2392,7 +2398,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/detection/R/detection_upstroke/json',
+        url: ENDPOINT_FILTER+'detection/R/detection_upstroke/json',
         data: obj
       })
       .then((response) => {
@@ -2769,7 +2775,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/detection/R/detection/json',
+        url: ENDPOINT_FILTER+'detection/R/detection/json',
         data: obj
       })
       .then(res => {
@@ -2847,7 +2853,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.232.203.161/ocpu/user/jpmartinez7480/library/sync/R/sync/json',
+        url: ENDPOINT_FILTER+'sync/R/sync/json',
         data: obj
       })
       .then(res=>{
@@ -4028,6 +4034,7 @@ class Home extends Component{
                         
                       </Grid>
                       <Grid item lg = {5} xl = {5} md = {5} style ={{marginLeft:'10px'}} >
+                      <TextField variant="outlined" margin = "dense" required value = {this.state.name_register} placeholder="nombre apellido" className = {classes.input}  onChange={this.handleChangeInput('name_register')} />
                         <TextField variant="outlined" margin = "dense" required value = {this.state.email} placeholder="email@email.com" className = {classes.input}  onChange={this.handleChangeInput('email')} />
                         <TextField variant="outlined" margin = "dense" required value = {this.state.password} type = 'password' placeholder="Clave login" className = {classes.input}  onChange={this.handleChangeInput('password')} />
                         <TextField variant="outlined" margin = "dense" required value = {this.state.password_c} type = 'password' placeholder="Clave cifrado" className = {classes.input}  onChange={this.handleChangeInput('password_c')} />
