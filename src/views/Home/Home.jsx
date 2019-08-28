@@ -301,6 +301,19 @@ const text_automatic = "Debe ingresar los valores de los 3 filtros que serán us
 
 const ENDPOINT_FILTER = process.env.REACT_APP_API_OPENCPU
 const ENDPOINT_REPO = process.env.REACT_APP_API_REPO 
+const ENDPOINT_READFILE = process.env.REACT_APP_API_OPENCPU_READFILE
+const ENDPOINT_READFILES = process.env.REACT_APP_API_OPENCPU_READFILES
+const ENDPOINT_HERMITE = process.env.REACT_APP_API_OPENCPU_HERMITE
+const ENDPOINT_HAMPEL = process.env.REACT_APP_API_OPENCPU_HAMPEL
+const ENDPOINT_BUTTER = process.env.REACT_APP_API_OPENCPU_BUTTER
+const ENDPOINT_MEDIAN = process.env.REACT_APP_API_OPENCPU_MEDIAN
+const ENDPOINT_WATERFALL = process.env.REACT_APP_API_OPENCPU_WATTERFALL
+const ENDPOINT_DETECTION = process.env.REACT_APP_API_OPENCPU_DETECTION
+const ENDPOINT_DETECTION_UPSTROKE = process.env.REACT_APP_API_OPENCPU_DETECTIONUPSTROKE
+const ENDPOINT_SYNC = process.env.REACT_APP_API_OPENCPU_SYNC
+const ENDPOINT_EXPORT = process.env.REACT_APP_API_OPENCPU_EXPORT
+const ENDPOINT_EXPORT_BEAT = process.env.REACT_APP_API_OPENCPU_EXPORTBEAT
+const ENDPOINT_EXPORT_SYNC = process.env.REACT_APP_API_OPENCPU_EXPORTSYNC
 
 
 class Home extends Component{
@@ -813,7 +826,7 @@ class Home extends Component{
       
       Axios({
         method: 'POST',
-        url: ENDPOINT_FILTER+'automaticFilter/R/automaticFilter/json',
+        url: ENDPOINT_WATERFALL,
         data: obj
       })
       .then((res) => {
@@ -869,7 +882,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_FILTER+'hermiteSplineFilter/R/getHermiteSplineInterpolation/json',
+        url: ENDPOINT_HERMITE,
         data: obj
       })
       .then(res => {
@@ -921,7 +934,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_FILTER+'HampelFilter/R/hampelFilter/json',
+        url: ENDPOINT_HAMPEL,
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_hampel: res.data[0],vsfi_filter_hampel:res.data[1],psa_filter_hampel:res.data[2]}, () => this.updateDataFilterHampel())})
@@ -984,7 +997,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_FILTER+'butterworthFilter/R/butterworthFilter/json',
+        url: ENDPOINT_BUTTER,
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_butterworth: res.data[0],vsfi_filter_butterworth:res.data[1],psa_filter_butterworth:res.data[2]}, () => this.updateDataFilterButterworth())})
@@ -1038,7 +1051,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_FILTER+'medianFilter/R/MedianFilter/json',
+        url: ENDPOINT_MEDIAN,
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_median: res.data[0],vsfi_filter_median:res.data[1],psa_filter_median:res.data[2]}, () => this.updateDataFilterMedian())})
@@ -1123,7 +1136,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_FILTER+'exportSignal/R/exportSyncSignal/json',
+        url: ENDPOINT_EXPORT_SYNC,
         data: obj
       })
       .then((response) => {
@@ -1175,7 +1188,7 @@ class Home extends Component{
         }
         Axios({
           method: 'POST',
-          url: ENDPOINT_FILTER+'exportSignal/R/exportBeatSignal/json',
+          url: ENDPOINT_EXPORT_BEAT,
           data: obj
         })
         .then((response) => {
@@ -1222,7 +1235,7 @@ class Home extends Component{
         }
         Axios({
           method: 'POST',
-          url: ENDPOINT_FILTER+'exportSignal/R/exportSignal/json',
+          url: ENDPOINT_EXPORT,
           data: obj
         })
         .then((response) => {
@@ -1666,7 +1679,7 @@ class Home extends Component{
         formData.append('filename',filename)
         Axios({
           method:'POST',
-          url:ENDPOINT_FILTER+'readFile/R/read_signal_file/json',
+          url:ENDPOINT_READFILE,
           data:formData
         })
         .then(res => {
@@ -1690,7 +1703,7 @@ class Home extends Component{
       formData.append('headerfile',header_filename)
       Axios({
         method:'POST',
-        url: ENDPOINT_FILTER+'readFile/R/read_signal_files/json',
+        url: ENDPOINT_READFILES,
         data:formData
       })
       .then(res => {
@@ -2398,7 +2411,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_FILTER+'detection/R/detection_upstroke/json',
+        url: ENDPOINT_DETECTION_UPSTROKE,
         data: obj
       })
       .then((response) => {
@@ -2775,7 +2788,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_FILTER+'detection/R/detection/json',
+        url: ENDPOINT_DETECTION,
         data: obj
       })
       .then(res => {
@@ -2853,7 +2866,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_FILTER+'sync/R/sync/json',
+        url: ENDPOINT_SYNC,
         data: obj
       })
       .then(res=>{
