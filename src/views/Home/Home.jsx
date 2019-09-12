@@ -472,7 +472,8 @@ class Home extends Component{
             age_vol:'',
             examination_day:'',
             type_vol:'',
-            openWaitLoadSignal: false
+            openWaitLoadSignal: false,
+            date_selected: new Date('2019-10-10')
 
         }
         this.onChange = this.onChange.bind(this)
@@ -495,7 +496,7 @@ class Home extends Component{
             echart2.group = 'group1';
             echart3.group = 'group1';
             echart4.group = 'group1';
-            //echarts.connect('group1');
+            echarts.connect('group1');
         }
         
     }
@@ -688,6 +689,10 @@ class Home extends Component{
         this.setState({ value });
     };
     
+
+    handleDateChange = date => event => {
+      this.setState({date_selected: event.target.value}, console.log(date));
+    }
     
     handleChangeInput = name => event => {
       this.setState({ [name]: event.target.value });
@@ -826,7 +831,7 @@ class Home extends Component{
       
       Axios({
         method: 'POST',
-        url: ENDPOINT_WATERFALL,
+        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/automaticFilter/R/automaticFilter/json',
         data: obj
       })
       .then((res) => {
@@ -882,7 +887,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_HERMITE,
+        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/hermiteSplineFilter/R/getHermiteSplineInterpolation/json',
         data: obj
       })
       .then(res => {
@@ -934,7 +939,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_HAMPEL,
+        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/HampelFilter/R/hampelFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_hampel: res.data[0],vsfi_filter_hampel:res.data[1],psa_filter_hampel:res.data[2]}, () => this.updateDataFilterHampel())})
@@ -997,7 +1002,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_BUTTER,
+        url:'http://35.226.34.94/ocpu/user/jpmartinez7480/library/butterworthFilter/R/butterworthFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_butterworth: res.data[0],vsfi_filter_butterworth:res.data[1],psa_filter_butterworth:res.data[2]}, () => this.updateDataFilterButterworth())})
@@ -1051,7 +1056,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_MEDIAN,
+        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/medianFilter/R/medianFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_median: res.data[0],vsfi_filter_median:res.data[1],psa_filter_median:res.data[2]}, () => this.updateDataFilterMedian())})
@@ -1136,7 +1141,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_EXPORT_SYNC,
+        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/exportSignal/R/exportSyncSignal/json',
         data: obj
       })
       .then((response) => {
@@ -1188,7 +1193,7 @@ class Home extends Component{
         }
         Axios({
           method: 'POST',
-          url: ENDPOINT_EXPORT_BEAT,
+          url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/exportSignal/R/exportBeatSignal/json',
           data: obj
         })
         .then((response) => {
@@ -1235,7 +1240,7 @@ class Home extends Component{
         }
         Axios({
           method: 'POST',
-          url: ENDPOINT_EXPORT,
+          url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/exportSignal/R/exportSignal/json',
           data: obj
         })
         .then((response) => {
@@ -1267,7 +1272,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_REPO+'/web/post_signal.php',
+        url: 'http://35.226.34.94:8100/web/post_signal.php',
         data: JSON.stringify(obj)
       })
       .then(res => {
@@ -1285,7 +1290,7 @@ class Home extends Component{
     handleUploadFile = (file) =>{
       const formData = new FormData()
       formData.append('signal',file)
-      Axios.post(ENDPOINT_REPO+'/web/upload_file.php',formData,{
+      Axios.post('http://35.226.34.94:8100/web/upload_file.php',formData,{
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -1302,7 +1307,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_REPO+'/web/post_user.php',
+        url: 'http://35.226.34.94:8100/web/post_user.php',
         data: JSON.stringify(obj)
       })
       .then(res => {
@@ -1679,7 +1684,7 @@ class Home extends Component{
         formData.append('filename',filename)
         Axios({
           method:'POST',
-          url:ENDPOINT_READFILE,
+          url:'http://35.226.34.94/ocpu/user/jpmartinez7480/library/readFile/R/read_signal_file/json',
           data:formData
         })
         .then(res => {
@@ -1703,7 +1708,7 @@ class Home extends Component{
       formData.append('headerfile',header_filename)
       Axios({
         method:'POST',
-        url: ENDPOINT_READFILES,
+        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/readFile/R/read_signal_files/json',
         data:formData
       })
       .then(res => {
@@ -2411,7 +2416,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_DETECTION_UPSTROKE,
+        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/detection/R/detection_upstroke/json',
         data: obj
       })
       .then((response) => {
@@ -2619,7 +2624,7 @@ class Home extends Component{
             markArea:{data:vfsd_markpoint}
         }]
         this.setState({serie_vfsd:vfsd_serie}, ()=>{
-          this.updateOptionsVFSD(Math.ceil(vfsd_beat.data.length/4),this.refs.echarts_react_1.getEchartsInstance().getOption().dataZoom)
+          this.updateOptionsVFSD(Math.round(Math.ceil(vfsd_beat.data.length/4),this.refs.echarts_react_1.getEchartsInstance().getOption().dataZoom))
           this.handleCloseUpstrokeWait()
         })
       }
@@ -2646,7 +2651,7 @@ class Home extends Component{
           markArea:{data:vfsi_markpoint}
         }]
         this.setState({serie_vfsi:vfsi_serie}, ()=>{
-          this.updateOptionsVFSI(Math.ceil(vfsi_beat.data.length/4),this.refs.echarts_react_2.getEchartsInstance().getOption().dataZoom)
+          this.updateOptionsVFSI(Math.round(Math.ceil(vfsi_beat.data.length/4),this.refs.echarts_react_2.getEchartsInstance().getOption().dataZoom))
           this.handleCloseUpstrokeWait()
         })
       }
@@ -2673,7 +2678,7 @@ class Home extends Component{
           markArea:{data:psa_markpoint} 
         }]
         this.setState({serie_psa:psa_serie}, ()=>{
-          this.updateOptionsPSA(Math.ceil(psa_beat.data.length/4),this.refs.echarts_react_3.getEchartsInstance().getOption().dataZoom)
+          this.updateOptionsPSA(Math.round(Math.ceil(psa_beat.data.length/4),this.refs.echarts_react_3.getEchartsInstance().getOption().dataZoom))
           this.handleCloseUpstrokeWait()
         })
       }
@@ -2788,7 +2793,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_DETECTION,
+        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/detection/R/detection/json',
         data: obj
       })
       .then(res => {
@@ -2866,7 +2871,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: ENDPOINT_SYNC,
+        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/sync/R/sync/json',
         data: obj
       })
       .then(res=>{
@@ -3094,8 +3099,9 @@ class Home extends Component{
                                 <Grid item xs = {7} style = {{textAlign:'center',marginBottom:'10px'}}>
                                   <Input 
                                       required
-                                      placeholder="Fecha Examinación" 
-                                      className = {classes.input} 
+                                      className = {classes.input}
+                                      style ={{width:'64%'}}
+                                      type="date"
                                       value = {this.state.examination_day} 
                                       onChange={this.handleChangeInput('examination_day')} 
                                   />
