@@ -152,7 +152,7 @@ class Repository extends Component{
     componentDidMount(){
         Axios({
             method: 'GET',
-            url: 'http://35.226.34.94:8100/web/get_signals.php',
+            url: '',
           })
           .then(res => {
             if(res.data.status !== 2)
@@ -164,7 +164,7 @@ class Repository extends Component{
         
         Axios({
             method:'GET',
-            url: 'http://35.226.34.94:8100/web/download.php?file='+name+'.zip',
+            url: '',
             responseType: 'arraybuffer'
         })
         .then((response) => {
@@ -187,7 +187,7 @@ class Repository extends Component{
             
             },
             method:'GET',
-            url:'http://35.226.34.94:8100/repository/'+name+'.zip',
+            url:'',
             responseType: 'arraybuffer'
         })
         .then((response) => {
