@@ -831,7 +831,7 @@ class Home extends Component{
       
       Axios({
         method: 'POST',
-        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/automaticFilter/R/automaticFilter/json',
+        url: '',
         data: obj
       })
       .then((res) => {
@@ -887,7 +887,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/hermiteSplineFilter/R/getHermiteSplineInterpolation/json',
+        url: '',
         data: obj
       })
       .then(res => {
@@ -939,7 +939,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/HampelFilter/R/hampelFilter/json',
+        url: '',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_hampel: res.data[0],vsfi_filter_hampel:res.data[1],psa_filter_hampel:res.data[2]}, () => this.updateDataFilterHampel())})
@@ -1002,7 +1002,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url:'http://35.226.34.94/ocpu/user/jpmartinez7480/library/butterworthFilter/R/butterworthFilter/json',
+        url:'',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_butterworth: res.data[0],vsfi_filter_butterworth:res.data[1],psa_filter_butterworth:res.data[2]}, () => this.updateDataFilterButterworth())})
@@ -1056,7 +1056,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/medianFilter/R/medianFilter/json',
+        url: '',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_median: res.data[0],vsfi_filter_median:res.data[1],psa_filter_median:res.data[2]}, () => this.updateDataFilterMedian())})
@@ -1141,7 +1141,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/exportSignal/R/exportSyncSignal/json',
+        url: '',
         data: obj
       })
       .then((response) => {
@@ -1193,7 +1193,7 @@ class Home extends Component{
         }
         Axios({
           method: 'POST',
-          url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/exportSignal/R/exportBeatSignal/json',
+          url: '',
           data: obj
         })
         .then((response) => {
@@ -1240,7 +1240,7 @@ class Home extends Component{
         }
         Axios({
           method: 'POST',
-          url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/exportSignal/R/exportSignal/json',
+          url: '',
           data: obj
         })
         .then((response) => {
@@ -1272,7 +1272,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.226.34.94:8100/web/post_signal.php',
+        url: '',
         data: JSON.stringify(obj)
       })
       .then(res => {
@@ -1290,7 +1290,7 @@ class Home extends Component{
     handleUploadFile = (file) =>{
       const formData = new FormData()
       formData.append('signal',file)
-      Axios.post('http://35.226.34.94:8100/web/upload_file.php',formData,{
+      Axios.post('',formData,{
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -1307,7 +1307,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.226.34.94:8100/web/post_user.php',
+        url: '',
         data: JSON.stringify(obj)
       })
       .then(res => {
@@ -1684,7 +1684,7 @@ class Home extends Component{
         formData.append('filename',filename)
         Axios({
           method:'POST',
-          url:'http://35.226.34.94/ocpu/user/jpmartinez7480/library/readFile/R/read_signal_file/json',
+          url:'',
           data:formData
         })
         .then(res => {
@@ -1708,7 +1708,7 @@ class Home extends Component{
       formData.append('headerfile',header_filename)
       Axios({
         method:'POST',
-        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/readFile/R/read_signal_files/json',
+        url: '',
         data:formData
       })
       .then(res => {
@@ -2416,7 +2416,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/detection/R/detection_upstroke/json',
+        url: '',
         data: obj
       })
       .then((response) => {
@@ -2793,7 +2793,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/detection/R/detection/json',
+        url: '',
         data: obj
       })
       .then(res => {
@@ -2871,7 +2871,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: 'http://35.226.34.94/ocpu/user/jpmartinez7480/library/sync/R/sync/json',
+        url: '',
         data: obj
       })
       .then(res=>{
