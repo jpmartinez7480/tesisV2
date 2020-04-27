@@ -106,9 +106,8 @@ class Tutorial extends Component{
                                 </ExpansionPanelSummary>
                                 <ExpansionPanelDetails>
                                     <Typography className={classes.heading}>
-                                        Para leer los archivos de señales debe hacer click en el botón 'Original' o 'Procesado'. El primero mostrará un cuadro de 
-                                        dialogo que deberá llenar antes de cargar el archivo .exp de señal. Es importante destacar que se debe ingresar nombre y apellido 
-                                        del voluntario separado por un espacio. El botón 'Procesado' permite leer un archivo que haya sido filtrado o un archivo que haya
+                                        Para leer los archivos de señales debe hacer click en el botón 'Nueva señal' o 'Señal Procesada'. El primero mostrará un cuadro de 
+                                        dialogo que deberá llenar antes de cargar el archivo .exp de señal. El botón 'Señal Procesada' permite leer un archivo que haya sido filtrado o un archivo que haya
                                         sido sincronizado. Para ello se deben seleecionar los archivos .hdr y .fil o .sync de la señal a leer.
                                     </Typography>
                                 </ExpansionPanelDetails>
@@ -124,7 +123,7 @@ class Tutorial extends Component{
                                 <ExpansionPanelDetails>
                                     <Typography className={classes.heading}>
                                         El formato de archivo .exp es de cuatro columnas con: primera columna tiempo de muestra, segunda columna velocidad flujo sanguíneo cerebral derecho,
-                                        velocidad flujo sanguíneo cerebral izquierdo, presión sanguínea y EtCO2. Un ejemplo del formato se puede ver en la imagen adjunta.
+                                        velocidad flujo sanguíneo cerebral izquierdo, presión sanguínea y EtCO2. Se diseñó un script en Python que permite modificar el archivo en el formato solicitado. Para ello visite el siguiente repositorio GitHub <a href="https://github.com/jpmartinez7480/scriptSignalPreprocesing">https://github.com/jpmartinez7480/scriptSignalPreprocesing</a>
                                     </Typography>
                                 </ExpansionPanelDetails>
                             </ExpansionPanel>
@@ -209,8 +208,7 @@ class Tutorial extends Component{
                                 </ExpansionPanelSummary>
                                 <ExpansionPanelDetails>
                                     <Typography className={classes.heading}>
-                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex,
-                                        sit amet blandit leo lobortis eget.
+                                        La señal que se esta trabajando puede ser exportada en cualquier momento. Para ello debe hacer click en el botón guardado que se encuentra en el componente de señales en la parte derecha de su pantalla.
                                     </Typography>
                                 </ExpansionPanelDetails>
                             </ExpansionPanel>
@@ -224,8 +222,8 @@ class Tutorial extends Component{
                                 </ExpansionPanelSummary>
                                 <ExpansionPanelDetails>
                                     <Typography className={classes.heading}>
-                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex,
-                                        sit amet blandit leo lobortis eget.
+                                        Una vez la señal haya pasado por el proceso de sincronización se puede descargar la señal y guardar una copia en el repositorio público de señales. Para ello debe registrarse como colaborador en la plataforma.
+                                        Luego, debe seguir las instrucciones dadas por la plataforma.
                                     </Typography>
                                 </ExpansionPanelDetails>
                             </ExpansionPanel>
@@ -239,8 +237,8 @@ class Tutorial extends Component{
                                 </ExpansionPanelSummary>
                                 <ExpansionPanelDetails>
                                     <Typography className={classes.heading}>
-                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex,
-                                        sit amet blandit leo lobortis eget.
+                                        El proceso de detectar latidos se debe realizar una vez el usuario haya determinado que la señal se encuentra con el menor nivel de ruido posible. Luego, debe seleccionar en el componente Señales a mano derecha la señal a trabajar 
+                                        para luego hacer click en el menú lateral izquierdo en el ícono de detección de latidos. Una vez el proceso termine se mostrará en todas las señales los puntos inicio de latido, upstroke y peak de latido.
                                     </Typography>
                                 </ExpansionPanelDetails>
                             </ExpansionPanel>
@@ -254,8 +252,7 @@ class Tutorial extends Component{
                                 </ExpansionPanelSummary>
                                 <ExpansionPanelDetails>
                                     <Typography className={classes.heading}>
-                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex,
-                                        sit amet blandit leo lobortis eget.
+                                        Este proceso le permitirá corregir algún punto de latido que haya sido mal detectado. La plataforma le mostrará sombreado en color rojo el latido que presente algún punto mal detectado.
                                     </Typography>
                                 </ExpansionPanelDetails>
                             </ExpansionPanel>
@@ -269,8 +266,8 @@ class Tutorial extends Component{
                                 </ExpansionPanelSummary>
                                 <ExpansionPanelDetails>
                                     <Typography className={classes.heading}>
-                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse malesuada lacus ex,
-                                        sit amet blandit leo lobortis eget.
+                                        Este proceso le permitirá sincronizar el desface de señales (entre la velocidad del flujo sanguíneo de ambos hemisferios con la PSA) que se produce al tomar la muestra de estas. Recordar que el desface se produce porque 
+                                        la PSA se mide a través de una arteria periférica.
                                     </Typography>
                                 </ExpansionPanelDetails>
                             </ExpansionPanel>

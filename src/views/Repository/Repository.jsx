@@ -155,6 +155,7 @@ class Repository extends Component{
             url: '',
           })
           .then(res => {
+              console.log(res)
             if(res.data.status !== 2)
               this.setState({isConnected: true, signals_repository:res.data.data})
           })          

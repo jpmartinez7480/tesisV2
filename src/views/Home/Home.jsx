@@ -112,7 +112,7 @@ const styles = theme => ({
       color: 'white',
       backgroundColor: '#3358F4',
       marginTop: '10px',
-      marginBottom: '10px'
+      marginBottom: '10px',
     },
     formControl: {
       margin: theme.spacing.unit * 3,
@@ -469,6 +469,7 @@ class Home extends Component{
             filename_header: null,
             can_filter:true,
             patient_name:'',
+            patient_lastname: '',
             age_vol:'',
             examination_day:'',
             type_vol:'',
@@ -1107,7 +1108,7 @@ class Home extends Component{
       var examinator={}
       history = this.state.history[this.state.is_signal_cut ? aux : aux-1].dialog
       var volunteer_data = {
-        volunteer:this.state.patient_name,
+        volunteer:this.state.patient_name + this.state.patient_lastname,
         examination_day:this.state.examination_day,
         age:this.state.age_vol,
         type_volunteer:this.state.type_vol,
@@ -1161,7 +1162,7 @@ class Home extends Component{
       this.handleOpenExportSignalWait()
       var history = {}
       var volunteer_data = {
-        volunteer:this.state.patient_name,
+        volunteer:this.state.patient_name + this.state.patient_lastname,
         examination_day:this.state.examination_day,
         age:this.state.age_vol,
         type_volunteer:this.state.type_vol,
@@ -3037,13 +3038,13 @@ class Home extends Component{
                     <Button 
                       variant = "contained" 
                       className = {classes.myPrimaryColor}
-                      onClick = {this.handleClickOpen}>Original
+                      onClick = {this.handleClickOpen}>Nueva señal
                     </Button>
                     <Button 
                       variant = "contained" 
                       className = {classes.myPrimaryColor}
                       style = {{marginLeft:'15px'}}
-                      onClick = {this.handleClickOpen2}>Procesado
+                      onClick = {this.handleClickOpen2}>Señal procesada
                     </Button>
                   </div>
                   <div>
@@ -3090,10 +3091,19 @@ class Home extends Component{
                                 <Grid item xs = {7} style = {{textAlign:'center',marginBottom:'10px'}}>
                                   <Input 
                                     required
-                                    placeholder="Nombre del voluntario" 
+                                    placeholder="Nombre de voluntario" 
                                     className = {classes.input} 
                                     value = {this.state.patient_name} 
                                     onChange={this.handleChangeInput('patient_name')} 
+                                  />
+                                </Grid>
+                                <Grid item xs = {7} style = {{textAlign:'center',marginBottom:'10px'}}>
+                                  <Input 
+                                    required
+                                    placeholder="Apellido de voluntario" 
+                                    className = {classes.input} 
+                                    value = {this.state.patient_lastname} 
+                                    onChange={this.handleChangeInput('patient_lastname')} 
                                   />
                                 </Grid>
                                 <Grid item xs = {7} style = {{textAlign:'center',marginBottom:'10px'}}>
