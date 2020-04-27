@@ -832,7 +832,7 @@ class Home extends Component{
       
       Axios({
         method: 'POST',
-        url: '',
+        url: 'http://35.225.146.184/ocpu/user/jpmartinez7480/library/automaticFilter/R/automaticFilter/json',
         data: obj
       })
       .then((res) => {
@@ -888,7 +888,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: '',
+        url: 'http://35.225.146.184/ocpu/user/jpmartinez7480/library/hermiteSplineFilter/R/getHermiteSplineInterpolation/json',
         data: obj
       })
       .then(res => {
@@ -940,7 +940,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: '',
+        url: 'http://35.225.146.184/ocpu/user/jpmartinez7480/library/HampelFilter/R/hampelFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_hampel: res.data[0],vsfi_filter_hampel:res.data[1],psa_filter_hampel:res.data[2]}, () => this.updateDataFilterHampel())})
@@ -1003,7 +1003,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url:'',
+        url:'http://35.225.146.184/ocpu/user/jpmartinez7480/library/butterworthFilter/R/butterworthFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_butterworth: res.data[0],vsfi_filter_butterworth:res.data[1],psa_filter_butterworth:res.data[2]}, () => this.updateDataFilterButterworth())})
@@ -1057,7 +1057,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: '',
+        url: 'http://35.225.146.184/ocpu/user/jpmartinez7480/library/medianFilter/R/medianFilter/json',
         data: obj
       })
       //.then(res => {this.setState({vsfd_filter_median: res.data[0],vsfi_filter_median:res.data[1],psa_filter_median:res.data[2]}, () => this.updateDataFilterMedian())})
@@ -1142,7 +1142,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: '',
+        url: 'http://35.225.146.184/ocpu/user/jpmartinez7480/library/exportSignal/R/exportSyncSignal/json',
         data: obj
       })
       .then((response) => {
@@ -1194,7 +1194,7 @@ class Home extends Component{
         }
         Axios({
           method: 'POST',
-          url: '',
+          url: 'http://35.225.146.184/ocpu/user/jpmartinez7480/library/exportSignal/R/exportBeatSignal/json',
           data: obj
         })
         .then((response) => {
@@ -1241,7 +1241,7 @@ class Home extends Component{
         }
         Axios({
           method: 'POST',
-          url: '',
+          url: 'http://35.225.146.184/ocpu/user/jpmartinez7480/library/exportSignal/R/exportSignal/json',
           data: obj
         })
         .then((response) => {
@@ -1273,7 +1273,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: '',
+        url: 'http://35.225.146.184:8100/web/post_signal.php',
         data: JSON.stringify(obj)
       })
       .then(res => {
@@ -1291,7 +1291,7 @@ class Home extends Component{
     handleUploadFile = (file) =>{
       const formData = new FormData()
       formData.append('signal',file)
-      Axios.post('',formData,{
+      Axios.post('http://35.225.146.184:8100/web/upload_file.php',formData,{
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -1308,7 +1308,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: '',
+        url: 'http://35.225.146.184:8100/web/post_user.php',
         data: JSON.stringify(obj)
       })
       .then(res => {
@@ -1621,7 +1621,7 @@ class Home extends Component{
         aux_name = this.state.filename.name.substring(0,10)+'...'+this.state.filename.name.substring(this.state.filename.name.length-5,this.state.filename.name.length)
       else aux_name = this.state.filename.name
       var today = new Date()
-      var patient_name = this.state.patient_name.split(" ")
+      var patient_name = (this.state.patient_name + " " + this.state.patient_lastname).split(" ")
       var filename_signal = patient_name[0][0]+patient_name[0][3]+patient_name[1][0]+patient_name[1][3]+String(today.getFullYear()).substring(2,4)+String(today.getMonth()+1)
       this.setState({x_points_vfs:x_points,signals_history:[{filter:'Inicial'}],signal_time:time, saved_name_signal:filename_signal.toUpperCase()})
       this.state.serie_vfsd.push({
@@ -1685,7 +1685,7 @@ class Home extends Component{
         formData.append('filename',filename)
         Axios({
           method:'POST',
-          url:'',
+          url:'http://35.225.146.184/ocpu/user/jpmartinez7480/library/readFile/R/read_signal_file/json',
           data:formData
         })
         .then(res => {
@@ -1709,7 +1709,7 @@ class Home extends Component{
       formData.append('headerfile',header_filename)
       Axios({
         method:'POST',
-        url: '',
+        url: 'http://35.225.146.184/ocpu/user/jpmartinez7480/library/readFile/R/read_signal_files/json',
         data:formData
       })
       .then(res => {
@@ -2417,7 +2417,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: '',
+        url: 'http://35.225.146.184/ocpu/user/jpmartinez7480/library/detection/R/detection_upstroke/json',
         data: obj
       })
       .then((response) => {
@@ -2794,7 +2794,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: '',
+        url: 'http://35.225.146.184/ocpu/user/jpmartinez7480/library/detection/R/detection/json',
         data: obj
       })
       .then(res => {
@@ -2872,7 +2872,7 @@ class Home extends Component{
       }
       Axios({
         method: 'POST',
-        url: '',
+        url: 'http://35.225.146.184/ocpu/user/jpmartinez7480/library/sync/R/sync/json',
         data: obj
       })
       .then(res=>{
